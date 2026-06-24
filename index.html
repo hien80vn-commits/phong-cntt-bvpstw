@@ -68,6 +68,33 @@ ul { list-style: none; }
 .nav-links a:hover, .nav-links a.active { background: var(--purple); color: #fff; }
 .hamburger { display: none; background: none; border: none; cursor: pointer; padding: .5rem; }
 .hamburger span { display: block; width: 24px; height: 2px; background: var(--purple); margin: 5px 0; transition: .3s; }
+/* NAV USER */
+.nav-user { display: flex; align-items: center; gap: .6rem; }
+.nav-user-badge { background: rgba(107,45,139,.1); color: var(--purple-d); font-size: .8rem; font-weight: 700; padding: .35rem .9rem; border-radius: 999px; }
+.nav-btn-login { background: var(--purple); color: #fff; border: none; padding: .45rem 1.1rem; border-radius: 8px; font-family: var(--font); font-size: .85rem; font-weight: 600; cursor: pointer; transition: opacity .2s; }
+.nav-btn-login:hover { opacity: .85; }
+.nav-btn-logout { background: none; border: 2px solid var(--border); color: var(--muted); padding: .35rem .8rem; border-radius: 8px; font-family: var(--font); font-size: .78rem; font-weight: 600; cursor: pointer; transition: .2s; }
+.nav-btn-logout:hover { border-color: var(--pink); color: var(--pink); }
+/* LOGIN MODAL */
+.lmodal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 1rem; opacity: 0; pointer-events: none; transition: opacity .25s; }
+.lmodal-overlay.open { opacity: 1; pointer-events: all; }
+.lmodal { background: #fff; border-radius: 20px; width: 100%; max-width: 400px; overflow: hidden; transform: translateY(16px); transition: transform .25s; }
+.lmodal-overlay.open .lmodal { transform: translateY(0); }
+.lmodal-top { background: linear-gradient(135deg, var(--purple-d), var(--purple-l)); padding: 2rem; text-align: center; color: #fff; position: relative; }
+.lmodal-top h3 { font-size: 1.2rem; font-weight: 800; margin-bottom: .3rem; }
+.lmodal-top p { font-size: .82rem; opacity: .85; }
+.lmodal-close { position: absolute; top: .9rem; right: .9rem; background: rgba(255,255,255,.2); border: none; color: #fff; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; }
+.lmodal-body { padding: 1.75rem; }
+.lfield { margin-bottom: 1rem; }
+.lfield label { display: block; font-size: .82rem; font-weight: 700; color: var(--purple-d); margin-bottom: .4rem; }
+.lfield select, .lfield input { width: 100%; padding: .65rem 1rem; border: 2px solid var(--border); border-radius: 10px; font-family: var(--font); font-size: .9rem; outline: none; transition: .2s; background: var(--bg); }
+.lfield select:focus, .lfield input:focus { border-color: var(--purple); background: #fff; }
+.lbtn { width: 100%; padding: .8rem; border-radius: 10px; border: none; background: linear-gradient(135deg, var(--purple), var(--pink)); color: #fff; font-family: var(--font); font-weight: 700; font-size: 1rem; cursor: pointer; transition: opacity .2s; margin-top: .25rem; }
+.lbtn:hover { opacity: .88; }
+.lerr { background: #ffeaea; border: 1px solid #f5c6cb; color: #c0392b; border-radius: 8px; padding: .55rem 1rem; font-size: .82rem; margin-bottom: .9rem; display: none; }
+.lnote { font-size: .74rem; color: var(--muted); text-align: center; margin-top: .9rem; line-height: 1.6; }
+/* Ẩn link lịch trực và báo cáo khi chưa đăng nhập */
+.protected-link { display: none; }
 
 /* =========================================================
    HERO
@@ -383,8 +410,17 @@ ul { list-style: none; }
       <a href="#intro">Giới thiệu</a>
       <a href="#groups">10 Nhóm công tác</a>
       <a href="#staff">Nhân sự</a>
-      <a href="lich-truc.html">🗓️ Lịch trực</a>
-      <a href="report.html" style="background:var(--pink);color:#fff;">📋 Cổng báo cáo</a>
+      <a href="lich-truc.html" class="protected-link" id="nav-lichtruc">🗓️ Lịch trực</a>
+      <a href="report.html" class="protected-link" id="nav-baocao" style="background:var(--pink);color:#fff;">📋 Cổng báo cáo</a>
+    </div>
+    <div class="nav-user" id="nav-user-area">
+      <div id="nav-guest">
+        <button class="nav-btn-login" onclick="openLoginModal()">🔐 Đăng nhập</button>
+      </div>
+      <div id="nav-logged" style="display:none; align-items:center; gap:.6rem; display:none;">
+        <span class="nav-user-badge" id="nav-username"></span>
+        <button class="nav-btn-logout" onclick="doLogout()">Đăng xuất</button>
+      </div>
     </div>
     <button class="hamburger" onclick="toggleMenu()" aria-label="Menu">
       <span></span><span></span><span></span>
@@ -567,6 +603,31 @@ ul { list-style: none; }
       <button class="modal-close" onclick="closeModalDirect()">✕</button>
     </div>
     <div class="modal-body" id="m-body"></div>
+  </div>
+</div>
+
+<!-- ===================== LOGIN MODAL ===================== -->
+<div class="lmodal-overlay" id="loginModal" onclick="if(event.target===this)closeLoginModal()">
+  <div class="lmodal">
+    <div class="lmodal-top">
+      <div style="font-size:2.5rem;margin-bottom:.5rem;">🔐</div>
+      <h3>Đăng nhập hệ thống</h3>
+      <p>Phòng Công nghệ thông tin – BVPSTW</p>
+      <button class="lmodal-close" onclick="closeLoginModal()">✕</button>
+    </div>
+    <div class="lmodal-body">
+      <div class="lerr" id="lerr"></div>
+      <div class="lfield">
+        <label>Họ và tên</label>
+        <select id="login-name"><option value="">-- Chọn tên của bạn --</option></select>
+      </div>
+      <div class="lfield">
+        <label>Mật khẩu</label>
+        <input type="password" id="login-pw" placeholder="Nhập mật khẩu..." onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <button class="lbtn" onclick="doLogin()">Đăng nhập →</button>
+      <p class="lnote">Mật khẩu mặc định: <strong>cntt2026</strong><br>Liên hệ Tổ trưởng nếu quên mật khẩu.</p>
+    </div>
   </div>
 </div>
 
@@ -962,6 +1023,70 @@ function switchTab(id, btn){
 function toggleMenu(){
   document.getElementById('navLinks').classList.toggle('open');
 }
+
+/* =====================================================
+   AUTH
+===================================================== */
+function getPwKey(n){ return 'cntt_pw_'+n; }
+function getUserPw(n){ return localStorage.getItem(getPwKey(n))||'cntt2026'; }
+function getSession(){ try{return JSON.parse(sessionStorage.getItem('cntt_session'))||null;}catch(e){return null;} }
+function setSession(s){ sessionStorage.setItem('cntt_session',JSON.stringify(s)); }
+function clearSession(){ sessionStorage.removeItem('cntt_session'); }
+
+function openLoginModal(){
+  // Populate select
+  const sel=document.getElementById('login-name');
+  sel.innerHTML='<option value="">-- Chọn tên của bạn --</option>';
+  [...STAFF].sort(staffSortCompare).forEach(s=>{
+    const o=document.createElement('option'); o.value=s.id; o.textContent=s.name+(s.position?' ('+s.position+')':''); sel.appendChild(o);
+  });
+  document.getElementById('login-pw').value='';
+  document.getElementById('lerr').style.display='none';
+  document.getElementById('loginModal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeLoginModal(){
+  document.getElementById('loginModal').classList.remove('open');
+  document.body.style.overflow='';
+}
+function doLogin(){
+  const uid=document.getElementById('login-name').value;
+  const pw=document.getElementById('login-pw').value;
+  const lerr=document.getElementById('lerr');
+  if(!uid){ lerr.textContent='Vui lòng chọn tên!'; lerr.style.display='block'; return; }
+  const s=STAFF.find(x=>x.id===+uid); if(!s) return;
+  if(pw!==getUserPw(s.name)){ lerr.textContent='Mật khẩu không đúng, vui lòng thử lại.'; lerr.style.display='block'; return; }
+  lerr.style.display='none';
+  const role=['Trưởng phòng','Phó Trưởng phòng'].includes(s.position)?'lanh_dao':s.position==='Tổ trưởng công tác'?'to_truong':s.position==='Trưởng nhóm'?'leader':'staff';
+  setSession({id:s.id, name:s.name, role});
+  closeLoginModal();
+  applyAuthState();
+  showToast('✅ Đăng nhập thành công! Chào '+s.name);
+}
+function doLogout(){
+  clearSession();
+  applyAuthState();
+  showToast('Đã đăng xuất.');
+}
+function applyAuthState(){
+  const sess=getSession();
+  const guest=document.getElementById('nav-guest');
+  const logged=document.getElementById('nav-logged');
+  const links=document.querySelectorAll('.protected-link');
+  if(sess){
+    guest.style.display='none';
+    logged.style.display='flex';
+    document.getElementById('nav-username').textContent='👤 '+sess.name;
+    links.forEach(l=>l.style.display='inline-block');
+  } else {
+    guest.style.display='block';
+    logged.style.display='none';
+    links.forEach(l=>l.style.display='none');
+  }
+}
+
+// Kiểm tra session khi load
+applyAuthState();
 
 function showToast(msg){
   const t=document.getElementById('toast');

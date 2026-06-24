@@ -246,17 +246,7 @@ button { font-family: var(--font); }
 </div>
 
 <!-- LOGIN -->
-<div id="login-screen">
-  <div class="login-box">
-    <h2>Đăng nhập hệ thống lịch trực</h2>
-    <p class="sub">Sử dụng tài khoản nhân sự Phòng CNTT</p>
-    <div class="fg"><label>Chọn họ tên</label><select id="sel-u"><option value="">-- Chọn tên --</option></select></div>
-    <div class="fg"><label>Mật khẩu</label><input type="password" id="inp-pin" placeholder="Nhập mật khẩu..." onkeydown="if(event.key==='Enter')doLogin()"></div>
-    <div class="login-err" id="lerr">Mật khẩu không đúng, vui lòng thử lại.</div>
-    <button class="btn btn-primary" onclick="doLogin()">Đăng nhập</button>
-    <p class="login-hint">Dùng chung tài khoản với Cổng báo cáo.<br>Mật khẩu mặc định: <strong>cntt2026</strong></p>
-  </div>
-</div>
+<!-- Không cần màn hình đăng nhập — dùng session từ trang chủ -->
 
 <!-- MAIN APP -->
 <div id="main-wrap" class="hide">
@@ -511,11 +501,7 @@ function doLogin(){
 function doLogout(){
   user = null;
   clearSession();
-  document.getElementById('main-wrap').classList.add('hide');
-  document.getElementById('nav-user').classList.remove('show');
-  document.getElementById('login-screen').classList.remove('hide');
-  document.getElementById('inp-pin').value = '';
-  populateSel();
+  window.location.href = 'index.html';
 }
 
 /* ===== TABS ===== */
@@ -964,12 +950,11 @@ function clearAllSchedule(){
 /* ===== INIT ===== */
 populateSel();
 initSchedule();
-// Tự động đăng nhập nếu đã có session từ Cổng báo cáo
 (function(){
   const sess = getSession();
-  if(!sess) return;
+  if(!sess){ window.location.href='index.html'; return; }
   const s = staffById(sess.id);
-  if(!s) return;
+  if(!s){ window.location.href='index.html'; return; }
   enterUser(s);
 })();
 </script>
