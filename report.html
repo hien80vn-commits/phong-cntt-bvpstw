@@ -200,29 +200,7 @@ a{color:inherit;text-decoration:none}
   </div>
 </nav>
 
-<!-- LOGIN -->
-<div id="login-screen">
-  <div class="login-box">
-    <div class="login-hero">
-      <div class="icon">🔐</div>
-      <h2>Đăng nhập Cổng báo cáo</h2>
-      <p>Phòng Công nghệ thông tin – BVPSTW</p>
-    </div>
-    <div class="login-body">
-      <div class="login-error" id="login-error"></div>
-      <div class="form-row">
-        <label>Nhân viên</label>
-        <select id="login-name"><option value="">-- Chọn tên của bạn --</option></select>
-      </div>
-      <div class="form-row">
-        <label>Mật khẩu</label>
-        <input type="password" id="login-pw" placeholder="Nhập mật khẩu..." onkeydown="if(event.key==='Enter')doLogin()">
-      </div>
-      <button class="btn-login" onclick="doLogin()">Đăng nhập →</button>
-      <p class="login-note">Mật khẩu mặc định: <strong>cntt2026</strong><br>Sau khi đăng nhập hãy đổi mật khẩu ngay.<br>Liên hệ Tổ trưởng nếu quên mật khẩu.</p>
-    </div>
-  </div>
-</div>
+<!-- Đăng nhập tập trung qua trang chủ index.html -->
 
 <!-- APP -->
 <div id="app-screen">
@@ -607,7 +585,7 @@ const DEFAULT_PW = 'cntt2026';
 /* =====================================================
    HELPERS
 ===================================================== */
-function getPwKey(n){ return 'pw_'+n; }
+function getPwKey(n){ return 'cntt_pw_'+n; }
 function getUserPw(n){ return localStorage.getItem(getPwKey(n))||DEFAULT_PW; }
 function setUserPw(n,p){ localStorage.setItem(getPwKey(n),p); }
 function getSession(){ try{return JSON.parse(sessionStorage.getItem('cntt_session'))||null;}catch(e){return null;} }
@@ -706,9 +684,6 @@ function renderReport(r, showAuthor=false, canDelete=false, type=null, globalIdx
    INIT
 ===================================================== */
 document.addEventListener('DOMContentLoaded',()=>{
-  const sel=document.getElementById('login-name');
-  STAFF.forEach(s=>{const o=document.createElement('option');o.value=s.name;o.textContent=s.name+' – '+s.position;sel.appendChild(o);});
-
   const ysel=document.getElementById('y-year');
   for(let y=2026;y>=2011;y--){const o=document.createElement('option');o.value=o.textContent=y;ysel.appendChild(o);}
 
@@ -720,7 +695,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('wb-date').textContent=new Date().toLocaleDateString('vi-VN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 
   const session=getSession();
-  if(session) enterApp(session);
+  if(session){ enterApp(session); }
+  else { window.location.href='index.html'; }
 });
 
 function getMonday(){
@@ -745,11 +721,13 @@ function doLogin(){
 }
 
 function enterApp(session){
+  // Re-resolve staff by name to fix ID mismatch from index.html
+  const staffMatch=STAFF.find(s=>s.name===session.name);
+  if(staffMatch){ session.id=staffMatch.id; session.role=staffMatch.role; session.position=staffMatch.position; }
   // Refresh effective groups in case overrides changed
   session.groups=getEffectiveGroups(session.id);
   setSession(session);
 
-  document.getElementById('login-screen').style.display='none';
   document.getElementById('app-screen').style.display='block';
 
   // Reset section nav & sections to default state (prevents state leak between logins)
@@ -885,13 +863,7 @@ function populateInboxReporterFilter(session){
 
 function logout(){
   clearSession();
-  document.getElementById('app-screen').style.display='none';
-  document.getElementById('login-screen').style.display='flex';
-  document.getElementById('user-info').style.display='none';
-  document.getElementById('btn-logout').style.display='none';
-  document.getElementById('btn-change-pw').style.display='none';
-  document.getElementById('login-pw').value='';
-  document.getElementById('login-name').value='';
+  window.location.href='index.html';
 }
 
 /* =====================================================
