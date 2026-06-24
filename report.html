@@ -721,6 +721,13 @@ function getMonday(){
 function doLogin(){ /* Đăng nhập thực hiện tại trang chủ index.html */ }
 
 function enterApp(session){
+  // Tra lại đúng nhân viên theo tên để tránh ID mismatch từ index.html
+  const staffMatch=STAFF.find(s=>s.name===session.name);
+  if(staffMatch){
+    session.id=staffMatch.id;
+    session.role=staffMatch.role;
+    session.position=staffMatch.position;
+  }
   // Refresh effective groups in case overrides changed
   session.groups=getEffectiveGroups(session.id);
   setSession(session);
