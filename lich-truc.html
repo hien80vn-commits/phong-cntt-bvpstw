@@ -251,10 +251,10 @@ button { font-family: var(--font); }
     <h2>Đăng nhập hệ thống lịch trực</h2>
     <p class="sub">Sử dụng tài khoản nhân sự Phòng CNTT</p>
     <div class="fg"><label>Chọn họ tên</label><select id="sel-u"><option value="">-- Chọn tên --</option></select></div>
-    <div class="fg"><label>Mã PIN &nbsp;(Quản trị: 0000 · Nhân viên: 1234)</label><input type="password" id="inp-pin" maxlength="4" placeholder="Nhập PIN"></div>
-    <div class="login-err" id="lerr">PIN không đúng, vui lòng thử lại.</div>
+    <div class="fg"><label>Mật khẩu</label><input type="password" id="inp-pin" placeholder="Nhập mật khẩu..." onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <div class="login-err" id="lerr">Mật khẩu không đúng, vui lòng thử lại.</div>
     <button class="btn btn-primary" onclick="doLogin()">Đăng nhập</button>
-    <p class="login-hint">PIN mặc định theo vai trò. Có thể đề nghị Tổ trưởng công tác đổi PIN riêng nếu cần.</p>
+    <p class="login-hint">Dùng chung tài khoản với Cổng báo cáo.<br>Mật khẩu mặc định: <strong>cntt2026</strong></p>
   </div>
 </div>
 
@@ -480,14 +480,14 @@ function populateSel(){
     sel.appendChild(o);
   });
 }
-function doLogin(){
-  const uid = document.getElementById('sel-u').value;
-  const pin = document.getElementById('inp-pin').value;
-  if(!uid){ alert('Vui lòng chọn tên!'); return; }
-  const s = staffById(+uid); if(!s) return;
+function getPwKey(name){ return 'cntt_pw_' + name; }
+function getUserPw(name){ return localStorage.getItem(getPwKey(name)) || 'cntt2026'; }
+function getSession(){ try{ return JSON.parse(sessionStorage.getItem('cntt_session'))||null; }catch(e){ return null; } }
+function setSession(s){ sessionStorage.setItem('cntt_session', JSON.stringify(s)); }
+function clearSession(){ sessionStorage.removeItem('cntt_session'); }
+
+function enterUser(s){
   const isAdmin = isAdminPosition(s.position);
-  if(pin !== (isAdmin ? '0000' : '1234')){ document.getElementById('lerr').style.display='block'; return; }
-  document.getElementById('lerr').style.display='none';
   user = {id:s.id, name:s.name, isAdmin};
   document.getElementById('login-screen').classList.add('hide');
   document.getElementById('main-wrap').classList.remove('hide');
@@ -496,8 +496,21 @@ function doLogin(){
   buildTabs();
   showTab('day');
 }
+function doLogin(){
+  const uid = document.getElementById('sel-u').value;
+  const pw = document.getElementById('inp-pin').value;
+  if(!uid){ alert('Vui lòng chọn tên!'); return; }
+  const s = staffById(+uid); if(!s) return;
+  if(pw !== getUserPw(s.name)){ document.getElementById('lerr').style.display='block'; return; }
+  document.getElementById('lerr').style.display='none';
+  const isAdmin = isAdminPosition(s.position);
+  const role = s.position==='Trưởng phòng'||s.position==='Phó Trưởng phòng'?'lanh_dao':s.position==='Tổ trưởng công tác'?'to_truong':s.position==='Trưởng nhóm'?'leader':'staff';
+  setSession({id:s.id, name:s.name, role});
+  enterUser(s);
+}
 function doLogout(){
   user = null;
+  clearSession();
   document.getElementById('main-wrap').classList.add('hide');
   document.getElementById('nav-user').classList.remove('show');
   document.getElementById('login-screen').classList.remove('hide');
@@ -951,6 +964,14 @@ function clearAllSchedule(){
 /* ===== INIT ===== */
 populateSel();
 initSchedule();
+// Tự động đăng nhập nếu đã có session từ Cổng báo cáo
+(function(){
+  const sess = getSession();
+  if(!sess) return;
+  const s = staffById(sess.id);
+  if(!s) return;
+  enterUser(s);
+})();
 </script>
 </body>
 </html>
