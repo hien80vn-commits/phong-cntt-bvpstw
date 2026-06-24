@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
@@ -80,6 +80,9 @@ ul { list-style: none; }
   content: ''; position: absolute; inset: 0;
   background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
 }
+/* TEAM PHOTO BANNER */
+.team-banner { width: 100%; overflow: hidden; line-height: 0; border-bottom: 4px solid var(--purple); }
+.team-banner img { width: 100%; height: auto; display: block; }
 .hero-content { position: relative; max-width: 800px; margin: auto; }
 .hero-badge {
   display: inline-block; background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.4);
@@ -403,6 +406,11 @@ ul { list-style: none; }
   </div>
 </section>
 
+<!-- ===================== BANNER ẢNH ===================== -->
+<div class="team-banner">
+  <img src="IMG_8067.JPG" alt="Tập thể Phòng Công nghệ thông tin – BVPSTW">
+</div>
+
 <!-- ===================== GIỚI THIỆU ===================== -->
 <section class="section" id="intro">
   <div class="section-inner">
@@ -616,6 +624,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateStats();
   renderChart();
 
+  // Set today's date
   const today = new Date().toISOString().slice(0,10);
   const d = document.getElementById('d-date');
   if(d) d.value = today;
@@ -626,6 +635,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const mm = document.getElementById('m-month');
   if(mm) mm.value = today.slice(0,7);
 
+  // Year select
   const ysel = document.getElementById('y-year');
   if(ysel){ for(let y=2026;y>=2011;y--){ const o=document.createElement('option'); o.value=o.textContent=y; ysel.appendChild(o); } }
 
@@ -673,6 +683,8 @@ function renderStaff(list){
   if(!list.length){ grid.innerHTML='<p class="no-reports">Không tìm thấy nhân viên phù hợp.</p>'; return; }
   grid.innerHTML = list.map(s=>{
     const [c1,c2] = AVATAR_COLORS[s.id % AVATAR_COLORS.length];
+    const badge = s.position || s.title;
+    const seniority = s.year ? `Năm ${s.year}` : '';
     return `
     <div class="staff-card" onclick="openModal(${s.id})" data-pos="${s.position}" data-gender="${s.gender}" data-degree="${s.degree}">
       <div class="staff-avatar" style="background:linear-gradient(135deg,${c1},${c2})">
@@ -685,7 +697,7 @@ function renderStaff(list){
         <div class="meta">
           <span>${s.degree}</span>
           <span>${s.gender}</span>
-          ${s.year?`<span>Năm ${s.year}</span>`:''}
+          ${seniority?`<span>${seniority}</span>`:''}
           <span style="${s.contract==='HĐ'?'color:var(--pink)':''}">${s.contract==='VC'?'Viên chức':'Hợp đồng'}</span>
         </div>
       </div>
@@ -784,37 +796,62 @@ function saveReports(type, arr){ localStorage.setItem(getStorageKey(type), JSON.
 function submitReport(type){
   let data = {};
   const now = new Date().toLocaleString('vi-VN');
+
   if(type==='daily'){
     const name=document.getElementById('d-name').value;
     const date=document.getElementById('d-date').value;
     const group=document.getElementById('d-group').value;
     if(!name||!date){ showToast('⚠️ Vui lòng chọn ngày và người báo cáo!'); return; }
-    data = { type:'daily', ts:Date.now(), createdAt:now, date, name, group,
-      done:document.getElementById('d-done').value, pending:document.getElementById('d-pending').value,
-      issue:document.getElementById('d-issue').value, plan:document.getElementById('d-plan').value };
+    data = {
+      type:'daily', ts: Date.now(), createdAt: now, date, name, group,
+      done: document.getElementById('d-done').value,
+      pending: document.getElementById('d-pending').value,
+      issue: document.getElementById('d-issue').value,
+      plan: document.getElementById('d-plan').value,
+    };
   } else if(type==='weekly'){
-    const from=document.getElementById('w-from').value, to=document.getElementById('w-to').value;
+    const from=document.getElementById('w-from').value;
+    const to=document.getElementById('w-to').value;
     const group=document.getElementById('w-group').value;
     if(!from||!to){ showToast('⚠️ Vui lòng chọn khoảng thời gian!'); return; }
-    data = { type:'weekly', ts:Date.now(), createdAt:now, from, to, group,
-      done:document.getElementById('w-done').value, pending:document.getElementById('w-pending').value,
-      plan:document.getElementById('w-plan').value, suggest:document.getElementById('w-suggest').value };
+    data = {
+      type:'weekly', ts:Date.now(), createdAt:now, from, to, group,
+      done: document.getElementById('w-done').value,
+      pending: document.getElementById('w-pending').value,
+      plan: document.getElementById('w-plan').value,
+      suggest: document.getElementById('w-suggest').value,
+    };
   } else if(type==='monthly'){
-    const name=document.getElementById('m-name').value, month=document.getElementById('m-month').value;
+    const name=document.getElementById('m-name').value;
+    const month=document.getElementById('m-month').value;
     if(!month){ showToast('⚠️ Vui lòng chọn tháng báo cáo!'); return; }
-    data = { type:'monthly', ts:Date.now(), createdAt:now, month, name,
-      done:document.getElementById('m-done').value, highlight:document.getElementById('m-highlight').value,
-      issue:document.getElementById('m-issue').value, plan:document.getElementById('m-plan').value,
-      hr:document.getElementById('m-hr').value };
+    data = {
+      type:'monthly', ts:Date.now(), createdAt:now, month, name,
+      done: document.getElementById('m-done').value,
+      highlight: document.getElementById('m-highlight').value,
+      issue: document.getElementById('m-issue').value,
+      plan: document.getElementById('m-plan').value,
+      hr: document.getElementById('m-hr').value,
+    };
   } else if(type==='yearly'){
-    const name=document.getElementById('y-name').value, year=document.getElementById('y-year').value;
+    const name=document.getElementById('y-name').value;
+    const year=document.getElementById('y-year').value;
     const rating=document.getElementById('y-rating').value;
-    data = { type:'yearly', ts:Date.now(), createdAt:now, year, name, rating,
-      overview:document.getElementById('y-overview').value, projects:document.getElementById('y-projects').value,
-      hr:document.getElementById('y-hr').value, plan:document.getElementById('y-plan').value };
+    data = {
+      type:'yearly', ts:Date.now(), createdAt:now, year, name, rating,
+      overview: document.getElementById('y-overview').value,
+      projects: document.getElementById('y-projects').value,
+      hr: document.getElementById('y-hr').value,
+      plan: document.getElementById('y-plan').value,
+    };
   }
-  const arr = getReports(type); arr.unshift(data); saveReports(type, arr);
-  loadReports(type); updateStats(); renderChart();
+
+  const arr = getReports(type);
+  arr.unshift(data);
+  saveReports(type, arr);
+  loadReports(type);
+  updateStats();
+  renderChart();
   showToast('✅ Đã lưu báo cáo thành công!');
 }
 
@@ -822,23 +859,44 @@ function loadReports(type){
   const arr = getReports(type);
   const el = document.getElementById(`${type}-list`);
   if(!el) return;
-  if(!arr.length){ el.innerHTML='<p class="no-reports">Chưa có báo cáo nào.</p>'; return; }
+  if(!arr.length){ el.innerHTML='<p class="no-reports">Chưa có báo cáo nào. Hãy điền form và lưu báo cáo đầu tiên!</p>'; return; }
   el.innerHTML = arr.map((r,i)=>{
     let heading='', detail='';
-    if(type==='daily'){ heading=`${r.name} – ${r.date}${r.group?' | '+r.group:''}`; detail=buildDetail([['Đã hoàn thành',r.done],['Chưa xong',r.pending],['Sự cố',r.issue],['Kế hoạch mai',r.plan]]); }
-    else if(type==='weekly'){ heading=`Tuần ${r.from} → ${r.to}${r.group?' | '+r.group:''}`; detail=buildDetail([['Kết quả tuần',r.done],['Tồn đọng',r.pending],['Tuần tới',r.plan],['Kiến nghị',r.suggest]]); }
-    else if(type==='monthly'){ heading=`Tháng ${r.month}${r.name?' – '+r.name:''}`; detail=buildDetail([['Kết quả tháng',r.done],['Nổi bật',r.highlight],['Khó khăn',r.issue],['Kế hoạch tới',r.plan],['Nhân sự',r.hr]]); }
-    else if(type==='yearly'){ heading=`Năm ${r.year}${r.name?' – '+r.name:''}${r.rating?' | Xếp loại: '+r.rating:''}`; detail=buildDetail([['Tổng quan',r.overview],['Dự án',r.projects],['Nhân sự',r.hr],['Kế hoạch',r.plan]]); }
-    return `<div class="report-item"><div class="ri-date">Nộp lúc: ${r.createdAt}</div><div class="ri-reporter">${heading}</div><div class="ri-content">${detail}</div><button class="ri-delete" onclick="deleteReport('${type}',${i})" title="Xóa">🗑</button></div>`;
+    if(type==='daily'){
+      heading=`${r.name} – ${r.date}${r.group?' | '+r.group:''}`;
+      detail=buildDetail([['Đã hoàn thành',r.done],['Chưa xong',r.pending],['Sự cố',r.issue],['Kế hoạch mai',r.plan]]);
+    } else if(type==='weekly'){
+      heading=`Tuần ${r.from} → ${r.to}${r.group?' | '+r.group:''}`;
+      detail=buildDetail([['Kết quả tuần',r.done],['Tồn đọng',r.pending],['Tuần tới',r.plan],['Kiến nghị',r.suggest]]);
+    } else if(type==='monthly'){
+      heading=`Tháng ${r.month}${r.name?' – '+r.name:''}`;
+      detail=buildDetail([['Kết quả tháng',r.done],['Nổi bật',r.highlight],['Khó khăn',r.issue],['Kế hoạch tới',r.plan],['Nhân sự',r.hr]]);
+    } else if(type==='yearly'){
+      heading=`Năm ${r.year}${r.name?' – '+r.name:''}${r.rating?' | Xếp loại: '+r.rating:''}`;
+      detail=buildDetail([['Tổng quan',r.overview],['Dự án',r.projects],['Nhân sự',r.hr],['Kế hoạch',r.plan]]);
+    }
+    return `
+      <div class="report-item">
+        <div class="ri-date">Nộp lúc: ${r.createdAt}</div>
+        <div class="ri-reporter">${heading}</div>
+        <div class="ri-content">${detail}</div>
+        <button class="ri-delete" onclick="deleteReport('${type}',${i})" title="Xóa báo cáo">🗑</button>
+      </div>`;
   }).join('');
 }
 
-function buildDetail(pairs){ return pairs.filter(([,v])=>v&&v.trim()).map(([k,v])=>`<strong>${k}:</strong> ${v.replace(/\n/g,'<br>')}`).join('<br>'); }
+function buildDetail(pairs){
+  return pairs.filter(([,v])=>v&&v.trim()).map(([k,v])=>`<strong>${k}:</strong> ${v.replace(/\n/g,'<br>')}`).join('<br>');
+}
 
 function deleteReport(type, idx){
   if(!confirm('Xác nhận xóa báo cáo này?')) return;
-  const arr = getReports(type); arr.splice(idx,1); saveReports(type, arr);
-  loadReports(type); updateStats(); showToast('🗑 Đã xóa báo cáo.');
+  const arr = getReports(type);
+  arr.splice(idx,1);
+  saveReports(type, arr);
+  loadReports(type);
+  updateStats();
+  showToast('🗑 Đã xóa báo cáo.');
 }
 
 function clearForm(type){
@@ -850,39 +908,67 @@ function clearForm(type){
 }
 
 function updateStats(){
-  ['daily','weekly','monthly','yearly'].forEach(t=>{ const el=document.getElementById('stat-'+t); if(el) el.textContent=getReports(t).length; });
+  ['daily','weekly','monthly','yearly'].forEach(t=>{
+    const el=document.getElementById('stat-'+t);
+    if(el) el.textContent = getReports(t).length;
+  });
 }
 
 function renderChart(){
   const allReports = [...getReports('daily'),...getReports('weekly')];
-  const groupCounts = {}; GROUPS.forEach(g=>{ groupCounts[`Nhóm ${g.num}`]=0; });
-  allReports.forEach(r=>{ if(r.group){ const key=r.group.split('–')[0].trim(); if(groupCounts[key]!==undefined) groupCounts[key]++; } });
+  const groupCounts = {};
+  GROUPS.forEach(g=>{ groupCounts[`Nhóm ${g.num}`]=0; });
+  allReports.forEach(r=>{
+    if(r.group){
+      const key = r.group.split('–')[0].trim();
+      if(groupCounts[key]!==undefined) groupCounts[key]++;
+    }
+  });
   const max = Math.max(...Object.values(groupCounts),1);
   document.getElementById('chartBars').innerHTML = Object.entries(groupCounts).map(([k,v])=>`
-    <div class="bar-item"><div class="bar-label">${k}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.max(5,v/max*100)}%">${v||''}</div></div></div>`).join('');
+    <div class="bar-item">
+      <div class="bar-label">${k}</div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:${Math.max(5,v/max*100)}%">${v||''}</div>
+      </div>
+    </div>`).join('');
 }
 
+/* =====================================================
+   UI HELPERS
+===================================================== */
 function switchTab(id, btn){
   document.querySelectorAll('.report-panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.report-tabs button').forEach(b=>b.classList.remove('active'));
-  document.getElementById('tab-'+id).classList.add('active'); btn.classList.add('active');
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
 }
 
-function toggleMenu(){ document.getElementById('navLinks').classList.toggle('open'); }
+function toggleMenu(){
+  document.getElementById('navLinks').classList.toggle('open');
+}
 
 function showToast(msg){
-  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),3000);
 }
 
+function printReport(type){
+  window.print();
+}
+
+// Active nav link on scroll
 const sections=['hero','intro','groups','staff','report'];
 window.addEventListener('scroll',()=>{
   const pos=window.scrollY+80;
   sections.forEach(id=>{
-    const el=document.getElementById(id), link=document.querySelector(`.nav-links a[href="#${id}"]`);
+    const el=document.getElementById(id);
+    const link=document.querySelector(`.nav-links a[href="#${id}"]`);
     if(!el||!link) return;
     if(el.offsetTop<=pos && el.offsetTop+el.offsetHeight>pos){
-      document.querySelectorAll('.nav-links a').forEach(a=>a.classList.remove('active')); link.classList.add('active');
+      document.querySelectorAll('.nav-links a').forEach(a=>a.classList.remove('active'));
+      link.classList.add('active');
     }
   });
 });
