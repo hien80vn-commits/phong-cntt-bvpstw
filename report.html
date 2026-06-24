@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cổng Báo cáo – Phòng CNTT BVPSTW</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --purple:#6B2D8B;--purple-d:#4A1D62;--purple-l:#9B59C0;
+  --pink:#D63384;--teal:#00897B;--gold:#F9A825;--orange:#E67E22;
+  --bg:#F8F4FC;--card:#fff;--text:#1A1A2E;--muted:#6B7280;
+  --border:#E5E0ED;--shadow:0 4px 24px rgba(107,45,139,.12);
+  --radius:14px;--font:'Be Vietnam Pro',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh}
+a{color:inherit;text-decoration:none}
+
+/* TOPBAR */
+.topbar{background:rgba(255,255,255,.96);backdrop-filter:blur(12px);border-bottom:2px solid var(--purple);position:sticky;top:0;z-index:999;box-shadow:0 2px 12px rgba(107,45,139,.1);}
+.topbar-inner{max-width:1100px;margin:auto;display:flex;align-items:center;justify-content:space-between;padding:.7rem 1.5rem;gap:1rem;}
+.topbar-brand{display:flex;align-items:center;gap:.7rem;}
+.topbar-logo{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--pink));color:#fff;font-weight:800;font-size:1rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.topbar-title strong{display:block;font-size:.88rem;color:var(--purple);}
+.topbar-title span{font-size:.72rem;color:var(--muted);}
+.topbar-right{display:flex;align-items:center;gap:.75rem;}
+#user-info{font-size:.85rem;font-weight:600;color:var(--purple-d);}
+.btn-sm{padding:.4rem 1rem;border-radius:8px;border:2px solid var(--border);background:#fff;font-family:var(--font);font-size:.8rem;font-weight:600;cursor:pointer;transition:.2s;color:var(--muted);}
+.btn-sm:hover{border-color:var(--purple);color:var(--purple);}
+.btn-back{display:inline-flex;align-items:center;gap:.4rem;padding:.4rem 1rem;border-radius:8px;background:var(--bg);font-size:.82rem;font-weight:600;color:var(--purple);border:2px solid var(--border);cursor:pointer;transition:.2s;}
+.btn-back:hover{background:var(--purple);color:#fff;border-color:var(--purple);}
+
+/* LOGIN */
+#login-screen{min-height:calc(100vh - 62px);display:flex;align-items:center;justify-content:center;padding:2rem 1rem;}
+.login-box{background:#fff;border-radius:20px;box-shadow:0 8px 48px rgba(107,45,139,.18);width:100%;max-width:440px;overflow:hidden;}
+.login-hero{background:linear-gradient(135deg,var(--purple-d),var(--purple-l));padding:2.5rem 2rem;text-align:center;color:#fff;}
+.login-hero .icon{font-size:3rem;margin-bottom:.75rem;}
+.login-hero h2{font-size:1.4rem;font-weight:800;}
+.login-hero p{font-size:.83rem;opacity:.85;margin-top:.4rem;}
+.login-body{padding:2rem;}
+.form-row{margin-bottom:1.1rem;}
+.form-row label{display:block;font-size:.83rem;font-weight:700;color:var(--purple-d);margin-bottom:.4rem;}
+.form-row select,.form-row input,.form-row textarea{width:100%;padding:.65rem 1rem;border:2px solid var(--border);border-radius:10px;font-family:var(--font);font-size:.9rem;outline:none;transition:.2s;background:var(--bg);}
+.form-row select:focus,.form-row input:focus,.form-row textarea:focus{border-color:var(--purple);background:#fff;}
+.form-row textarea{resize:vertical;min-height:90px;}
+.btn-login{width:100%;padding:.8rem;border-radius:10px;border:none;background:linear-gradient(135deg,var(--purple),var(--pink));color:#fff;font-family:var(--font);font-weight:700;font-size:1rem;cursor:pointer;transition:opacity .2s;margin-top:.5rem;}
+.btn-login:hover{opacity:.88;}
+.login-note{font-size:.75rem;color:var(--muted);text-align:center;margin-top:1rem;line-height:1.5;}
+.login-error{background:#ffeaea;border:1px solid #f5c6cb;color:#c0392b;border-radius:8px;padding:.6rem 1rem;font-size:.83rem;margin-bottom:1rem;display:none;}
+
+/* APP */
+#app-screen{display:none;}
+.app-inner{max-width:960px;margin:auto;padding:2rem 1.5rem;}
+
+/* Welcome bar */
+.welcome-bar{background:linear-gradient(135deg,var(--purple-d),var(--purple));border-radius:var(--radius);padding:1.5rem 2rem;color:#fff;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1.5rem;}
+.welcome-bar .wb-left h2{font-size:1.1rem;font-weight:800;}
+.welcome-bar .wb-left p{font-size:.82rem;opacity:.85;margin-top:.2rem;}
+.wb-badge{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:.35rem 1rem;font-size:.78rem;font-weight:700;}
+.wb-route{background:rgba(255,255,255,.15);border-radius:10px;padding:.6rem 1rem;font-size:.8rem;margin-top:.6rem;display:flex;align-items:center;gap:.5rem;}
+.wb-route.warn{background:rgba(249,168,37,.25);border:1px solid rgba(249,168,37,.5);}
+
+/* Section nav */
+.section-nav{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:2rem;}
+.section-nav button{padding:.55rem 1.3rem;border-radius:999px;border:2px solid var(--border);background:#fff;font-family:var(--font);font-weight:600;font-size:.85rem;cursor:pointer;transition:.2s;color:var(--muted);}
+.section-nav button.active{background:var(--purple);border-color:var(--purple);color:#fff;}
+.section-nav button.inbox-btn{border-color:var(--teal);color:var(--teal);}
+.section-nav button.inbox-btn.active{background:var(--teal);color:#fff;}
+.section-nav button.assign-btn{border-color:var(--orange);color:var(--orange);}
+.section-nav button.assign-btn.active{background:var(--orange);color:#fff;}
+.section-nav button.overview-btn{border-color:var(--purple-d);color:var(--purple-d);}
+.section-nav button.overview-btn.active{background:var(--purple-d);color:#fff;}
+
+/* Sections */
+.section{display:none;}
+.section.active{display:block;}
+
+/* Report tabs (inside submit section) */
+.report-tabs{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:2rem;}
+.report-tabs button{padding:.5rem 1.2rem;border-radius:999px;border:2px solid var(--border);background:#fff;font-family:var(--font);font-weight:600;font-size:.83rem;cursor:pointer;transition:.2s;color:var(--muted);}
+.report-tabs button.active{background:var(--purple);border-color:var(--purple);color:#fff;}
+.report-panel{display:none;}
+.report-panel.active{display:block;}
+
+/* Form card */
+.form-card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:2rem;margin-bottom:2rem;}
+.form-card h3{font-size:1.05rem;font-weight:800;color:var(--purple-d);margin-bottom:1.5rem;}
+.form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.form-actions{display:flex;gap:.75rem;justify-content:flex-end;flex-wrap:wrap;margin-top:1.5rem;}
+.btn-primary{background:linear-gradient(135deg,var(--purple),var(--pink));color:#fff;border:none;padding:.7rem 1.8rem;border-radius:10px;font-family:var(--font);font-weight:700;font-size:.9rem;cursor:pointer;transition:opacity .2s;}
+.btn-primary:hover{opacity:.88;}
+.btn-outline{background:#fff;color:var(--purple);border:2px solid var(--purple);padding:.65rem 1.4rem;border-radius:10px;font-family:var(--font);font-weight:700;font-size:.88rem;cursor:pointer;transition:.2s;}
+.btn-outline:hover{background:var(--purple);color:#fff;}
+.synthesis-check{display:flex;align-items:center;gap:.5rem;font-size:.85rem;font-weight:600;color:var(--teal);margin-top:1rem;padding:.6rem 1rem;background:#e8f5f3;border-radius:8px;}
+.synthesis-check input{width:18px;height:18px;accent-color:var(--teal);cursor:pointer;}
+
+/* History */
+.history-section{margin-top:1rem;}
+.history-section h3{font-size:1rem;font-weight:800;color:var(--purple-d);margin-bottom:1rem;}
+.report-item{background:#fff;border-radius:var(--radius);padding:1.2rem 1.5rem;box-shadow:var(--shadow);margin-bottom:.9rem;border-left:4px solid var(--purple);position:relative;}
+.report-item.synthesis{border-left-color:var(--teal);}
+.report-item.from-leader{border-left-color:var(--teal);}
+.report-item.from-staff{border-left-color:var(--purple-l);}
+.ri-header{display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;flex-wrap:wrap;}
+.ri-title{font-size:.88rem;font-weight:700;color:var(--purple);}
+.ri-meta{font-size:.75rem;color:var(--muted);}
+.ri-badge{display:inline-block;padding:.15rem .6rem;border-radius:999px;font-size:.7rem;font-weight:700;margin-left:.4rem;}
+.ri-badge.synth{background:#e8f5f3;color:var(--teal);}
+.ri-badge.indiv{background:#f0ebf7;color:var(--purple);}
+.ri-body{font-size:.83rem;color:var(--text);margin-top:.6rem;line-height:1.6;}
+.ri-body strong{color:var(--purple-d);}
+.ri-del{position:absolute;top:.75rem;right:.75rem;background:none;border:none;cursor:pointer;color:#ccc;font-size:1rem;transition:color .2s;}
+.ri-del:hover{color:#e53935;}
+.no-data{text-align:center;color:var(--muted);padding:2.5rem;font-size:.88rem;}
+
+/* Inbox */
+.inbox-header{background:linear-gradient(135deg,var(--teal),#00695C);border-radius:var(--radius);padding:1.25rem 1.5rem;color:#fff;margin-bottom:1.5rem;display:flex;align-items:center;gap:.75rem;}
+.inbox-header .icon{font-size:1.5rem;}
+.inbox-header h3{font-size:1rem;font-weight:800;}
+.inbox-header p{font-size:.78rem;opacity:.82;}
+.inbox-stats{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.5rem;}
+.inbox-stat{background:#fff;border-radius:10px;padding:.75rem 1.25rem;box-shadow:var(--shadow);border-top:3px solid var(--teal);text-align:center;flex:1;min-width:100px;}
+.inbox-stat .sn{font-size:1.5rem;font-weight:800;color:var(--teal);display:block;}
+.inbox-stat .sl{font-size:.72rem;color:var(--muted);}
+
+/* Filter bar */
+.filter-bar{display:flex;gap:.75rem;flex-wrap:wrap;align-items:center;background:#fff;padding:1rem 1.25rem;border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:1.5rem;}
+.filter-bar select,.filter-bar input{padding:.5rem .9rem;border:2px solid var(--border);border-radius:8px;font-family:var(--font);font-size:.83rem;outline:none;transition:.2s;}
+.filter-bar select:focus,.filter-bar input:focus{border-color:var(--purple);}
+.filter-bar label{font-size:.8rem;font-weight:600;color:var(--muted);}
+
+/* Overview (admin) */
+.admin-header{background:linear-gradient(135deg,var(--purple-d),var(--purple));border-radius:var(--radius);padding:1.25rem 1.5rem;color:#fff;margin-bottom:1.5rem;display:flex;align-items:center;gap:.75rem;}
+.admin-header .icon{font-size:1.5rem;}
+.admin-header h3{font-size:1rem;font-weight:800;}
+.admin-header p{font-size:.78rem;opacity:.82;}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1rem;margin-bottom:2rem;}
+.stat-card{background:#fff;border-radius:var(--radius);padding:1.25rem;box-shadow:var(--shadow);text-align:center;border-top:4px solid var(--purple);}
+.stat-card .sn{font-size:2rem;font-weight:800;color:var(--purple);display:block;}
+.stat-card .sl{font-size:.78rem;color:var(--muted);}
+
+/* Assign panel */
+.assign-header{background:linear-gradient(135deg,var(--orange),#D35400);border-radius:var(--radius);padding:1.25rem 1.5rem;color:#fff;margin-bottom:1.5rem;display:flex;align-items:center;gap:.75rem;}
+.assign-header .icon{font-size:1.5rem;}
+.assign-header h3{font-size:1rem;font-weight:800;}
+.assign-header p{font-size:.78rem;opacity:.82;}
+.assign-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1rem;}
+.assign-card{background:#fff;border-radius:var(--radius);padding:1rem 1.25rem;box-shadow:var(--shadow);display:flex;align-items:center;gap:1rem;}
+.assign-card .ac-name{font-weight:700;font-size:.88rem;flex:1;}
+.assign-card .ac-pos{font-size:.75rem;color:var(--muted);}
+.assign-card select{padding:.4rem .7rem;border:2px solid var(--border);border-radius:8px;font-family:var(--font);font-size:.8rem;outline:none;transition:.2s;}
+.assign-card select:focus{border-color:var(--orange);}
+.assign-card .ac-group{font-size:.72rem;padding:.2rem .7rem;border-radius:999px;font-weight:700;}
+.assign-card .ac-group.assigned{background:#e8f5f3;color:var(--teal);}
+.assign-card .ac-group.unassigned{background:#fff3e0;color:var(--orange);}
+
+/* Password modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9998;display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity .3s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:#fff;border-radius:20px;max-width:420px;width:100%;overflow:hidden;transform:translateY(16px);transition:transform .3s;}
+.modal-overlay.open .modal{transform:translateY(0);}
+.modal-head{background:linear-gradient(135deg,var(--purple-d),var(--purple));padding:1.5rem 2rem;color:#fff;}
+.modal-head h3{font-size:1.1rem;font-weight:800;}
+.modal-head p{font-size:.8rem;opacity:.82;margin-top:.25rem;}
+.modal-body{padding:1.5rem 2rem 2rem;}
+.modal-actions{display:flex;gap:.75rem;justify-content:flex-end;margin-top:1.25rem;}
+
+/* Toast */
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--purple);color:#fff;padding:.7rem 1.4rem;border-radius:10px;font-size:.85rem;font-weight:600;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.25);transform:translateY(80px);opacity:0;transition:.3s;}
+.toast.show{transform:translateY(0);opacity:1;}
+
+@media(max-width:640px){
+  .form-grid-2{grid-template-columns:1fr;}
+  .app-inner{padding:1.25rem 1rem;}
+  .form-card{padding:1.25rem;}
+  .assign-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<nav class="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-brand">
+      <div class="topbar-logo">IT</div>
+      <div class="topbar-title">
+        <strong>Cổng Báo cáo Công việc</strong>
+        <span>Phòng CNTT – Bệnh viện Phụ Sản Trung Ương</span>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <a href="index.html" class="btn-back">← Trang chủ</a>
+      <span id="user-info" style="display:none"></span>
+      <button class="btn-sm" id="btn-change-pw" onclick="openChangePw()" style="display:none">🔑 Đổi mật khẩu</button>
+      <button class="btn-sm" id="btn-logout" onclick="logout()" style="display:none;background:var(--purple);color:#fff;border-color:var(--purple);">Đăng xuất</button>
+    </div>
+  </div>
+</nav>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-hero">
+      <div class="icon">🔐</div>
+      <h2>Đăng nhập Cổng báo cáo</h2>
+      <p>Phòng Công nghệ thông tin – BVPSTW</p>
+    </div>
+    <div class="login-body">
+      <div class="login-error" id="login-error"></div>
+      <div class="form-row">
+        <label>Nhân viên</label>
+        <select id="login-name"><option value="">-- Chọn tên của bạn --</option></select>
+      </div>
+      <div class="form-row">
+        <label>Mật khẩu</label>
+        <input type="password" id="login-pw" placeholder="Nhập mật khẩu..." onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <button class="btn-login" onclick="doLogin()">Đăng nhập →</button>
+      <p class="login-note">Mật khẩu mặc định: <strong>cntt2026</strong><br>Sau khi đăng nhập hãy đổi mật khẩu ngay.<br>Liên hệ Tổ trưởng nếu quên mật khẩu.</p>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app-screen">
+  <div class="app-inner">
+
+    <!-- Welcome bar -->
+    <div class="welcome-bar">
+      <div class="wb-left" style="flex:1">
+        <h2 id="wb-name">Xin chào!</h2>
+        <p id="wb-role"></p>
+        <div id="wb-route" class="wb-route" style="display:none"></div>
+      </div>
+      <span class="wb-badge" id="wb-date"></span>
+    </div>
+
+    <!-- Section nav -->
+    <div class="section-nav" id="section-nav">
+      <button id="snav-inbox" class="inbox-btn" onclick="switchSection('inbox',this)" style="display:none">📥 Báo cáo đến</button>
+      <button id="snav-submit" class="active" onclick="switchSection('submit',this)">📝 Nộp báo cáo</button>
+      <button id="snav-assign" class="assign-btn" onclick="switchSection('assign',this)" style="display:none">👥 Phân nhóm</button>
+      <button id="snav-overview" class="overview-btn" onclick="switchSection('overview',this)" style="display:none">🛡️ Tổng quan</button>
+    </div>
+
+    <!-- ===== SECTION: INBOX ===== -->
+    <div id="section-inbox" class="section">
+      <div class="inbox-header">
+        <div class="icon">📥</div>
+        <div>
+          <h3 id="inbox-title">Báo cáo đến</h3>
+          <p id="inbox-desc"></p>
+        </div>
+      </div>
+      <div class="inbox-stats" id="inbox-stats"></div>
+      <div class="filter-bar">
+        <label>Loại:</label>
+        <select id="inbox-type" onchange="loadInbox()">
+          <option value="all">Tất cả</option>
+          <option value="daily">Báo cáo ngày</option>
+          <option value="weekly">Báo cáo tuần</option>
+          <option value="monthly">Báo cáo tháng</option>
+          <option value="yearly">Báo cáo năm</option>
+        </select>
+        <label>Người nộp:</label>
+        <select id="inbox-reporter" onchange="loadInbox()"><option value="">Tất cả</option></select>
+        <label>Tìm:</label>
+        <input type="text" id="inbox-search" oninput="loadInbox()" placeholder="Nội dung..." style="min-width:140px;">
+      </div>
+      <div id="inbox-list"></div>
+    </div>
+
+    <!-- ===== SECTION: SUBMIT ===== -->
+    <div id="section-submit" class="section active">
+      <div class="report-tabs">
+        <button class="active" onclick="switchTab('daily',this)">📋 Báo cáo ngày</button>
+        <button onclick="switchTab('weekly',this)">📅 Tuần</button>
+        <button onclick="switchTab('monthly',this)">📆 Tháng</button>
+        <button onclick="switchTab('yearly',this)">📊 Năm</button>
+      </div>
+
+      <!-- DAILY -->
+      <div class="report-panel active" id="tab-daily">
+        <div class="form-card">
+          <h3>📝 Báo cáo công việc ngày</h3>
+          <div class="form-grid-2">
+            <div class="form-row">
+              <label>Ngày báo cáo</label>
+              <input type="date" id="d-date">
+            </div>
+            <div class="form-row" id="d-group-row">
+              <label>Nhóm công tác</label>
+              <select id="d-group"><option value="">-- Chọn nhóm --</option></select>
+            </div>
+          </div>
+          <div class="form-row">
+            <label>Công việc đã hoàn thành hôm nay</label>
+            <textarea id="d-done" placeholder="Mô tả công việc đã thực hiện và hoàn thành..."></textarea>
+          </div>
+          <div class="form-row">
+            <label>Công việc chưa hoàn thành / đang tiếp tục</label>
+            <textarea id="d-pending" placeholder="Công việc đang dở, lý do chưa hoàn thành..."></textarea>
+          </div>
+          <div class="form-row">
+            <label>Sự cố / Vấn đề phát sinh</label>
+            <textarea id="d-issue" placeholder="Sự cố hoặc vấn đề cần hỗ trợ (để trống nếu không có)..." style="min-height:75px;"></textarea>
+          </div>
+          <div class="form-row">
+            <label>Kế hoạch ngày mai</label>
+            <textarea id="d-plan" placeholder="Dự kiến công việc ngày mai..." style="min-height:75px;"></textarea>
+          </div>
+          <div id="synthesis-daily" class="synthesis-check" style="display:none">
+            <input type="checkbox" id="d-synth"> <label for="d-synth">Đây là báo cáo tổng hợp nhóm (gửi lên cấp trên)</label>
+          </div>
+          <div class="form-actions">
+            <button class="btn-outline" onclick="clearForm('daily')">Xóa form</button>
+            <button class="btn-primary" onclick="submitReport('daily')">💾 Lưu & Nộp báo cáo</button>
+          </div>
+        </div>
+        <div class="history-section">
+          <h3>📁 Báo cáo ngày đã nộp</h3>
+          <div id="daily-list"></div>
+        </div>
+      </div>
+
+      <!-- WEEKLY -->
+      <div class="report-panel" id="tab-weekly">
+        <div class="form-card">
+          <h3>📅 Báo cáo công việc tuần</h3>
+          <div class="form-grid-2">
+            <div class="form-row">
+              <label>Từ ngày</label>
+              <input type="date" id="w-from">
+            </div>
+            <div class="form-row">
+              <label>Đến ngày</label>
+              <input type="date" id="w-to">
+            </div>
+          </div>
+          <div class="form-row">
+            <label>Nhóm công tác</label>
+            <select id="w-group"><option value="">-- Chọn nhóm --</option></select>
+          </div>
+          <div class="form-row">
+            <label>Kết quả công việc trong tuần</label>
+            <textarea id="w-done" placeholder="Tổng hợp công việc đã hoàn thành trong tuần..."></textarea>
+          </div>
+          <div class="form-row">
+            <label>Công việc tồn đọng / chuyển sang tuần sau</label>
+            <textarea id="w-pending" placeholder="Công việc chưa xong, dự kiến tiếp tục..."></textarea>
+          </div>
+          <div class="form-row">
+            <label>Kế hoạch tuần tới</label>
+            <textarea id="w-plan" placeholder="Nhiệm vụ dự kiến tuần tới..."></textarea>
+          </div>
+          <div class="form-row">
+            <label>Kiến nghị / Đề xuất</label>
+            <textarea id="w-suggest" placeholder="Đề xuất cải tiến hoặc vấn đề cần chỉ đạo..." style="min-height:75px;"></textarea>
+          </div>
+          <div id="synthesis-weekly" class="synthesis-check" style="display:none">
+            <input type="checkbox" id="w-synth"> <label for="w-synth">Đây là báo cáo tổng hợp nhóm (gửi lên cấp trên)</label>
+          </div>
+          <div class="form-actions">
+            <button class="btn-outline" onclick="clearForm('weekly')">Xóa form</button>
+            <button class="btn-primary" onclick="submitReport('weekly')">💾 Lưu & Nộp báo cáo</button>
+          </div>
+        </div>
+        <div class="history-section">
+          <h3>📁 Báo cáo tuần đã nộp</h3>
+          <div id="weekly-list"></div>
+        </div>
+      </div>
+
+      <!-- MONTHLY -->
+      <div class="report-panel" id="tab-monthly">
+        <div class="form-card">
+          <h3>📆 Báo cáo công việc tháng</h3>
+          <div class="form-grid-2">
+            <div class="form-row">
+              <label>Tháng / Năm</label>
+              <input type="month" id="m-month">
+            </div>
+            <div class="form-row">
+              <label>Nhóm công tác</label>
+              <select id="m-group"><option value="">-- Chọn nhóm --</option></select>
+            </div>
+          </div>
+          <div class="form-row">
+            <label>Tổng hợp kết quả công việc tháng</label>
+            <textarea id="m-done" placeholder="Mô tả tổng thể công việc đã hoàn thành trong tháng..." style="min-height:110px;"></textarea>
+          </div>
+          <div class="form-row">
+            <label>Điểm nổi bật / Thành tích</label>
+            <textarea id="m-highlight" placeholder="Thành tích nổi bật, dự án triển khai thành công..."></textarea>
+          </div>
+          <div class="form-row">
+            <label>Khó khăn, tồn đọng</label>
+            <textarea id="m-issue" placeholder="Khó khăn, vướng mắc trong tháng và nguyên nhân..."></textarea>
+          </div>
+          <div class="form-row">
+            <label>Kế hoạch tháng tới</label>
+            <textarea id="m-plan" placeholder="Mục tiêu và kế hoạch tháng tiếp theo..."></textarea>
+          </div>
+          <div class="form-row">
+            <label>Tình hình nhân sự (ngày công, trực, phép...)</label>
+            <textarea id="m-hr" placeholder="Tổng hợp ngày công, lịch trực, nghỉ phép, nghỉ bù..." style="min-height:75px;"></textarea>
+          </div>
+          <div id="synthesis-monthly" class="synthesis-check" style="display:none">
+            <input type="checkbox" id="m-synth"> <label for="m-synth">Đây là báo cáo tổng hợp nhóm (gửi lên cấp trên)</label>
+          </div>
+          <div class="form-actions">
+            <button class="btn-outline" onclick="clearForm('monthly')">Xóa form</button>
+            <button class="btn-primary" onclick="submitReport('monthly')">💾 Lưu & Nộp báo cáo</button>
+            <button class="btn-outline" onclick="window.print()">🖨️ In</button>
+          </div>
+        </div>
+        <div class="history-section">
+          <h3>📁 Báo cáo tháng đã nộp</h3>
+          <div id="monthly-list"></div>
+        </div>
+      </div>
+
+      <!-- YEARLY -->
+      <div class="report-panel" id="tab-yearly">
+        <div class="form-card">
+          <h3>📊 Báo cáo tổng kết năm</h3>
+          <div class="form-grid-2">
+            <div class="form-row">
+              <label>Năm báo cáo</label>
+              <select id="y-year"></select>
+            </div>
+            <div class="form-row">
+              <label>Xếp loại hoàn thành nhiệm vụ</label>
+              <select id="y-rating">
+                <option value="">-- Chọn xếp loại --</option>
+                <option>Xuất sắc</option><option>Tốt</option>
+                <option>Khá</option><option>Trung bình</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <label>Nhóm công tác</label>
+            <select id="y-group"><option value="">-- Chọn nhóm --</option></select>
+          </div>
+          <div class="form-row">
+            <label>Tổng quan hoạt động năm</label>
+            <textarea id="y-overview" placeholder="Nhìn lại toàn bộ hoạt động trong năm..." style="min-height:110px;"></textarea>
+          </div>
+          <div class="form-row">
+            <label>Dự án / Nhiệm vụ lớn đã hoàn thành</label>
+            <textarea id="y-projects" placeholder="Liệt kê các dự án, nhiệm vụ lớn và kết quả..."></textarea>
+          </div>
+          <div class="form-row">
+            <label>Tình hình nhân sự cả năm</label>
+            <textarea id="y-hr" placeholder="Tổng ngày công, biến động nhân sự, đào tạo, thi đua..."></textarea>
+          </div>
+          <div class="form-row">
+            <label>Định hướng & Kế hoạch năm tới</label>
+            <textarea id="y-plan" placeholder="Mục tiêu và kế hoạch cho năm tiếp theo..."></textarea>
+          </div>
+          <div id="synthesis-yearly" class="synthesis-check" style="display:none">
+            <input type="checkbox" id="y-synth"> <label for="y-synth">Đây là báo cáo tổng hợp nhóm (gửi lên cấp trên)</label>
+          </div>
+          <div class="form-actions">
+            <button class="btn-outline" onclick="clearForm('yearly')">Xóa form</button>
+            <button class="btn-primary" onclick="submitReport('yearly')">💾 Lưu & Nộp báo cáo</button>
+            <button class="btn-outline" onclick="window.print()">🖨️ In</button>
+          </div>
+        </div>
+        <div class="history-section">
+          <h3>📁 Báo cáo năm đã nộp</h3>
+          <div id="yearly-list"></div>
+        </div>
+      </div>
+    </div><!-- /section-submit -->
+
+    <!-- ===== SECTION: ASSIGN ===== -->
+    <div id="section-assign" class="section">
+      <div class="assign-header">
+        <div class="icon">👥</div>
+        <div>
+          <h3>Phân nhóm nhân viên</h3>
+          <p>Gán từng nhân viên vào nhóm công tác phù hợp</p>
+        </div>
+      </div>
+      <div style="background:#fff3e0;border-radius:10px;padding:.9rem 1.2rem;margin-bottom:1.5rem;font-size:.85rem;color:#8B4513;">
+        ℹ️ Việc phân nhóm quyết định nhóm trưởng nào nhận báo cáo của nhân viên. Nhân viên chưa được phân nhóm sẽ nộp báo cáo thẳng lên Tổ trưởng.
+      </div>
+      <div class="assign-grid" id="assign-list"></div>
+    </div>
+
+    <!-- ===== SECTION: OVERVIEW ===== -->
+    <div id="section-overview" class="section">
+      <div class="admin-header">
+        <div class="icon">🛡️</div>
+        <div>
+          <h3>Tổng quan báo cáo – Toàn phòng</h3>
+          <p>Xem tất cả báo cáo từ các cấp trong hệ thống</p>
+        </div>
+      </div>
+      <div class="stats-row" id="overview-stats"></div>
+      <div class="filter-bar">
+        <label>Loại:</label>
+        <select id="ov-type" onchange="loadOverview()">
+          <option value="daily">Ngày</option>
+          <option value="weekly">Tuần</option>
+          <option value="monthly">Tháng</option>
+          <option value="yearly">Năm</option>
+        </select>
+        <label>Nhân viên:</label>
+        <select id="ov-staff" onchange="loadOverview()"><option value="">Tất cả</option></select>
+        <label>Cấp báo cáo:</label>
+        <select id="ov-level" onchange="loadOverview()">
+          <option value="">Tất cả</option>
+          <option value="leader">Gửi Nhóm trưởng</option>
+          <option value="to_truong">Gửi Tổ trưởng</option>
+          <option value="lanh_dao">Gửi Lãnh đạo</option>
+        </select>
+        <label>Tìm:</label>
+        <input type="text" id="ov-search" oninput="loadOverview()" placeholder="Nội dung..." style="min-width:140px;">
+      </div>
+      <div id="overview-list"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Change password modal -->
+<div class="modal-overlay" id="pw-modal" onclick="if(event.target===this)closePwModal()">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>🔑 Đổi mật khẩu</h3>
+      <p>Mật khẩu phải có ít nhất 6 ký tự</p>
+    </div>
+    <div class="modal-body">
+      <div class="form-row"><label>Mật khẩu hiện tại</label><input type="password" id="pw-current" placeholder="Nhập mật khẩu hiện tại..."></div>
+      <div class="form-row"><label>Mật khẩu mới</label><input type="password" id="pw-new" placeholder="Nhập mật khẩu mới..."></div>
+      <div class="form-row"><label>Xác nhận mật khẩu mới</label><input type="password" id="pw-confirm" placeholder="Nhập lại mật khẩu mới..."></div>
+      <div id="pw-error" style="color:#c0392b;font-size:.82rem;margin-top:.5rem;display:none;"></div>
+      <div class="modal-actions">
+        <button class="btn-outline" onclick="closePwModal()">Hủy</button>
+        <button class="btn-primary" onclick="doChangePw()">Lưu mật khẩu</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =====================================================
+   DATA
+===================================================== */
+const STAFF = [
+  {id:1,  name:'Nguyễn Văn Cường',     position:'Kỹ sư',               role:'staff',     groups:[]},
+  {id:2,  name:'Vương Hoàng Linh',     position:'Trưởng phòng',        role:'lanh_dao',  groups:[]},
+  {id:3,  name:'Nguyễn Thị Thu Hiền',  position:'Tổ trưởng công tác',  role:'to_truong', groups:[]},
+  {id:4,  name:'Phan Quang Huy',        position:'Trưởng nhóm',         role:'leader',    groups:[10]},
+  {id:5,  name:'Nguyễn Quỳnh Ngọc',   position:'Phó Trưởng phòng',    role:'lanh_dao',  groups:[]},
+  {id:6,  name:'Nguyễn Ngọc Anh',      position:'Kỹ sư',               role:'staff',     groups:[]},
+  {id:7,  name:'Lê Thị Việt Hương',    position:'Trưởng nhóm',         role:'leader',    groups:[9]},
+  {id:8,  name:'Hoàng Thị Ngọc Yến',  position:'Trưởng nhóm',         role:'leader',    groups:[4]},
+  {id:9,  name:'Đàm Văn Thành',        position:'Trưởng nhóm',         role:'leader',    groups:[5]},
+  {id:10, name:'Phan Thanh Hiếu',      position:'Kỹ thuật viên',       role:'staff',     groups:[]},
+  {id:11, name:'Bạch Lê Thắng',        position:'Trưởng nhóm',         role:'leader',    groups:[3]},
+  {id:12, name:'Trần Hoàng Dương',     position:'Kỹ sư',               role:'staff',     groups:[]},
+  {id:13, name:'Đoàn Quốc Trung',      position:'Kỹ sư',               role:'staff',     groups:[]},
+  {id:14, name:'Nguyễn Thanh Tùng',    position:'Kế toán viên',        role:'staff',     groups:[]},
+  {id:15, name:'Vũ Trung Kiên',         position:'Trưởng nhóm',         role:'leader',    groups:[2]},
+  {id:16, name:'Nguyễn Hữu Quân',      position:'Kỹ sư',               role:'staff',     groups:[]},
+  {id:17, name:'Phan Tiến Dũng',        position:'Trưởng nhóm',         role:'leader',    groups:[6]},
+  {id:18, name:'Nguyễn Đức Thịnh',     position:'Kỹ sư',               role:'staff',     groups:[]},
+  {id:19, name:'Nguyễn Thị Ngọc Anh', position:'Trưởng nhóm',         role:'leader',    groups:[7]},
+  {id:20, name:'Hoàng Hải Anh',         position:'Trưởng nhóm',         role:'leader',    groups:[1]},
+  {id:21, name:'Phạm Ngọc Linh',        position:'Kỹ sư',               role:'staff',     groups:[]},
+  {id:22, name:'Nguyễn Đăng Tùng',     position:'Kỹ sư',               role:'staff',     groups:[]},
+  {id:23, name:'Bùi Thị Hồng Hạnh',   position:'Chuyên viên',         role:'staff',     groups:[]},
+  {id:24, name:'Nguyễn Tuấn Linh',     position:'Kỹ sư',               role:'staff',     groups:[]},
+  {id:25, name:'Lê Thị Thanh Thanh',   position:'Trưởng nhóm',         role:'leader',    groups:[8]},
+  {id:26, name:'Quách Trường Giang',   position:'Chuyên viên',         role:'staff',     groups:[]},
+  {id:27, name:'Nguyễn Quỳnh Anh',     position:'Kỹ sư',               role:'staff',     groups:[]},
+  {id:28, name:'Cao Thị Thuý',          position:'Kỹ sư',               role:'staff',     groups:[]},
+  {id:29, name:'Hoàng Long',            position:'Kỹ sư',               role:'staff',     groups:[]},
+  {id:30, name:'Nguyễn Hoàng Hiệp',   position:'Kỹ thuật viên',       role:'staff',     groups:[]},
+  {id:31, name:'Nguyễn Văn Công',      position:'Kỹ sư',               role:'staff',     groups:[]},
+  {id:32, name:'Bùi Thị Kim Oanh',     position:'Chuyên viên',         role:'staff',     groups:[]},
+];
+
+const GROUPS = [
+  {num:1,  name:'Quản lý Kho – Sửa chữa TTB CNTT',   leaderId:20},
+  {num:2,  name:'Mua sắm, đấu thầu',                  leaderId:15},
+  {num:3,  name:'Hỗ trợ các khoa phòng chức năng',    leaderId:11},
+  {num:4,  name:'Hỗ trợ Khối Dịch vụ theo yêu cầu',  leaderId:8},
+  {num:5,  name:'Hỗ trợ Khối Ngoại trú',              leaderId:9},
+  {num:6,  name:'Hỗ trợ Khối Trung tâm',              leaderId:17},
+  {num:7,  name:'Hỗ trợ Khối Đẻ – Mổ – Sơ sinh',     leaderId:19},
+  {num:8,  name:'Hỗ trợ Khối sản',                    leaderId:25},
+  {num:9,  name:'Hỗ trợ Khối phụ',                    leaderId:7},
+  {num:10, name:'Hỗ trợ Khối xét nghiệm',             leaderId:4},
+];
+
+const DEFAULT_PW = 'cntt2026';
+
+/* =====================================================
+   HELPERS
+===================================================== */
+function getPwKey(n){ return 'pw_'+n; }
+function getUserPw(n){ return localStorage.getItem(getPwKey(n))||DEFAULT_PW; }
+function setUserPw(n,p){ localStorage.setItem(getPwKey(n),p); }
+function getSession(){ try{return JSON.parse(sessionStorage.getItem('cntt_session'))||null;}catch(e){return null;} }
+function setSession(s){ sessionStorage.setItem('cntt_session',JSON.stringify(s)); }
+function clearSession(){ sessionStorage.removeItem('cntt_session'); }
+
+function getReports(type){ try{return JSON.parse(localStorage.getItem('cntt_rp_'+type))||[];}catch(e){return[];} }
+function saveReports(type,arr){ localStorage.setItem('cntt_rp_'+type,JSON.stringify(arr)); }
+function getAllReports(){ return ['daily','weekly','monthly','yearly'].flatMap(t=>getReports(t).map(r=>({...r,type:r.type||t}))); }
+
+function getGroupOverrides(){ try{return JSON.parse(localStorage.getItem('cntt_staff_groups'))||{};}catch(e){return{};} }
+function saveGroupOverrides(obj){ localStorage.setItem('cntt_staff_groups',JSON.stringify(obj)); }
+
+// Returns array of group numbers the staff member belongs to
+function getEffectiveGroups(staffId){
+  const ov=getGroupOverrides();
+  if(ov[staffId]!==undefined) return Array.isArray(ov[staffId])?ov[staffId]:[ov[staffId]].filter(Boolean);
+  return STAFF.find(s=>s.id===staffId)?.groups||[];
+}
+
+// Returns array of group numbers this person LEADS (per GROUPS.leaderId)
+function getLeadGroups(staffId){
+  return GROUPS.filter(g=>g.leaderId===staffId).map(g=>g.num);
+}
+
+function getGroupName(num){
+  if(!num) return '';
+  const g=GROUPS.find(g=>g.num===num);
+  return g?`Nhóm ${num}: ${g.name}`:'';
+}
+
+function getGroupLeaderName(groupNum){
+  const g=GROUPS.find(g=>g.num===groupNum);
+  if(!g) return 'Tổ trưởng';
+  return STAFF.find(s=>s.id===g.leaderId)?.name||'Tổ trưởng';
+}
+
+function getTargetLevel(role, selectedGroup){
+  if(role==='leader') return 'to_truong';
+  if(role==='to_truong') return 'lanh_dao';
+  if(role==='lanh_dao') return 'lanh_dao';
+  // staff: has a selected group → goes to leader; no group → goes to to_truong
+  return (selectedGroup&&selectedGroup>0) ? 'leader' : 'to_truong';
+}
+
+// Populate a <select> element with user's assigned groups
+function populateGroupSelect(selectId, session){
+  const el=document.getElementById(selectId); if(!el) return;
+  el.innerHTML='';
+  const groups=getEffectiveGroups(session.id);
+  if(session.role==='to_truong'){
+    el.innerHTML='<option value="0">Tổ trưởng – Tổng hợp toàn phòng</option>';
+  } else if(session.role==='lanh_dao'){
+    el.innerHTML='<option value="0">Lãnh đạo phòng</option>';
+  } else if(groups.length===0){
+    el.innerHTML='<option value="0">Chưa phân nhóm</option>';
+  } else {
+    if(groups.length>1) el.innerHTML='<option value="">-- Chọn nhóm --</option>';
+    groups.forEach(n=>{
+      const o=document.createElement('option');
+      o.value=n; o.textContent=getGroupName(n);
+      el.appendChild(o);
+    });
+    if(groups.length===1) el.value=groups[0];
+  }
+}
+
+function buildBody(pairs){
+  return pairs.filter(([,v])=>v&&v.trim()).map(([k,v])=>`<strong>${k}:</strong> ${v.replace(/\n/g,'<br>')}`).join('<br>');
+}
+
+function renderReport(r, showAuthor=false, canDelete=false, type=null, globalIdx=null){
+  const rtype = r.type || type;
+  let title='', body='';
+  if(rtype==='daily'){ title=`${r.date||''}${r.group?' · '+r.group:''}`; body=buildBody([['Đã hoàn thành',r.done],['Chưa xong',r.pending],['Sự cố',r.issue],['Kế hoạch mai',r.plan]]); }
+  else if(rtype==='weekly'){ title=`${r.from||''} → ${r.to||''}${r.group?' · '+r.group:''}`; body=buildBody([['Kết quả tuần',r.done],['Tồn đọng',r.pending],['Tuần tới',r.plan],['Kiến nghị',r.suggest]]); }
+  else if(rtype==='monthly'){ title=`Tháng ${r.month||''}${r.group?' · '+r.group:''}`; body=buildBody([['Kết quả tháng',r.done],['Nổi bật',r.highlight],['Khó khăn',r.issue],['Kế hoạch tới',r.plan],['Nhân sự',r.hr]]); }
+  else if(rtype==='yearly'){ title=`Năm ${r.year||''}${r.rating?' · '+r.rating:''}`; body=buildBody([['Tổng quan',r.overview],['Dự án',r.projects],['Nhân sự',r.hr],['Kế hoạch',r.plan]]); }
+  const authorLine = showAuthor ? `<strong>${r.reporter||''}</strong> · ${r.position||''} · ` : '';
+  const synthBadge = r.isSynthesis ? '<span class="ri-badge synth">Tổng hợp</span>' : '<span class="ri-badge indiv">Cá nhân</span>';
+  const levelMap = {leader:'→ Nhóm trưởng', to_truong:'→ Tổ trưởng', lanh_dao:'→ Lãnh đạo'};
+  const levelBadge = r.targetLevel ? `<span style="font-size:.7rem;color:var(--teal);margin-left:.3rem;">${levelMap[r.targetLevel]||''}</span>` : '';
+  const delBtn = canDelete ? `<button class="ri-del" onclick="deleteReport('${rtype}',${globalIdx})" title="Xóa">🗑</button>` : '';
+  const cls = r.isSynthesis ? 'report-item synthesis' : 'report-item';
+  return `<div class="${cls}">
+    <div class="ri-header">
+      <div class="ri-title">${title}${synthBadge}${levelBadge}</div>
+      <div class="ri-meta">${authorLine}Nộp: ${r.createdAt||''}</div>
+    </div>
+    <div class="ri-body">${body||'<em style="color:var(--muted)">Không có nội dung</em>'}</div>
+    ${delBtn}
+  </div>`;
+}
+
+/* =====================================================
+   INIT
+===================================================== */
+document.addEventListener('DOMContentLoaded',()=>{
+  const sel=document.getElementById('login-name');
+  STAFF.forEach(s=>{const o=document.createElement('option');o.value=s.name;o.textContent=s.name+' – '+s.position;sel.appendChild(o);});
+
+  const ysel=document.getElementById('y-year');
+  for(let y=2026;y>=2011;y--){const o=document.createElement('option');o.value=o.textContent=y;ysel.appendChild(o);}
+
+  const today=new Date().toISOString().slice(0,10);
+  const dd=document.getElementById('d-date'); if(dd) dd.value=today;
+  const wf=document.getElementById('w-from'); if(wf){wf.value=getMonday();document.getElementById('w-to').value=today;}
+  const mm=document.getElementById('m-month'); if(mm) mm.value=today.slice(0,7);
+
+  document.getElementById('wb-date').textContent=new Date().toLocaleDateString('vi-VN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+  const session=getSession();
+  if(session) enterApp(session);
+});
+
+function getMonday(){
+  const d=new Date();const day=d.getDay();const diff=d.getDate()-day+(day===0?-6:1);
+  return new Date(d.setDate(diff)).toISOString().slice(0,10);
+}
+
+/* =====================================================
+   LOGIN / LOGOUT
+===================================================== */
+function doLogin(){
+  const name=document.getElementById('login-name').value.trim();
+  const pw=document.getElementById('login-pw').value;
+  const err=document.getElementById('login-error');
+  err.style.display='none';
+  if(!name){err.textContent='Vui lòng chọn tên nhân viên!';err.style.display='block';return;}
+  if(pw!==getUserPw(name)){err.textContent='Sai mật khẩu. Vui lòng thử lại!';err.style.display='block';return;}
+  const staff=STAFF.find(s=>s.name===name);
+  const session={name,position:staff.position,role:staff.role,id:staff.id,groups:getEffectiveGroups(staff.id)};
+  setSession(session);
+  enterApp(session);
+}
+
+function enterApp(session){
+  // Refresh effective groups in case overrides changed
+  session.groups=getEffectiveGroups(session.id);
+  setSession(session);
+
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app-screen').style.display='block';
+
+  // Reset section nav & sections to default state (prevents state leak between logins)
+  ['snav-inbox','snav-assign','snav-overview'].forEach(id=>document.getElementById(id).style.display='none');
+  document.querySelectorAll('.section-nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('snav-submit').classList.add('active');
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('section-submit').classList.add('active');
+  // Reset synthesis checkboxes
+  ['d-synth','w-synth','m-synth','y-synth'].forEach(id=>{const el=document.getElementById(id);if(el)el.checked=false;});
+  ['synthesis-daily','synthesis-weekly','synthesis-monthly','synthesis-yearly'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+  // Reset inbox reporter dropdown
+  document.getElementById('inbox-reporter').innerHTML='<option value="">Tất cả</option>';
+  // Reset overview staff dropdown
+  const ovs=document.getElementById('ov-staff'); ovs.innerHTML='<option value="">Tất cả</option>';
+  document.getElementById('user-info').textContent='👤 '+session.name;
+  document.getElementById('user-info').style.display='block';
+  document.getElementById('btn-logout').style.display='block';
+  document.getElementById('btn-change-pw').style.display='block';
+
+  // Welcome bar
+  document.getElementById('wb-name').textContent='Xin chào, '+session.name+'!';
+  document.getElementById('wb-role').textContent=session.position+' – Phòng CNTT BVPSTW';
+
+  const effGroups=session.groups||[];
+  const routeEl=document.getElementById('wb-route');
+  if(session.role==='staff'){
+    if(effGroups.length>0){
+      const lines=effGroups.map(n=>`${getGroupName(n)} (NT: ${getGroupLeaderName(n)})`).join(', ');
+      routeEl.className='wb-route';
+      routeEl.innerHTML=`📤 Thành viên: <strong>${lines}</strong>`;
+      routeEl.style.display='flex';
+    } else {
+      routeEl.className='wb-route warn';
+      routeEl.innerHTML='⚠️ Chưa được phân nhóm – Báo cáo gửi thẳng đến <strong>Tổ trưởng</strong>';
+      routeEl.style.display='flex';
+    }
+  } else if(session.role==='leader'){
+    const leadGroups=getLeadGroups(session.id);
+    const memberGroups=effGroups.filter(n=>!leadGroups.includes(n));
+    let info=`👥 Nhóm trưởng: ${leadGroups.map(n=>getGroupName(n)).join(', ')}`;
+    if(memberGroups.length) info+=` · Thành viên: ${memberGroups.map(n=>getGroupName(n)).join(', ')}`;
+    info+=` · 📤 Báo cáo gửi lên <strong>Tổ trưởng</strong>`;
+    routeEl.className='wb-route'; routeEl.innerHTML=info; routeEl.style.display='flex';
+  } else if(session.role==='to_truong'){
+    routeEl.className='wb-route';
+    routeEl.innerHTML=`📋 Nhận báo cáo từ 10 nhóm · 📤 Báo cáo tổng hợp gửi lên <strong>Phó Trưởng phòng & Trưởng phòng</strong>`;
+    routeEl.style.display='flex';
+  } else if(session.role==='lanh_dao'){
+    routeEl.className='wb-route';
+    routeEl.innerHTML=`🏆 Nhận báo cáo tổng hợp từ <strong>Tổ trưởng công tác</strong>`;
+    routeEl.style.display='flex';
+  }
+
+  // Populate group select dropdowns in all 4 forms
+  ['d-group','w-group','m-group','y-group'].forEach(id=>populateGroupSelect(id,session));
+
+  // Show synthesis checkbox for leaders and to_truong
+  if(session.role==='leader'||session.role==='to_truong'){
+    ['synthesis-daily','synthesis-weekly','synthesis-monthly','synthesis-yearly'].forEach(id=>{
+      const el=document.getElementById(id); if(el) el.style.display='flex';
+    });
+  }
+
+  // Section nav visibility
+  const roles_with_inbox=['leader','to_truong','lanh_dao'];
+  const roles_with_assign=['to_truong','lanh_dao'];
+  const roles_with_overview=['lanh_dao'];
+
+  if(roles_with_inbox.includes(session.role)){
+    document.getElementById('snav-inbox').style.display='';
+    // Default to inbox for leaders/to_truong/lanh_dao
+    switchSection('inbox', document.getElementById('snav-inbox'));
+  }
+  if(roles_with_assign.includes(session.role)){
+    document.getElementById('snav-assign').style.display='';
+  }
+  if(roles_with_overview.includes(session.role)){
+    document.getElementById('snav-overview').style.display='';
+    loadOverviewStats();
+    // Populate ov-staff
+    const ovs=document.getElementById('ov-staff');
+    STAFF.forEach(s=>{const o=document.createElement('option');o.value=s.name;o.textContent=s.name;ovs.appendChild(o);});
+  }
+
+  // Set inbox title/desc
+  setInboxMeta(session);
+
+  // Populate inbox reporter dropdown
+  populateInboxReporterFilter(session);
+
+  // Load data
+  ['daily','weekly','monthly','yearly'].forEach(t=>loadMyReports(t));
+  if(roles_with_inbox.includes(session.role)) loadInbox();
+  if(roles_with_assign.includes(session.role)) loadAssignPanel();
+}
+
+function setInboxMeta(session){
+  const titleEl=document.getElementById('inbox-title');
+  const descEl=document.getElementById('inbox-desc');
+  if(session.role==='leader'){
+    const leadGroups=getLeadGroups(session.id);
+    titleEl.textContent='Báo cáo từ thành viên nhóm';
+    descEl.textContent=`Phụ trách: ${leadGroups.map(n=>getGroupName(n)).join(', ')} – báo cáo do thành viên gửi lên`;
+  } else if(session.role==='to_truong'){
+    titleEl.textContent='Báo cáo tổng hợp từ Nhóm trưởng';
+    descEl.textContent='Tổng hợp báo cáo từ 10 nhóm trưởng và nhân viên chưa phân nhóm';
+  } else if(session.role==='lanh_dao'){
+    titleEl.textContent='Báo cáo tổng hợp từ Tổ trưởng';
+    descEl.textContent='Báo cáo do Tổ trưởng công tác tổng hợp và gửi lên lãnh đạo phòng';
+  }
+}
+
+function populateInboxReporterFilter(session){
+  const sel=document.getElementById('inbox-reporter');
+  sel.innerHTML='<option value="">Tất cả</option>';
+  let reporters=[];
+  if(session.role==='leader'){
+    const leadGroups=getLeadGroups(session.id);
+    reporters=STAFF.filter(s=>{
+      if(s.id===session.id) return false;
+      const sg=getEffectiveGroups(s.id);
+      return sg.some(g=>leadGroups.includes(g));
+    });
+  } else if(session.role==='to_truong'){
+    reporters=STAFF.filter(s=>s.role==='leader'||
+      (s.role==='staff'&&getEffectiveGroups(s.id).length===0));
+  } else if(session.role==='lanh_dao'){
+    reporters=STAFF.filter(s=>s.role==='to_truong');
+  }
+  reporters.forEach(s=>{const o=document.createElement('option');o.value=s.name;o.textContent=s.name;sel.appendChild(o);});
+}
+
+function logout(){
+  clearSession();
+  document.getElementById('app-screen').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('user-info').style.display='none';
+  document.getElementById('btn-logout').style.display='none';
+  document.getElementById('btn-change-pw').style.display='none';
+  document.getElementById('login-pw').value='';
+  document.getElementById('login-name').value='';
+}
+
+/* =====================================================
+   SECTIONS / TABS
+===================================================== */
+function switchSection(id,btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.section-nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('section-'+id).classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(id==='inbox') loadInbox();
+  if(id==='assign') loadAssignPanel();
+  if(id==='overview'){loadOverviewStats();loadOverview();}
+}
+
+function switchTab(id,btn){
+  document.querySelectorAll('.report-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.report-tabs button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+/* =====================================================
+   SUBMIT REPORT
+===================================================== */
+function submitReport(type){
+  const session=getSession(); if(!session) return;
+  const now=new Date().toLocaleString('vi-VN');
+  // Read selected group from the form dropdown
+  const groupSelId={daily:'d-group',weekly:'w-group',monthly:'m-group',yearly:'y-group'}[type];
+  const selectedGroupNum=parseInt(document.getElementById(groupSelId)?.value||'0')||0;
+  const targetLevel=getTargetLevel(session.role, selectedGroupNum);
+  const synthId={daily:'d-synth',weekly:'w-synth',monthly:'m-synth',yearly:'y-synth'}[type];
+  const isSynthesis=document.getElementById(synthId)?.checked||
+    session.role==='to_truong'||false;
+
+  let data={ts:Date.now(),createdAt:now,reporter:session.name,position:session.position,
+    authorId:session.id,authorGroup:selectedGroupNum,targetLevel,isSynthesis,type};
+
+  if(type==='daily'){
+    const date=document.getElementById('d-date').value;
+    if(!date){showToast('⚠️ Vui lòng chọn ngày!');return;}
+    Object.assign(data,{date,group:getGroupName(selectedGroupNum),
+      done:document.getElementById('d-done').value,
+      pending:document.getElementById('d-pending').value,
+      issue:document.getElementById('d-issue').value,
+      plan:document.getElementById('d-plan').value});
+  } else if(type==='weekly'){
+    const from=document.getElementById('w-from').value,to=document.getElementById('w-to').value;
+    if(!from||!to){showToast('⚠️ Vui lòng chọn khoảng thời gian!');return;}
+    Object.assign(data,{from,to,group:getGroupName(selectedGroupNum),
+      done:document.getElementById('w-done').value,
+      pending:document.getElementById('w-pending').value,
+      plan:document.getElementById('w-plan').value,
+      suggest:document.getElementById('w-suggest').value});
+  } else if(type==='monthly'){
+    const month=document.getElementById('m-month').value;
+    if(!month){showToast('⚠️ Vui lòng chọn tháng!');return;}
+    Object.assign(data,{month,group:getGroupName(selectedGroupNum),
+      done:document.getElementById('m-done').value,
+      highlight:document.getElementById('m-highlight').value,
+      issue:document.getElementById('m-issue').value,
+      plan:document.getElementById('m-plan').value,
+      hr:document.getElementById('m-hr').value});
+  } else if(type==='yearly'){
+    const year=document.getElementById('y-year').value;
+    Object.assign(data,{year,group:getGroupName(selectedGroupNum),
+      rating:document.getElementById('y-rating').value,
+      overview:document.getElementById('y-overview').value,
+      projects:document.getElementById('y-projects').value,
+      hr:document.getElementById('y-hr').value,
+      plan:document.getElementById('y-plan').value});
+  }
+
+  const arr=getReports(type); arr.unshift(data); saveReports(type,arr);
+  loadMyReports(type);
+  if(['leader','to_truong','lanh_dao'].includes(session.role)) loadInbox();
+  if(document.getElementById('section-overview').classList.contains('active')){loadOverview();loadOverviewStats();}
+
+  const destMap={leader:'Nhóm trưởng',to_truong:'Tổ trưởng',lanh_dao:'Lãnh đạo phòng'};
+  showToast(`✅ Đã nộp báo cáo → ${destMap[targetLevel]||''}!`);
+}
+
+/* =====================================================
+   MY REPORTS
+===================================================== */
+function loadMyReports(type){
+  const session=getSession(); if(!session) return;
+  const all=getReports(type);
+  const mine=all.filter(r=>r.authorId===session.id||r.reporter===session.name);
+  const el=document.getElementById(type+'-list'); if(!el) return;
+  if(!mine.length){el.innerHTML='<p class="no-data">Bạn chưa có báo cáo nào.</p>';return;}
+  el.innerHTML=mine.map((r,i)=>{
+    const globalIdx=all.findIndex(x=>x.ts===r.ts&&(x.authorId===r.authorId||x.reporter===r.reporter));
+    return renderReport(r,false,true,type,globalIdx);
+  }).join('');
+}
+
+function deleteReport(type,idx){
+  if(!confirm('Xác nhận xóa báo cáo này?')) return;
+  const arr=getReports(type); arr.splice(idx,1); saveReports(type,arr);
+  loadMyReports(type);
+  loadInbox();
+  showToast('🗑 Đã xóa.');
+}
+
+function clearForm(type){
+  const ids={daily:['d-done','d-pending','d-issue','d-plan'],weekly:['w-done','w-pending','w-plan','w-suggest'],monthly:['m-done','m-highlight','m-issue','m-plan','m-hr'],yearly:['y-overview','y-projects','y-hr','y-plan']};
+  (ids[type]||[]).forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const synthId={daily:'d-synth',weekly:'w-synth',monthly:'m-synth',yearly:'y-synth'}[type];
+  const se=document.getElementById(synthId); if(se) se.checked=false;
+  showToast('🗑 Đã xóa form.');
+}
+
+/* =====================================================
+   INBOX
+===================================================== */
+function loadInbox(){
+  const session=getSession(); if(!session) return;
+  const typeFilter=document.getElementById('inbox-type').value;
+  const reporterFilter=document.getElementById('inbox-reporter').value;
+  const search=(document.getElementById('inbox-search').value||'').toLowerCase();
+
+  const types = typeFilter==='all' ? ['daily','weekly','monthly','yearly'] : [typeFilter];
+  let arr=types.flatMap(t=>getReports(t).map(r=>({...r,type:r.type||t})));
+
+  // Filter by visibility
+  if(session.role==='leader'){
+    const leadGroups=getLeadGroups(session.id);
+    arr=arr.filter(r=>r.targetLevel==='leader'&&leadGroups.includes(r.authorGroup)&&r.authorId!==session.id);
+  } else if(session.role==='to_truong'){
+    arr=arr.filter(r=>r.targetLevel==='to_truong');
+  } else if(session.role==='lanh_dao'){
+    arr=arr.filter(r=>r.targetLevel==='lanh_dao');
+  } else {
+    arr=[];
+  }
+
+  if(reporterFilter) arr=arr.filter(r=>r.reporter===reporterFilter);
+  if(search) arr=arr.filter(r=>JSON.stringify(r).toLowerCase().includes(search));
+  arr.sort((a,b)=>b.ts-a.ts);
+
+  // Stats
+  const statsEl=document.getElementById('inbox-stats');
+  const counts={daily:0,weekly:0,monthly:0,yearly:0};
+  arr.forEach(r=>counts[r.type]=(counts[r.type]||0)+1);
+  statsEl.innerHTML=[['daily','Ngày'],['weekly','Tuần'],['monthly','Tháng'],['yearly','Năm']]
+    .map(([t,l])=>`<div class="inbox-stat"><span class="sn">${counts[t]||0}</span><span class="sl">${l}</span></div>`).join('');
+
+  const el=document.getElementById('inbox-list');
+  if(!arr.length){el.innerHTML='<p class="no-data">Chưa có báo cáo nào trong hộp thư đến.</p>';return;}
+  el.innerHTML=arr.map(r=>renderReport(r,true,false)).join('');
+}
+
+/* =====================================================
+   ASSIGN PANEL
+===================================================== */
+function loadAssignPanel(){
+  const el=document.getElementById('assign-list'); if(!el) return;
+  // Show all non-lanh_dao staff (including leaders who can be members of multiple groups)
+  const staffToAssign=STAFF.filter(s=>s.role==='staff'||s.role==='leader'||s.role==='to_truong');
+  el.innerHTML=staffToAssign.map(s=>{
+    const effGroups=getEffectiveGroups(s.id);
+    const badgeCls=effGroups.length>0?'assigned':'unassigned';
+    const groupLabel=effGroups.length>0?effGroups.map(n=>`Nhóm ${n}`).join(', '):'Chưa phân nhóm';
+    const checkboxes=GROUPS.map(g=>{
+      const checked=effGroups.includes(g.num)?'checked':'';
+      return `<label style="display:flex;align-items:center;gap:.4rem;font-size:.78rem;cursor:pointer;white-space:nowrap;">
+        <input type="checkbox" ${checked} onchange="toggleGroup(${s.id},${g.num},this.checked)" style="accent-color:var(--teal);">
+        Nhóm ${g.num}
+      </label>`;
+    }).join('');
+    return `<div class="assign-card" style="flex-direction:column;align-items:flex-start;gap:.75rem;">
+      <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
+        <div>
+          <div class="ac-name">${s.name}</div>
+          <div class="ac-pos">${s.position}</div>
+        </div>
+        <div class="ac-group ${badgeCls}">${groupLabel}</div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:.5rem 1rem;">${checkboxes}</div>
+    </div>`;
+  }).join('');
+}
+
+function toggleGroup(staffId, groupNum, checked){
+  const ov=getGroupOverrides();
+  let current=getEffectiveGroups(staffId);
+  if(checked){ if(!current.includes(groupNum)) current.push(groupNum); }
+  else { current=current.filter(n=>n!==groupNum); }
+  current.sort((a,b)=>a-b);
+  ov[staffId]=current;
+  saveGroupOverrides(ov);
+  // Re-render just the badge without full reload for performance
+  loadAssignPanel();
+  showToast('✅ Đã cập nhật phân nhóm!');
+}
+
+/* =====================================================
+   OVERVIEW (lanh_dao)
+===================================================== */
+function loadOverviewStats(){
+  const el=document.getElementById('overview-stats'); if(!el) return;
+  const all=getAllReports();
+  const labels={daily:'Báo cáo ngày',weekly:'Báo cáo tuần',monthly:'Báo cáo tháng',yearly:'Báo cáo năm'};
+  el.innerHTML=Object.entries(labels).map(([t,l])=>`
+    <div class="stat-card"><span class="sn">${all.filter(r=>r.type===t).length}</span><span class="sl">${l}</span></div>
+  `).join('');
+}
+
+function loadOverview(){
+  const type=document.getElementById('ov-type').value;
+  const staffFilter=document.getElementById('ov-staff').value;
+  const levelFilter=document.getElementById('ov-level').value;
+  const search=(document.getElementById('ov-search').value||'').toLowerCase();
+  let arr=getReports(type);
+  if(staffFilter) arr=arr.filter(r=>r.reporter===staffFilter);
+  if(levelFilter) arr=arr.filter(r=>r.targetLevel===levelFilter);
+  if(search) arr=arr.filter(r=>JSON.stringify(r).toLowerCase().includes(search));
+  arr.sort((a,b)=>(b.ts||0)-(a.ts||0));
+  const el=document.getElementById('overview-list'); if(!el) return;
+  if(!arr.length){el.innerHTML='<p class="no-data">Chưa có báo cáo phù hợp.</p>';return;}
+  el.innerHTML=arr.map(r=>renderReport(r,true,false,type)).join('');
+}
+
+/* =====================================================
+   CHANGE PASSWORD
+===================================================== */
+function openChangePw(){ document.getElementById('pw-modal').classList.add('open'); }
+function closePwModal(){ document.getElementById('pw-modal').classList.remove('open');['pw-current','pw-new','pw-confirm'].forEach(id=>document.getElementById(id).value='');document.getElementById('pw-error').style.display='none'; }
+function doChangePw(){
+  const session=getSession();
+  const cur=document.getElementById('pw-current').value;
+  const nw=document.getElementById('pw-new').value;
+  const cf=document.getElementById('pw-confirm').value;
+  const errEl=document.getElementById('pw-error');
+  if(cur!==getUserPw(session.name)){errEl.textContent='Mật khẩu hiện tại không đúng!';errEl.style.display='block';return;}
+  if(nw.length<6){errEl.textContent='Mật khẩu mới phải có ít nhất 6 ký tự!';errEl.style.display='block';return;}
+  if(nw!==cf){errEl.textContent='Mật khẩu xác nhận không khớp!';errEl.style.display='block';return;}
+  setUserPw(session.name,nw);
+  closePwModal();
+  showToast('✅ Đổi mật khẩu thành công!');
+}
+
+/* =====================================================
+   TOAST
+===================================================== */
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+</script>
+</body>
+</html>
