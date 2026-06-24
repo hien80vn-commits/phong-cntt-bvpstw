@@ -718,18 +718,7 @@ function getMonday(){
 /* =====================================================
    LOGIN / LOGOUT
 ===================================================== */
-function doLogin(){
-  const name=document.getElementById('login-name').value.trim();
-  const pw=document.getElementById('login-pw').value;
-  const err=document.getElementById('login-error');
-  err.style.display='none';
-  if(!name){err.textContent='Vui lòng chọn tên nhân viên!';err.style.display='block';return;}
-  if(pw!==getUserPw(name)){err.textContent='Sai mật khẩu. Vui lòng thử lại!';err.style.display='block';return;}
-  const staff=STAFF.find(s=>s.name===name);
-  const session={name,position:staff.position,role:staff.role,id:staff.id,groups:getEffectiveGroups(staff.id)};
-  setSession(session);
-  enterApp(session);
-}
+function doLogin(){ /* Đăng nhập thực hiện tại trang chủ index.html */ }
 
 function enterApp(session){
   // Refresh effective groups in case overrides changed

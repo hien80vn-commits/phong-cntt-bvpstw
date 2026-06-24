@@ -462,6 +462,7 @@ function initSchedule(){
 /* ===== LOGIN ===== */
 function populateSel(){
   const sel = document.getElementById('sel-u');
+  if(!sel) return;
   sel.innerHTML = '<option value="">-- Chọn tên --</option>';
   [...staffList].sort((a,b)=>a.name.localeCompare(b.name)).forEach(s=>{
     const o = document.createElement('option');
@@ -479,7 +480,6 @@ function clearSession(){ sessionStorage.removeItem('cntt_session'); }
 function enterUser(s){
   const isAdmin = isAdminPosition(s.position);
   user = {id:s.id, name:s.name, isAdmin};
-  document.getElementById('login-screen').classList.add('hide');
   document.getElementById('main-wrap').classList.remove('hide');
   document.getElementById('nav-user').classList.add('show');
   document.getElementById('nav-ubadge').textContent = (isAdmin?'⭐ ':'') + user.name;
