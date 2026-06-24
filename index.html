@@ -1058,7 +1058,7 @@ function doLogin(){
   if(pw!==getUserPw(s.name)){ lerr.textContent='Mật khẩu không đúng, vui lòng thử lại.'; lerr.style.display='block'; return; }
   lerr.style.display='none';
   const role=['Trưởng phòng','Phó Trưởng phòng'].includes(s.position)?'lanh_dao':s.position==='Tổ trưởng công tác'?'to_truong':s.position==='Trưởng nhóm'?'leader':'staff';
-  setSession({id:s.id, name:s.name, role});
+  setSession({id:s.id, name:s.name, role, position:s.position||s.title||''});
   closeLoginModal();
   applyAuthState();
   showToast('✅ Đăng nhập thành công! Chào '+s.name);
