@@ -383,6 +383,7 @@ ul { list-style: none; }
       <a href="#intro">Giới thiệu</a>
       <a href="#groups">10 Nhóm công tác</a>
       <a href="#staff">Nhân sự</a>
+      <a href="lich-truc.html">🗓️ Lịch trực</a>
       <a href="report.html" style="background:var(--pink);color:#fff;">📋 Cổng báo cáo</a>
     </div>
     <button class="hamburger" onclick="toggleMenu()" aria-label="Menu">
@@ -520,6 +521,20 @@ ul { list-style: none; }
   </div>
 </section>
 
+<!-- ===================== CTA LỊCH TRỰC ===================== -->
+<section class="section" id="duty-cta" style="background:var(--bg);padding:3rem 1.5rem;">
+<div class="section-inner" style="text-align:center;">
+  <span class="tag">Vận hành 24/7</span>
+  <h2 style="font-size:clamp(1.5rem,3vw,2.25rem);font-weight:800;color:var(--purple-d);margin:.75rem 0;">Hệ thống Lịch Trực Phòng CNTT</h2>
+  <div class="divider"></div>
+  <p style="color:var(--muted);max-width:560px;margin:.75rem auto 2rem;">Xem lịch trực theo ngày / tuần / tháng, đăng ký nguyện vọng ca trực hoặc nghỉ phép, và quản lý phân công — đảm bảo mỗi người tối đa 1 ca sáng và 1 ca đêm mỗi tuần.</p>
+  <a href="lich-truc.html" style="display:inline-block;background:linear-gradient(135deg,var(--purple),var(--purple-l));color:#fff;padding:1rem 2.5rem;border-radius:12px;font-weight:700;font-size:1.05rem;box-shadow:0 4px 20px rgba(107,45,139,.3);transition:opacity .2s;" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
+    🗓️ Xem & Đăng ký Lịch trực
+  </a>
+  <p style="font-size:.8rem;color:var(--muted);margin-top:1rem;">Đăng nhập bằng họ tên trong danh sách 32 nhân sự Phòng CNTT</p>
+</div>
+</section>
+
 <!-- ===================== CTA BÁO CÁO ===================== -->
 <section class="section" id="report" style="background:#fff;padding:3rem 1.5rem;">
 <div class="section-inner" style="text-align:center;">
@@ -563,38 +578,38 @@ ul { list-style: none; }
    DATA
 ===================================================== */
 const STAFF = [
-  {id:1, name:'Nguyễn Văn Cường',     position:'',                   title:'Kỹ sư',         degree:'Thạc sĩ',  gender:'Nam', contract:'VC', year:2011},
-  {id:2, name:'Vương Hoàng Linh',     position:'Trưởng phòng',       title:'Kế toán viên',  degree:'Đại học',  gender:'Nam', contract:'VC', year:2011},
+  {id:1, name:'Vương Hoàng Linh',     position:'Trưởng phòng',       title:'Kế toán viên',  degree:'Đại học',  gender:'Nam', contract:'VC', year:2011},
+  {id:2, name:'Nguyễn Quỳnh Ngọc',    position:'Phó Trưởng phòng',   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2011},
   {id:3, name:'Nguyễn Thị Thu Hiền',  position:'Tổ trưởng công tác', title:'Kỹ sư',         degree:'Đại học',  gender:'Nữ',  contract:'VC', year:2011},
-  {id:4, name:'Phan Quang Huy',        position:'Trưởng nhóm',        title:'Kỹ sư',         degree:'Thạc sĩ',  gender:'Nam', contract:'VC', year:2010},
-  {id:5, name:'Nguyễn Quỳnh Ngọc',    position:'Phó Trưởng phòng',   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2011},
-  {id:6, name:'Nguyễn Ngọc Anh',      position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2011},
-  {id:7, name:'Lê Thị Việt Hương',    position:'Trưởng nhóm',        title:'Chuyên viên',   degree:'Thạc sĩ',  gender:'Nữ',  contract:'VC', year:2011},
-  {id:8, name:'Hoàng Thị Ngọc Yến',   position:'Trưởng nhóm',        title:'Kỹ sư',         degree:'Đại học',  gender:'Nữ',  contract:'VC', year:2011},
-  {id:9, name:'Đàm Văn Thành',         position:'Trưởng nhóm',        title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2012},
-  {id:10,name:'Phan Thanh Hiếu',       position:'',                   title:'Kỹ thuật viên', degree:'Cao đẳng', gender:'Nam', contract:'VC', year:2012},
-  {id:11,name:'Bạch Lê Thắng',         position:'Trưởng nhóm',        title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2012},
-  {id:12,name:'Trần Hoàng Dương',      position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2013},
-  {id:13,name:'Đoàn Quốc Trung',       position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2014},
-  {id:14,name:'Nguyễn Thanh Tùng',     position:'',                   title:'Kế toán viên',  degree:'Đại học',  gender:'Nam', contract:'VC', year:2014},
-  {id:15,name:'Vũ Trung Kiên',          position:'Trưởng nhóm',        title:'Chuyên viên',   degree:'Đại học',  gender:'Nam', contract:'VC', year:2016},
-  {id:16,name:'Nguyễn Hữu Quân',       position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2017},
-  {id:17,name:'Phan Tiến Dũng',         position:'Trưởng nhóm',        title:'Kỹ sư',         degree:'Thạc sĩ',  gender:'Nam', contract:'VC', year:2017},
-  {id:18,name:'Nguyễn Đức Thịnh',      position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2017},
-  {id:19,name:'Nguyễn Thị Ngọc Anh',   position:'Trưởng nhóm',        title:'Chuyên viên',   degree:'Đại học',  gender:'Nữ',  contract:'VC', year:2017},
-  {id:20,name:'Hoàng Hải Anh',          position:'Trưởng nhóm',        title:'Chuyên viên',   degree:'Đại học',  gender:'Nữ',  contract:'VC', year:2018},
-  {id:21,name:'Phạm Ngọc Linh',         position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nữ',  contract:'VC', year:2018},
-  {id:22,name:'Nguyễn Đăng Tùng',       position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'HĐ', year:2018},
-  {id:23,name:'Bùi Thị Hồng Hạnh',     position:'',                   title:'Chuyên viên',   degree:'Đại học',  gender:'Nữ',  contract:'VC', year:2018},
-  {id:24,name:'Nguyễn Tuấn Linh',       position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'HĐ', year:2018},
-  {id:25,name:'Lê Thị Thanh Thanh',     position:'Trưởng nhóm',        title:'Chuyên viên',   degree:'Đại học',  gender:'Nữ',  contract:'VC', year:2018},
-  {id:26,name:'Quách Trường Giang',     position:'',                   title:'Chuyên viên',   degree:'Đại học',  gender:'Nam', contract:'VC', year:2022},
-  {id:27,name:'Nguyễn Quỳnh Anh',       position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nữ',  contract:'HĐ', year:2022},
-  {id:28,name:'Cao Thị Thuý',           position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nữ',  contract:'HĐ', year:2024},
-  {id:29,name:'Hoàng Long',             position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'HĐ', year:2024},
-  {id:30,name:'Nguyễn Hoàng Hiệp',     position:'',                   title:'Kỹ thuật viên', degree:'Đại học',  gender:'Nam', contract:'VC', year:null},
-  {id:31,name:'Nguyễn Văn Công',        position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:null},
-  {id:32,name:'Bùi Thị Kim Oanh',       position:'',                   title:'Chuyên viên',   degree:'Đại học',  gender:'Nữ',  contract:'HĐ', year:2025},
+  {id:4, name:'Hoàng Hải Anh',        position:'Trưởng nhóm',        title:'Chuyên viên',   degree:'Đại học',  gender:'Nữ',  contract:'VC', year:2018},
+  {id:5, name:'Vũ Trung Kiên',        position:'Trưởng nhóm',        title:'Chuyên viên',   degree:'Đại học',  gender:'Nam', contract:'VC', year:2016},
+  {id:6, name:'Bạch Lê Thắng',        position:'Trưởng nhóm',        title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2012},
+  {id:7, name:'Hoàng Thị Ngọc Yến',   position:'Trưởng nhóm',        title:'Kỹ sư',         degree:'Đại học',  gender:'Nữ',  contract:'VC', year:2011},
+  {id:8, name:'Đàm Văn Thành',        position:'Trưởng nhóm',        title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2012},
+  {id:9, name:'Phan Tiến Dũng',       position:'Trưởng nhóm',        title:'Kỹ sư',         degree:'Thạc sĩ',  gender:'Nam', contract:'VC', year:2017},
+  {id:10,name:'Nguyễn Thị Ngọc Anh',  position:'Trưởng nhóm',        title:'Chuyên viên',   degree:'Đại học',  gender:'Nữ',  contract:'VC', year:2017},
+  {id:11,name:'Lê Thị Thanh Thanh',   position:'Trưởng nhóm',        title:'Chuyên viên',   degree:'Đại học',  gender:'Nữ',  contract:'VC', year:2018},
+  {id:12,name:'Lê Thị Việt Hương',    position:'Trưởng nhóm',        title:'Chuyên viên',   degree:'Thạc sĩ',  gender:'Nữ',  contract:'VC', year:2011},
+  {id:13,name:'Phan Quang Huy',       position:'Trưởng nhóm',        title:'Kỹ sư',         degree:'Thạc sĩ',  gender:'Nam', contract:'VC', year:2010},
+  {id:14,name:'Nguyễn Văn Cường',     position:'',                   title:'Kỹ sư',         degree:'Thạc sĩ',  gender:'Nam', contract:'VC', year:2011},
+  {id:15,name:'Nguyễn Ngọc Anh',      position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2011},
+  {id:16,name:'Phan Thanh Hiếu',      position:'',                   title:'Kỹ thuật viên', degree:'Cao đẳng', gender:'Nam', contract:'VC', year:2012},
+  {id:17,name:'Trần Hoàng Dương',     position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2013},
+  {id:18,name:'Đoàn Quốc Trung',      position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2014},
+  {id:19,name:'Nguyễn Thanh Tùng',    position:'',                   title:'Kế toán viên',  degree:'Đại học',  gender:'Nam', contract:'VC', year:2014},
+  {id:20,name:'Nguyễn Hữu Quân',      position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2017},
+  {id:21,name:'Nguyễn Đức Thịnh',     position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2017},
+  {id:22,name:'Phạm Ngọc Linh',       position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nữ',  contract:'VC', year:2018},
+  {id:23,name:'Nguyễn Đăng Tùng',     position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'HĐ', year:2018},
+  {id:24,name:'Bùi Thị Hồng Hạnh',    position:'',                   title:'Chuyên viên',   degree:'Đại học',  gender:'Nữ',  contract:'VC', year:2018},
+  {id:25,name:'Nguyễn Tuấn Linh',     position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'HĐ', year:2018},
+  {id:26,name:'Quách Trường Giang',   position:'',                   title:'Chuyên viên',   degree:'Đại học',  gender:'Nam', contract:'VC', year:2022},
+  {id:27,name:'Nguyễn Quỳnh Anh',     position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nữ',  contract:'HĐ', year:2022},
+  {id:28,name:'Cao Thị Thuý',         position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nữ',  contract:'HĐ', year:2024},
+  {id:29,name:'Hoàng Long',           position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'HĐ', year:2024},
+  {id:30,name:'Nguyễn Hoàng Hiệp',    position:'',                   title:'Kỹ thuật viên', degree:'Đại học',  gender:'Nam', contract:'VC', year:null},
+  {id:31,name:'Nguyễn Văn Công',      position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:null},
+  {id:32,name:'Bùi Thị Kim Oanh',     position:'',                   title:'Chuyên viên',   degree:'Đại học',  gender:'Nữ',  contract:'HĐ', year:2025},
 ];
 
 const GROUPS = [
