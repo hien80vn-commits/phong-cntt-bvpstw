@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
@@ -208,7 +208,8 @@ a{color:inherit;text-decoration:none}
   <img src="IMG_9240.JPG" alt="Tập thể Phòng Công nghệ thông tin – BVPSTW">
 </div>
 
-<!-- Không cần màn hình đăng nhập — dùng session từ trang chủ -->
+<!-- LOGIN -->
+<!-- Đăng nhập thực hiện tại trang chủ index.html -->
 
 <!-- APP -->
 <div id="app-screen">
@@ -718,16 +719,23 @@ function getMonday(){
 /* =====================================================
    LOGIN / LOGOUT
 ===================================================== */
-function doLogin(){ /* Đăng nhập thực hiện tại trang chủ index.html */ }
+function doLogin(){
+  const name=document.getElementById('login-name').value.trim();
+  const pw=document.getElementById('login-pw').value;
+  const err=document.getElementById('login-error');
+  err.style.display='none';
+  if(!name){err.textContent='Vui lòng chọn tên nhân viên!';err.style.display='block';return;}
+  if(pw!==getUserPw(name)){err.textContent='Sai mật khẩu. Vui lòng thử lại!';err.style.display='block';return;}
+  const staff=STAFF.find(s=>s.name===name);
+  const session={name,position:staff.position,role:staff.role,id:staff.id,groups:getEffectiveGroups(staff.id)};
+  setSession(session);
+  enterApp(session);
+}
 
 function enterApp(session){
   // Tra lại đúng nhân viên theo tên để tránh ID mismatch từ index.html
   const staffMatch=STAFF.find(s=>s.name===session.name);
-  if(staffMatch){
-    session.id=staffMatch.id;
-    session.role=staffMatch.role;
-    session.position=staffMatch.position;
-  }
+  if(staffMatch){ session.id=staffMatch.id; session.role=staffMatch.role; session.position=staffMatch.position; }
   // Refresh effective groups in case overrides changed
   session.groups=getEffectiveGroups(session.id);
   setSession(session);
