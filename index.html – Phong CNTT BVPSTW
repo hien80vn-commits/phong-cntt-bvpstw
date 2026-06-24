@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phòng Công nghệ thông tin – Bệnh viện Phụ Sản Trung Ương</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* =========================================================
+   RESET & BASE
+   ========================================================= */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --purple:   #6B2D8B;
+  --purple-d: #4A1D62;
+  --purple-l: #9B59C0;
+  --pink:     #D63384;
+  --blue:     #1565C0;
+  --teal:     #00897B;
+  --gold:     #F9A825;
+  --bg:       #F8F4FC;
+  --card:     #FFFFFF;
+  --text:     #1A1A2E;
+  --muted:    #6B7280;
+  --border:   #E5E0ED;
+  --shadow:   0 4px 24px rgba(107,45,139,.12);
+  --radius:   14px;
+  --font:     'Be Vietnam Pro', sans-serif;
+}
+html { scroll-behavior: smooth; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.6; }
+a { color: inherit; text-decoration: none; }
+img { max-width: 100%; }
+ul { list-style: none; }
+
+/* =========================================================
+   NAVBAR
+   ========================================================= */
+.nav {
+  position: sticky; top: 0; z-index: 999;
+  background: rgba(255,255,255,.96);
+  backdrop-filter: blur(12px);
+  border-bottom: 2px solid var(--purple);
+  box-shadow: 0 2px 16px rgba(107,45,139,.1);
+}
+.nav-inner {
+  max-width: 1280px; margin: auto;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .75rem 1.5rem; gap: 1rem;
+}
+.nav-brand { display: flex; align-items: center; gap: .75rem; }
+.nav-logo {
+  width: 50px; height: 50px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--purple), var(--pink));
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 800; font-size: 1.2rem; flex-shrink: 0;
+}
+.nav-title { line-height: 1.2; }
+.nav-title strong { display: block; font-size: .95rem; color: var(--purple); }
+.nav-title span { font-size: .75rem; color: var(--muted); }
+.nav-links { display: flex; gap: .25rem; flex-wrap: wrap; }
+.nav-links a {
+  padding: .45rem .9rem; border-radius: 8px;
+  font-size: .85rem; font-weight: 500; color: var(--text);
+  transition: background .2s, color .2s;
+}
+.nav-links a:hover, .nav-links a.active { background: var(--purple); color: #fff; }
+.hamburger { display: none; background: none; border: none; cursor: pointer; padding: .5rem; }
+.hamburger span { display: block; width: 24px; height: 2px; background: var(--purple); margin: 5px 0; transition: .3s; }
+
+/* =========================================================
+   HERO
+   ========================================================= */
+.hero {
+  background: linear-gradient(135deg, var(--purple-d) 0%, var(--purple) 50%, var(--purple-l) 100%);
+  color: #fff; padding: 5rem 1.5rem 4rem; text-align: center; position: relative; overflow: hidden;
+}
+.hero::before {
+  content: ''; position: absolute; inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.hero-content { position: relative; max-width: 800px; margin: auto; }
+.hero-badge {
+  display: inline-block; background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.4);
+  border-radius: 999px; padding: .35rem 1.2rem; font-size: .8rem; font-weight: 600;
+  letter-spacing: .05em; text-transform: uppercase; margin-bottom: 1.25rem;
+}
+.hero h1 { font-size: clamp(1.8rem, 4vw, 3rem); font-weight: 800; line-height: 1.2; margin-bottom: 1rem; }
+.hero p { font-size: 1.1rem; opacity: .9; max-width: 620px; margin: 0 auto 2rem; }
+.hero-stats {
+  display: flex; justify-content: center; gap: 2.5rem; flex-wrap: wrap;
+  background: rgba(255,255,255,.12); border-radius: var(--radius);
+  padding: 1.5rem 2rem; border: 1px solid rgba(255,255,255,.2);
+}
+.hero-stat .num { font-size: 2rem; font-weight: 800; display: block; }
+.hero-stat .lbl { font-size: .8rem; opacity: .8; text-transform: uppercase; letter-spacing: .04em; }
+
+/* =========================================================
+   SECTION WRAPPERS
+   ========================================================= */
+.section { padding: 5rem 1.5rem; }
+.section-inner { max-width: 1280px; margin: auto; }
+.section-header { text-align: center; margin-bottom: 3rem; }
+.section-header .tag {
+  display: inline-block; background: rgba(107,45,139,.1); color: var(--purple);
+  border-radius: 999px; padding: .3rem 1rem; font-size: .78rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .06em; margin-bottom: .75rem;
+}
+.section-header h2 { font-size: clamp(1.5rem, 3vw, 2.25rem); font-weight: 800; color: var(--purple-d); }
+.section-header p { color: var(--muted); max-width: 600px; margin: .75rem auto 0; }
+.divider { width: 60px; height: 4px; background: linear-gradient(90deg,var(--purple),var(--pink)); border-radius: 2px; margin: 1rem auto 0; }
+
+/* =========================================================
+   GIỚI THIỆU
+   ========================================================= */
+#intro { background: #fff; }
+.intro-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: start; }
+.intro-text h3 { font-size: 1.4rem; font-weight: 700; color: var(--purple-d); margin-bottom: 1rem; }
+.intro-text p { color: #444; margin-bottom: .9rem; font-size: .95rem; }
+.func-list { display: flex; flex-direction: column; gap: .75rem; }
+.func-item {
+  display: flex; gap: 1rem; align-items: flex-start;
+  padding: .9rem 1.1rem; border-radius: var(--radius);
+  background: var(--bg); border-left: 4px solid var(--purple);
+}
+.func-icon {
+  width: 36px; height: 36px; border-radius: 8px;
+  background: linear-gradient(135deg,var(--purple),var(--purple-l));
+  color: #fff; display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; flex-shrink: 0;
+}
+.func-item h4 { font-size: .9rem; font-weight: 700; color: var(--purple-d); margin-bottom: .2rem; }
+.func-item p { font-size: .82rem; color: var(--muted); margin: 0; }
+
+/* Org info boxes */
+.info-boxes { display: grid; grid-template-columns: repeat(2,1fr); gap: 1rem; margin-top: 1.5rem; }
+.info-box {
+  background: linear-gradient(135deg,var(--purple-d),var(--purple));
+  color: #fff; border-radius: var(--radius); padding: 1.25rem; text-align: center;
+}
+.info-box .n { font-size: 2rem; font-weight: 800; display: block; }
+.info-box .l { font-size: .78rem; opacity: .85; }
+
+/* =========================================================
+   GROUPS
+   ========================================================= */
+#groups { background: var(--bg); }
+.groups-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: 1.25rem; }
+.group-card {
+  background: var(--card); border-radius: var(--radius); padding: 1.5rem;
+  box-shadow: var(--shadow); border-top: 4px solid var(--purple);
+  transition: transform .2s, box-shadow .2s;
+}
+.group-card:hover { transform: translateY(-4px); box-shadow: 0 8px 32px rgba(107,45,139,.18); }
+.group-num {
+  width: 40px; height: 40px; border-radius: 10px;
+  background: linear-gradient(135deg,var(--purple),var(--pink));
+  color: #fff; font-weight: 800; font-size: 1rem;
+  display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;
+}
+.group-card h3 { font-size: 1rem; font-weight: 700; color: var(--purple-d); margin-bottom: .4rem; }
+.group-card .leader { font-size: .82rem; color: var(--muted); }
+.group-card .leader strong { color: var(--purple); }
+
+/* =========================================================
+   NHÂN SỰ
+   ========================================================= */
+#staff { background: #fff; }
+.staff-filters {
+  display: flex; gap: .75rem; flex-wrap: wrap; justify-content: center; margin-bottom: 2.5rem;
+}
+.staff-filters button {
+  padding: .45rem 1.2rem; border-radius: 999px; border: 2px solid var(--border);
+  background: #fff; font-family: var(--font); font-size: .85rem; font-weight: 600;
+  cursor: pointer; transition: .2s; color: var(--muted);
+}
+.staff-filters button:hover, .staff-filters button.active {
+  background: var(--purple); border-color: var(--purple); color: #fff;
+}
+.staff-search {
+  display: flex; justify-content: center; margin-bottom: 2rem;
+}
+.staff-search input {
+  width: 100%; max-width: 420px; padding: .65rem 1.2rem;
+  border: 2px solid var(--border); border-radius: 999px;
+  font-family: var(--font); font-size: .9rem; outline: none;
+  transition: border-color .2s;
+}
+.staff-search input:focus { border-color: var(--purple); }
+.staff-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 1.25rem; }
+.staff-card {
+  background: var(--card); border-radius: var(--radius); overflow: hidden;
+  box-shadow: var(--shadow); transition: transform .2s, box-shadow .2s;
+  cursor: pointer; border: 2px solid transparent;
+}
+.staff-card:hover { transform: translateY(-4px); box-shadow: 0 8px 32px rgba(107,45,139,.18); border-color: var(--purple-l); }
+.staff-avatar {
+  width: 100%; height: 160px; display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg,var(--purple-d) 0%,var(--purple-l) 100%);
+  font-size: 3rem; color: rgba(255,255,255,.6); position: relative;
+}
+.staff-avatar .initials {
+  font-size: 2.2rem; font-weight: 800; color: #fff; letter-spacing: .05em;
+}
+.staff-avatar .role-badge {
+  position: absolute; bottom: .6rem; right: .6rem;
+  background: rgba(255,255,255,.25); border: 1px solid rgba(255,255,255,.5);
+  color: #fff; font-size: .68rem; font-weight: 700; padding: .2rem .6rem;
+  border-radius: 999px;
+}
+.staff-info { padding: 1rem; }
+.staff-info h3 { font-size: .95rem; font-weight: 700; color: var(--purple-d); margin-bottom: .25rem; }
+.staff-info .position { font-size: .78rem; color: var(--purple); font-weight: 600; margin-bottom: .4rem; }
+.staff-info .meta { display: flex; gap: .5rem; flex-wrap: wrap; }
+.staff-info .meta span {
+  font-size: .72rem; background: var(--bg); color: var(--muted);
+  padding: .15rem .55rem; border-radius: 999px;
+}
+.staff-hidden { display: none; }
+
+/* MODAL */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.55);
+  z-index: 9999; display: flex; align-items: center; justify-content: center;
+  padding: 1rem; opacity: 0; pointer-events: none; transition: opacity .3s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal {
+  background: #fff; border-radius: 20px; max-width: 500px; width: 100%;
+  overflow: hidden; transform: translateY(20px); transition: transform .3s;
+}
+.modal-overlay.open .modal { transform: translateY(0); }
+.modal-top {
+  background: linear-gradient(135deg,var(--purple-d),var(--purple-l));
+  padding: 2rem; text-align: center; color: #fff; position: relative;
+}
+.modal-top .modal-initials { font-size: 3.5rem; font-weight: 800; margin-bottom: .5rem; }
+.modal-top h3 { font-size: 1.3rem; font-weight: 800; }
+.modal-top p { font-size: .85rem; opacity: .85; }
+.modal-close {
+  position: absolute; top: 1rem; right: 1rem; background: rgba(255,255,255,.2);
+  border: none; color: #fff; width: 32px; height: 32px; border-radius: 50%;
+  cursor: pointer; font-size: 1.1rem; display: flex; align-items: center; justify-content: center;
+}
+.modal-body { padding: 1.5rem; }
+.modal-row { display: flex; justify-content: space-between; padding: .6rem 0; border-bottom: 1px solid var(--border); font-size: .88rem; }
+.modal-row:last-child { border-bottom: none; }
+.modal-row .label { color: var(--muted); font-weight: 500; }
+.modal-row .val { font-weight: 600; color: var(--text); text-align: right; }
+
+/* =========================================================
+   BÁO CÁO
+   ========================================================= */
+#report { background: var(--bg); }
+.report-tabs { display: flex; gap: .5rem; justify-content: center; margin-bottom: 2rem; flex-wrap: wrap; }
+.report-tabs button {
+  padding: .55rem 1.4rem; border-radius: 999px; border: 2px solid var(--border);
+  background: #fff; font-family: var(--font); font-weight: 600; font-size: .88rem;
+  cursor: pointer; transition: .2s; color: var(--muted);
+}
+.report-tabs button.active { background: var(--purple); border-color: var(--purple); color: #fff; }
+.report-panel { display: none; }
+.report-panel.active { display: block; }
+.report-form {
+  background: #fff; border-radius: var(--radius); padding: 2rem; box-shadow: var(--shadow);
+  max-width: 700px; margin: auto;
+}
+.form-row { margin-bottom: 1.25rem; }
+.form-row label { display: block; font-size: .85rem; font-weight: 600; color: var(--purple-d); margin-bottom: .4rem; }
+.form-row input, .form-row select, .form-row textarea {
+  width: 100%; padding: .65rem 1rem; border: 2px solid var(--border);
+  border-radius: 10px; font-family: var(--font); font-size: .9rem; outline: none; transition: .2s;
+  background: var(--bg);
+}
+.form-row input:focus, .form-row select:focus, .form-row textarea:focus { border-color: var(--purple); background: #fff; }
+.form-row textarea { resize: vertical; min-height: 100px; }
+.btn-primary {
+  background: linear-gradient(135deg,var(--purple),var(--pink));
+  color: #fff; border: none; padding: .75rem 2rem; border-radius: 10px;
+  font-family: var(--font); font-weight: 700; font-size: .95rem; cursor: pointer;
+  transition: opacity .2s, transform .1s;
+}
+.btn-primary:hover { opacity: .9; }
+.btn-primary:active { transform: scale(.98); }
+.btn-secondary {
+  background: #fff; color: var(--purple); border: 2px solid var(--purple);
+  padding: .65rem 1.5rem; border-radius: 10px;
+  font-family: var(--font); font-weight: 700; font-size: .9rem; cursor: pointer; transition: .2s;
+}
+.btn-secondary:hover { background: var(--purple); color: #fff; }
+.form-actions { display: flex; gap: 1rem; justify-content: flex-end; flex-wrap: wrap; margin-top: 1.5rem; }
+
+/* Report history */
+.report-history { margin-top: 2.5rem; max-width: 700px; margin-left: auto; margin-right: auto; }
+.report-history h3 { font-size: 1.1rem; font-weight: 700; color: var(--purple-d); margin-bottom: 1rem; }
+.report-item {
+  background: #fff; border-radius: var(--radius); padding: 1.25rem 1.5rem;
+  box-shadow: var(--shadow); margin-bottom: 1rem; border-left: 4px solid var(--purple);
+  position: relative;
+}
+.report-item .ri-date { font-size: .78rem; color: var(--muted); margin-bottom: .3rem; }
+.report-item .ri-reporter { font-size: .82rem; font-weight: 700; color: var(--purple); margin-bottom: .5rem; }
+.report-item .ri-content { font-size: .88rem; color: var(--text); }
+.report-item .ri-delete {
+  position: absolute; top: .75rem; right: .75rem;
+  background: none; border: none; cursor: pointer; color: #ccc; font-size: 1rem; transition: color .2s;
+}
+.report-item .ri-delete:hover { color: #e53935; }
+.no-reports { text-align: center; color: var(--muted); padding: 2rem; font-size: .9rem; }
+
+/* Summary cards */
+.summary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px,1fr)); gap: 1rem; margin-bottom: 2rem; max-width: 900px; margin-left: auto; margin-right: auto; }
+.summary-card {
+  background: #fff; border-radius: var(--radius); padding: 1.5rem;
+  box-shadow: var(--shadow); border-top: 4px solid var(--purple); text-align: center;
+}
+.summary-card .sn { font-size: 2.5rem; font-weight: 800; color: var(--purple); display: block; }
+.summary-card .sl { font-size: .82rem; color: var(--muted); }
+.chart-bar-wrap { background: #fff; border-radius: var(--radius); padding: 1.5rem; box-shadow: var(--shadow); max-width: 700px; margin: 0 auto 2rem; }
+.chart-bar-wrap h4 { font-size: 1rem; font-weight: 700; color: var(--purple-d); margin-bottom: 1.25rem; }
+.bar-item { display: flex; align-items: center; gap .75rem; margin-bottom: .75rem; }
+.bar-label { min-width: 110px; font-size: .82rem; color: var(--muted); text-align: right; padding-right: .75rem; }
+.bar-track { flex: 1; height: 28px; background: var(--bg); border-radius: 6px; overflow: hidden; }
+.bar-fill { height: 100%; background: linear-gradient(90deg,var(--purple),var(--pink)); border-radius: 6px; display: flex; align-items: center; padding-left: .5rem; color: #fff; font-size: .75rem; font-weight: 700; transition: width .8s; }
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+.footer {
+  background: var(--purple-d); color: rgba(255,255,255,.75); text-align: center;
+  padding: 2.5rem 1.5rem;
+}
+.footer .logo-footer { font-size: 1.3rem; font-weight: 800; color: #fff; margin-bottom: .5rem; }
+.footer p { font-size: .85rem; margin-bottom: .25rem; }
+.footer .copy { font-size: .78rem; opacity: .6; margin-top: 1rem; }
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+@media (max-width: 768px) {
+  .nav-links { display: none; }
+  .nav-links.open { display: flex; flex-direction: column; position: absolute; top: 100%; left: 0; right: 0; background: #fff; padding: 1rem; border-bottom: 2px solid var(--purple); z-index: 100; }
+  .hamburger { display: block; }
+  .intro-grid { grid-template-columns: 1fr; }
+  .info-boxes { grid-template-columns: repeat(2,1fr); }
+  .hero-stats { gap: 1.5rem; }
+  .section { padding: 3rem 1rem; }
+}
+@media print {
+  .nav, .staff-filters, .staff-search, .report-tabs, .form-actions, .ri-delete, .hamburger { display: none !important; }
+  .report-panel { display: block !important; }
+  body { background: #fff; }
+}
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 1.5rem; right: 1.5rem; background: var(--purple);
+  color: #fff; padding: .75rem 1.5rem; border-radius: 10px; font-size: .88rem;
+  font-weight: 600; z-index: 99999; box-shadow: 0 4px 20px rgba(0,0,0,.3);
+  transform: translateY(80px); opacity: 0; transition: .3s;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+</style>
+</head>
+<body>
+
+<!-- ===================== NAVBAR ===================== -->
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-brand">
+      <div class="nav-logo">IT</div>
+      <div class="nav-title">
+        <strong>Phòng Công nghệ thông tin</strong>
+        <span>Bệnh viện Phụ Sản Trung Ương</span>
+      </div>
+    </div>
+    <div class="nav-links" id="navLinks">
+      <a href="#hero" class="active">Trang chủ</a>
+      <a href="#intro">Giới thiệu</a>
+      <a href="#groups">10 Nhóm công tác</a>
+      <a href="#staff">Nhân sự</a>
+      <a href="report.html" style="background:var(--pink);color:#fff;">📋 Cổng báo cáo</a>
+    </div>
+    <button class="hamburger" onclick="toggleMenu()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- ===================== HERO ===================== -->
+<section class="hero" id="hero">
+  <div class="hero-content">
+    <div class="hero-badge">🏥 Bệnh viện Phụ Sản Trung Ương · Hà Nội</div>
+    <h1>Phòng Công nghệ Thông tin</h1>
+    <p>Đơn vị tiên phong ứng dụng công nghệ số trong y tế — chuyển đổi số, quản lý hạ tầng IT và bảo đảm an toàn thông tin cho toàn Bệnh viện.</p>
+    <div class="hero-stats">
+      <div class="hero-stat"><span class="num">32</span><span class="lbl">Cán bộ nhân viên</span></div>
+      <div class="hero-stat"><span class="num">10</span><span class="lbl">Nhóm công tác</span></div>
+      <div class="hero-stat"><span class="num">24/7</span><span class="lbl">Trực vận hành</span></div>
+      <div class="hero-stat"><span class="num">2011</span><span class="lbl">Năm thành lập</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== GIỚI THIỆU ===================== -->
+<section class="section" id="intro">
+  <div class="section-inner">
+    <div class="section-header">
+      <span class="tag">Giới thiệu</span>
+      <h2>Về Phòng Công nghệ thông tin</h2>
+      <div class="divider"></div>
+      <p>Phòng CNTT là đơn vị chức năng thuộc Bệnh viện Phụ Sản Trung Ương, chịu sự chỉ đạo trực tiếp của Giám đốc và Phó Giám đốc phụ trách CNTT.</p>
+    </div>
+    <div class="intro-grid">
+      <div class="intro-text">
+        <h3>Vị trí & Sứ mệnh</h3>
+        <p>Phòng Công nghệ thông tin là đầu mối tham mưu, tổ chức triển khai các hoạt động công nghệ thông tin, chuyển đổi số và an toàn thông tin trong toàn Bệnh viện.</p>
+        <p>Phòng đặt tại <strong>Tầng 3, 5, 6 Nhà E</strong>: Phòng Máy chủ (P.312), Phòng làm việc + Kho linh kiện (P.510), Phòng Sửa chữa + Kho thiết bị (Tầng 6).</p>
+        <p>Thực hiện trực vận hành <strong>24/7</strong> nhằm đảm bảo khắc phục và xử lý kịp thời mọi sự cố phát sinh.</p>
+        <div class="info-boxes">
+          <div class="info-box"><span class="n">32</span><span class="l">Nhân sự</span></div>
+          <div class="info-box"><span class="n">26</span><span class="l">Viên chức</span></div>
+          <div class="info-box"><span class="n">4</span><span class="l">Thạc sĩ</span></div>
+          <div class="info-box"><span class="n">10</span><span class="l">Nhóm công tác</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="func-list">
+          <div class="func-item">
+            <div class="func-icon">🖥️</div>
+            <div>
+              <h4>Quản lý hạ tầng IT</h4>
+              <p>Vận hành hệ thống mạng LAN, Internet, máy chủ, camera, tổng đài, email toàn Bệnh viện.</p>
+            </div>
+          </div>
+          <div class="func-item">
+            <div class="func-icon">💊</div>
+            <div>
+              <h4>Phần mềm y tế (HIS/EMR)</h4>
+              <p>Triển khai và duy trì bệnh án điện tử, kết nối BHXH, Bộ Y tế và các hệ thống thông tin y tế.</p>
+            </div>
+          </div>
+          <div class="func-item">
+            <div class="func-icon">🔒</div>
+            <div>
+              <h4>An toàn thông tin</h4>
+              <p>Bảo đảm bảo mật, an toàn hệ thống dữ liệu và máy chủ Bệnh viện theo quy định pháp luật.</p>
+            </div>
+          </div>
+          <div class="func-item">
+            <div class="func-icon">📱</div>
+            <div>
+              <h4>Chuyển đổi số</h4>
+              <p>Số hóa quy trình, phát triển nền tảng AI hỗ trợ lâm sàng, telemedicine và Patient Portal.</p>
+            </div>
+          </div>
+          <div class="func-item">
+            <div class="func-icon">🛒</div>
+            <div>
+              <h4>Đấu thầu & Mua sắm</h4>
+              <p>Lập kế hoạch và tổ chức đấu thầu trang thiết bị, vật tư, phần mềm CNTT theo quy định.</p>
+            </div>
+          </div>
+          <div class="func-item">
+            <div class="func-icon">👩‍🏫</div>
+            <div>
+              <h4>Đào tạo nhân lực</h4>
+              <p>Hướng dẫn, đào tạo nâng cao năng lực ứng dụng CNTT cho cán bộ, viên chức toàn Bệnh viện.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 10 NHÓM CÔNG TÁC ===================== -->
+<section class="section" id="groups">
+  <div class="section-inner">
+    <div class="section-header">
+      <span class="tag">Cơ cấu tổ chức</span>
+      <h2>10 Nhóm Công tác</h2>
+      <div class="divider"></div>
+      <p>Phòng CNTT được tổ chức thành 10 nhóm chuyên trách, mỗi nhóm có Nhóm trưởng phụ trách điều phối và báo cáo Tổ trưởng công tác.</p>
+    </div>
+    <div class="groups-grid" id="groupsGrid"></div>
+  </div>
+</section>
+
+<!-- ===================== NHÂN SỰ ===================== -->
+<section class="section" id="staff">
+  <div class="section-inner">
+    <div class="section-header">
+      <span class="tag">Đội ngũ</span>
+      <h2>Nhân sự Phòng CNTT</h2>
+      <div class="divider"></div>
+      <p>32 cán bộ viên chức và người lao động với trình độ Thạc sĩ, Đại học, Cao đẳng — tâm huyết phục vụ sức khỏe người dân.</p>
+    </div>
+    <div class="staff-search">
+      <input type="text" id="staffSearch" placeholder="🔍  Tìm kiếm theo tên..." oninput="filterStaff()">
+    </div>
+    <div class="staff-filters" id="staffFilters">
+      <button class="active" onclick="setFilter('all',this)">Tất cả (32)</button>
+      <button onclick="setFilter('leader',this)">Lãnh đạo</button>
+      <button onclick="setFilter('group-leader',this)">Trưởng nhóm</button>
+      <button onclick="setFilter('female',this)">Nữ</button>
+      <button onclick="setFilter('male',this)">Nam</button>
+      <button onclick="setFilter('ms',this)">Thạc sĩ</button>
+    </div>
+    <div class="staff-grid" id="staffGrid"></div>
+  </div>
+</section>
+
+<!-- ===================== CTA BÁO CÁO ===================== -->
+<section class="section" id="report" style="background:#fff;padding:3rem 1.5rem;">
+<div class="section-inner" style="text-align:center;">
+  <span class="tag">Quản lý công việc</span>
+  <h2 style="font-size:clamp(1.5rem,3vw,2.25rem);font-weight:800;color:var(--purple-d);margin:.75rem 0;">Hệ thống Báo cáo Công việc</h2>
+  <div class="divider"></div>
+  <p style="color:var(--muted);max-width:560px;margin:.75rem auto 2rem;">Mỗi nhân viên đăng nhập bằng tài khoản cá nhân để ghi nhận kết quả công việc hàng ngày, tuần, tháng và năm.</p>
+  <a href="report.html" style="display:inline-block;background:linear-gradient(135deg,var(--purple),var(--pink));color:#fff;padding:1rem 2.5rem;border-radius:12px;font-weight:700;font-size:1.05rem;box-shadow:0 4px 20px rgba(107,45,139,.3);transition:opacity .2s;" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
+    📋 Đăng nhập Cổng báo cáo
+  </a>
+  <p style="font-size:.8rem;color:var(--muted);margin-top:1rem;">Đăng nhập bằng tên nhân viên và mật khẩu được cấp bởi Tổ trưởng công tác</p>
+</div>
+</section>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="footer">
+  <div class="logo-footer">🏥 Phòng Công nghệ thông tin</div>
+  <p>Bệnh viện Phụ Sản Trung Ương — Số 1 Triệu Quốc Đạt, Phường Cửa Nam, Thành phố Hà Nội</p>
+  <p>📞 Điện thoại phòng: 024.3939.3353 &nbsp;|&nbsp; 📧 cntt@bvpstw.vn</p>
+  <p class="copy">© 2026 Phòng CNTT – BVPSTW. Căn cứ Quy chế Tổ chức và Hoạt động ban hành tháng 06/2026.</p>
+</footer>
+
+<!-- ===================== MODAL ===================== -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-top">
+      <div class="modal-initials" id="m-initials"></div>
+      <h3 id="m-fullname"></h3>
+      <p id="m-position-title"></p>
+      <button class="modal-close" onclick="closeModalDirect()">✕</button>
+    </div>
+    <div class="modal-body" id="m-body"></div>
+  </div>
+</div>
+
+<!-- ===================== TOAST ===================== -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* =====================================================
+   DATA
+===================================================== */
+const STAFF = [
+  {id:1, name:'Nguyễn Văn Cường',     position:'',                   title:'Kỹ sư',         degree:'Thạc sĩ',  gender:'Nam', contract:'VC', year:2011},
+  {id:2, name:'Vương Hoàng Linh',     position:'Trưởng phòng',       title:'Kế toán viên',  degree:'Đại học',  gender:'Nam', contract:'VC', year:2011},
+  {id:3, name:'Nguyễn Thị Thu Hiền',  position:'Tổ trưởng công tác', title:'Kỹ sư',         degree:'Đại học',  gender:'Nữ',  contract:'VC', year:2011},
+  {id:4, name:'Phan Quang Huy',        position:'Trưởng nhóm',        title:'Kỹ sư',         degree:'Thạc sĩ',  gender:'Nam', contract:'VC', year:2010},
+  {id:5, name:'Nguyễn Quỳnh Ngọc',    position:'Phó Trưởng phòng',   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2011},
+  {id:6, name:'Nguyễn Ngọc Anh',      position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2011},
+  {id:7, name:'Lê Thị Việt Hương',    position:'Trưởng nhóm',        title:'Chuyên viên',   degree:'Thạc sĩ',  gender:'Nữ',  contract:'VC', year:2011},
+  {id:8, name:'Hoàng Thị Ngọc Yến',   position:'Trưởng nhóm',        title:'Kỹ sư',         degree:'Đại học',  gender:'Nữ',  contract:'VC', year:2011},
+  {id:9, name:'Đàm Văn Thành',         position:'Trưởng nhóm',        title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2012},
+  {id:10,name:'Phan Thanh Hiếu',       position:'',                   title:'Kỹ thuật viên', degree:'Cao đẳng', gender:'Nam', contract:'VC', year:2012},
+  {id:11,name:'Bạch Lê Thắng',         position:'Trưởng nhóm',        title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2012},
+  {id:12,name:'Trần Hoàng Dương',      position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2013},
+  {id:13,name:'Đoàn Quốc Trung',       position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2014},
+  {id:14,name:'Nguyễn Thanh Tùng',     position:'',                   title:'Kế toán viên',  degree:'Đại học',  gender:'Nam', contract:'VC', year:2014},
+  {id:15,name:'Vũ Trung Kiên',          position:'Trưởng nhóm',        title:'Chuyên viên',   degree:'Đại học',  gender:'Nam', contract:'VC', year:2016},
+  {id:16,name:'Nguyễn Hữu Quân',       position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2017},
+  {id:17,name:'Phan Tiến Dũng',         position:'Trưởng nhóm',        title:'Kỹ sư',         degree:'Thạc sĩ',  gender:'Nam', contract:'VC', year:2017},
+  {id:18,name:'Nguyễn Đức Thịnh',      position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2017},
+  {id:19,name:'Nguyễn Thị Ngọc Anh',   position:'Trưởng nhóm',        title:'Chuyên viên',   degree:'Đại học',  gender:'Nữ',  contract:'VC', year:2017},
+  {id:20,name:'Hoàng Hải Anh',          position:'Trưởng nhóm',        title:'Chuyên viên',   degree:'Đại học',  gender:'Nữ',  contract:'VC', year:2018},
+  {id:21,name:'Phạm Ngọc Linh',         position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nữ',  contract:'VC', year:2018},
+  {id:22,name:'Nguyễn Đăng Tùng',       position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'HĐ', year:2018},
+  {id:23,name:'Bùi Thị Hồng Hạnh',     position:'',                   title:'Chuyên viên',   degree:'Đại học',  gender:'Nữ',  contract:'VC', year:2018},
+  {id:24,name:'Nguyễn Tuấn Linh',       position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'HĐ', year:2018},
+  {id:25,name:'Lê Thị Thanh Thanh',     position:'Trưởng nhóm',        title:'Chuyên viên',   degree:'Đại học',  gender:'Nữ',  contract:'VC', year:2018},
+  {id:26,name:'Quách Trường Giang',     position:'',                   title:'Chuyên viên',   degree:'Đại học',  gender:'Nam', contract:'VC', year:2022},
+  {id:27,name:'Nguyễn Quỳnh Anh',       position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nữ',  contract:'HĐ', year:2022},
+  {id:28,name:'Cao Thị Thuý',           position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nữ',  contract:'HĐ', year:2024},
+  {id:29,name:'Hoàng Long',             position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'HĐ', year:2024},
+  {id:30,name:'Nguyễn Hoàng Hiệp',     position:'',                   title:'Kỹ thuật viên', degree:'Đại học',  gender:'Nam', contract:'VC', year:null},
+  {id:31,name:'Nguyễn Văn Công',        position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:null},
+  {id:32,name:'Bùi Thị Kim Oanh',       position:'',                   title:'Chuyên viên',   degree:'Đại học',  gender:'Nữ',  contract:'HĐ', year:2025},
+];
+
+const GROUPS = [
+  {num:1,  name:'Quản lý Kho – Sửa chữa TTB CNTT',      leader:'Hoàng Hải Anh',        desc:'Quản lý kho thiết bị CNTT, tiếp nhận và sửa chữa trang thiết bị bị hỏng, bảo trì phần cứng toàn Bệnh viện.'},
+  {num:2,  name:'Mua sắm, đấu thầu',                     leader:'Vũ Trung Kiên',         desc:'Lập kế hoạch, tổ chức mua sắm và đấu thầu vật tư, thiết bị CNTT theo quy định của pháp luật.'},
+  {num:3,  name:'Hỗ trợ các khoa phòng chức năng',       leader:'Bạch Lê Thắng',         desc:'Hỗ trợ kỹ thuật CNTT cho các phòng ban chức năng hành chính, đảm bảo hệ thống vận hành ổn định.'},
+  {num:4,  name:'Hỗ trợ Khối Dịch vụ theo yêu cầu',     leader:'Hoàng Thị Ngọc Yến',   desc:'Hỗ trợ triển khai và vận hành hệ thống CNTT phục vụ khối dịch vụ theo yêu cầu của Bệnh viện.'},
+  {num:5,  name:'Hỗ trợ Khối Ngoại trú',                 leader:'Đàm Văn Thành',         desc:'Đảm bảo hệ thống CNTT phục vụ quy trình khám, quản lý bệnh nhân ngoại trú hoạt động thông suốt.'},
+  {num:6,  name:'Hỗ trợ Khối Trung tâm',                 leader:'Phan Tiến Dũng',        desc:'Hỗ trợ hạ tầng và phần mềm CNTT cho các trung tâm chuyên sâu của Bệnh viện.'},
+  {num:7,  name:'Hỗ trợ Khối Đẻ – Mổ – Sơ sinh',        leader:'Nguyễn Thị Ngọc Anh',  desc:'Vận hành hệ thống CNTT phục vụ các quy trình đỡ đẻ, phẫu thuật và chăm sóc sơ sinh.'},
+  {num:8,  name:'Hỗ trợ Khối sản',                       leader:'Lê Thị Thanh Thanh',   desc:'Đảm bảo hệ thống CNTT hỗ trợ theo dõi và quản lý bệnh nhân tại khối sản khoa.'},
+  {num:9,  name:'Hỗ trợ Khối phụ',                       leader:'Lê Thị Việt Hương',    desc:'Hỗ trợ triển khai và duy trì hệ thống thông tin phục vụ điều trị và theo dõi bệnh nhân khối phụ khoa.'},
+  {num:10, name:'Hỗ trợ Khối xét nghiệm',                leader:'Phan Quang Huy',        desc:'Kết nối và vận hành hệ thống LIS, quản lý dữ liệu xét nghiệm và thiết bị phân tích cho khối xét nghiệm.'},
+];
+
+/* =====================================================
+   INIT
+===================================================== */
+document.addEventListener('DOMContentLoaded', () => {
+  renderGroups();
+  applyFilters();
+  populateSelects();
+  loadReports('daily');
+  loadReports('weekly');
+  loadReports('monthly');
+  loadReports('yearly');
+  updateStats();
+  renderChart();
+
+  const today = new Date().toISOString().slice(0,10);
+  const d = document.getElementById('d-date');
+  if(d) d.value = today;
+
+  const wf = document.getElementById('w-from');
+  if(wf){ wf.value = getMonday(new Date()); document.getElementById('w-to').value = today; }
+
+  const mm = document.getElementById('m-month');
+  if(mm) mm.value = today.slice(0,7);
+
+  const ysel = document.getElementById('y-year');
+  if(ysel){ for(let y=2026;y>=2011;y--){ const o=document.createElement('option'); o.value=o.textContent=y; ysel.appendChild(o); } }
+
+  document.getElementById('chartYear').textContent = new Date().getFullYear();
+});
+
+function getMonday(d){
+  d=new Date(d); const day=d.getDay(),diff=d.getDate()-day+(day===0?-6:1);
+  return new Date(d.setDate(diff)).toISOString().slice(0,10);
+}
+
+/* =====================================================
+   RENDER GROUPS
+===================================================== */
+function renderGroups(){
+  const grid = document.getElementById('groupsGrid');
+  grid.innerHTML = GROUPS.map(g=>`
+    <div class="group-card">
+      <div class="group-num">${g.num}</div>
+      <h3>Nhóm ${g.num} – ${g.name}</h3>
+      <p class="leader">Nhóm trưởng: <strong>${g.leader}</strong></p>
+      <p style="font-size:.82rem;color:var(--muted);margin-top:.6rem;">${g.desc}</p>
+    </div>
+  `).join('');
+}
+
+/* =====================================================
+   RENDER STAFF
+===================================================== */
+function getInitials(name){
+  const parts = name.trim().split(' ');
+  if(parts.length===1) return parts[0].slice(0,2).toUpperCase();
+  return (parts[parts.length-2][0]+parts[parts.length-1][0]).toUpperCase();
+}
+
+const AVATAR_COLORS = [
+  ['#4A1D62','#9B59C0'],['#1565C0','#42A5F5'],['#00695C','#26A69A'],
+  ['#B71C1C','#EF5350'],['#E65100','#FFA726'],['#1A237E','#5C6BC0'],
+];
+
+let currentFilter = 'all';
+
+function renderStaff(list){
+  const grid = document.getElementById('staffGrid');
+  if(!list.length){ grid.innerHTML='<p class="no-reports">Không tìm thấy nhân viên phù hợp.</p>'; return; }
+  grid.innerHTML = list.map(s=>{
+    const [c1,c2] = AVATAR_COLORS[s.id % AVATAR_COLORS.length];
+    return `
+    <div class="staff-card" onclick="openModal(${s.id})" data-pos="${s.position}" data-gender="${s.gender}" data-degree="${s.degree}">
+      <div class="staff-avatar" style="background:linear-gradient(135deg,${c1},${c2})">
+        <span class="initials">${getInitials(s.name)}</span>
+        ${s.position?`<span class="role-badge">${s.position}</span>`:''}
+      </div>
+      <div class="staff-info">
+        <h3>${s.name}</h3>
+        <div class="position">${s.title}${s.position?' · '+s.position:''}</div>
+        <div class="meta">
+          <span>${s.degree}</span>
+          <span>${s.gender}</span>
+          ${s.year?`<span>Năm ${s.year}</span>`:''}
+          <span style="${s.contract==='HĐ'?'color:var(--pink)':''}">${s.contract==='VC'?'Viên chức':'Hợp đồng'}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function setFilter(type, btn){
+  currentFilter = type;
+  document.querySelectorAll('.staff-filters button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilters();
+}
+
+function filterStaff(){ applyFilters(); }
+
+function staffSortKey(s){
+  if(s.position==='Trưởng phòng') return '0';
+  if(s.position==='Phó Trưởng phòng') return '1';
+  if(s.position==='Tổ trưởng công tác') return '2';
+  if(s.position==='Trưởng nhóm'){
+    const g = GROUPS.find(g=>g.leader===s.name);
+    const num = g ? String(g.num).padStart(2,'0') : '99';
+    return '3_' + num;
+  }
+  return '4';
+}
+
+function staffSortCompare(a,b){
+  const ka=staffSortKey(a), kb=staffSortKey(b);
+  return ka<kb?-1:ka>kb?1:0;
+}
+
+function applyFilters(){
+  const q = (document.getElementById('staffSearch').value||'').toLowerCase();
+  let list = STAFF.filter(s=>{
+    if(q && !s.name.toLowerCase().includes(q)) return false;
+    if(currentFilter==='leader') return ['Trưởng phòng','Phó Trưởng phòng','Tổ trưởng công tác'].includes(s.position);
+    if(currentFilter==='group-leader') return s.position==='Trưởng nhóm';
+    if(currentFilter==='female') return s.gender==='Nữ';
+    if(currentFilter==='male') return s.gender==='Nam';
+    if(currentFilter==='ms') return s.degree==='Thạc sĩ';
+    return true;
+  });
+  list.sort(staffSortCompare);
+  renderStaff(list);
+}
+
+/* =====================================================
+   MODAL
+===================================================== */
+function openModal(id){
+  const s = STAFF.find(x=>x.id===id);
+  if(!s) return;
+  const [c1,c2] = AVATAR_COLORS[s.id % AVATAR_COLORS.length];
+  document.querySelector('.modal-top').style.background = `linear-gradient(135deg,${c1},${c2})`;
+  document.getElementById('m-initials').textContent = getInitials(s.name);
+  document.getElementById('m-fullname').textContent = s.name;
+  document.getElementById('m-position-title').textContent = [s.title, s.position].filter(Boolean).join(' · ');
+  const experience = s.year ? (2026 - s.year + ' năm') : '—';
+  document.getElementById('m-body').innerHTML = `
+    <div class="modal-row"><span class="label">Chức danh</span><span class="val">${s.title}</span></div>
+    <div class="modal-row"><span class="label">Chức vụ</span><span class="val">${s.position||'Nhân viên'}</span></div>
+    <div class="modal-row"><span class="label">Trình độ</span><span class="val">${s.degree}</span></div>
+    <div class="modal-row"><span class="label">Giới tính</span><span class="val">${s.gender}</span></div>
+    <div class="modal-row"><span class="label">Loại HĐ</span><span class="val">${s.contract==='VC'?'Viên chức':'Hợp đồng'}</span></div>
+    <div class="modal-row"><span class="label">Năm vào phòng</span><span class="val">${s.year||'—'}</span></div>
+    <div class="modal-row"><span class="label">Kinh nghiệm</span><span class="val">${experience}</span></div>
+    <div class="modal-row"><span class="label">Đơn vị</span><span class="val">Phòng CNTT – BVPSTW</span></div>
+  `;
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(e){ if(e.target===e.currentTarget) closeModalDirect(); }
+function closeModalDirect(){ document.getElementById('modalOverlay').classList.remove('open'); document.body.style.overflow=''; }
+
+/* =====================================================
+   POPULATE SELECTS
+===================================================== */
+function populateSelects(){
+  const names = STAFF.map(s=>s.name);
+  ['d-name','m-name','y-name'].forEach(id=>{
+    const sel = document.getElementById(id);
+    if(!sel) return;
+    names.forEach(n=>{ const o=document.createElement('option'); o.value=o.textContent=n; sel.appendChild(o); });
+  });
+}
+
+/* =====================================================
+   REPORT SYSTEM
+===================================================== */
+function getStorageKey(type){ return `cntt_reports_${type}`; }
+function getReports(type){ try{ return JSON.parse(localStorage.getItem(getStorageKey(type)))||[]; }catch(e){ return []; } }
+function saveReports(type, arr){ localStorage.setItem(getStorageKey(type), JSON.stringify(arr)); }
+
+function submitReport(type){
+  let data = {};
+  const now = new Date().toLocaleString('vi-VN');
+  if(type==='daily'){
+    const name=document.getElementById('d-name').value;
+    const date=document.getElementById('d-date').value;
+    const group=document.getElementById('d-group').value;
+    if(!name||!date){ showToast('⚠️ Vui lòng chọn ngày và người báo cáo!'); return; }
+    data = { type:'daily', ts:Date.now(), createdAt:now, date, name, group,
+      done:document.getElementById('d-done').value, pending:document.getElementById('d-pending').value,
+      issue:document.getElementById('d-issue').value, plan:document.getElementById('d-plan').value };
+  } else if(type==='weekly'){
+    const from=document.getElementById('w-from').value, to=document.getElementById('w-to').value;
+    const group=document.getElementById('w-group').value;
+    if(!from||!to){ showToast('⚠️ Vui lòng chọn khoảng thời gian!'); return; }
+    data = { type:'weekly', ts:Date.now(), createdAt:now, from, to, group,
+      done:document.getElementById('w-done').value, pending:document.getElementById('w-pending').value,
+      plan:document.getElementById('w-plan').value, suggest:document.getElementById('w-suggest').value };
+  } else if(type==='monthly'){
+    const name=document.getElementById('m-name').value, month=document.getElementById('m-month').value;
+    if(!month){ showToast('⚠️ Vui lòng chọn tháng báo cáo!'); return; }
+    data = { type:'monthly', ts:Date.now(), createdAt:now, month, name,
+      done:document.getElementById('m-done').value, highlight:document.getElementById('m-highlight').value,
+      issue:document.getElementById('m-issue').value, plan:document.getElementById('m-plan').value,
+      hr:document.getElementById('m-hr').value };
+  } else if(type==='yearly'){
+    const name=document.getElementById('y-name').value, year=document.getElementById('y-year').value;
+    const rating=document.getElementById('y-rating').value;
+    data = { type:'yearly', ts:Date.now(), createdAt:now, year, name, rating,
+      overview:document.getElementById('y-overview').value, projects:document.getElementById('y-projects').value,
+      hr:document.getElementById('y-hr').value, plan:document.getElementById('y-plan').value };
+  }
+  const arr = getReports(type); arr.unshift(data); saveReports(type, arr);
+  loadReports(type); updateStats(); renderChart();
+  showToast('✅ Đã lưu báo cáo thành công!');
+}
+
+function loadReports(type){
+  const arr = getReports(type);
+  const el = document.getElementById(`${type}-list`);
+  if(!el) return;
+  if(!arr.length){ el.innerHTML='<p class="no-reports">Chưa có báo cáo nào.</p>'; return; }
+  el.innerHTML = arr.map((r,i)=>{
+    let heading='', detail='';
+    if(type==='daily'){ heading=`${r.name} – ${r.date}${r.group?' | '+r.group:''}`; detail=buildDetail([['Đã hoàn thành',r.done],['Chưa xong',r.pending],['Sự cố',r.issue],['Kế hoạch mai',r.plan]]); }
+    else if(type==='weekly'){ heading=`Tuần ${r.from} → ${r.to}${r.group?' | '+r.group:''}`; detail=buildDetail([['Kết quả tuần',r.done],['Tồn đọng',r.pending],['Tuần tới',r.plan],['Kiến nghị',r.suggest]]); }
+    else if(type==='monthly'){ heading=`Tháng ${r.month}${r.name?' – '+r.name:''}`; detail=buildDetail([['Kết quả tháng',r.done],['Nổi bật',r.highlight],['Khó khăn',r.issue],['Kế hoạch tới',r.plan],['Nhân sự',r.hr]]); }
+    else if(type==='yearly'){ heading=`Năm ${r.year}${r.name?' – '+r.name:''}${r.rating?' | Xếp loại: '+r.rating:''}`; detail=buildDetail([['Tổng quan',r.overview],['Dự án',r.projects],['Nhân sự',r.hr],['Kế hoạch',r.plan]]); }
+    return `<div class="report-item"><div class="ri-date">Nộp lúc: ${r.createdAt}</div><div class="ri-reporter">${heading}</div><div class="ri-content">${detail}</div><button class="ri-delete" onclick="deleteReport('${type}',${i})" title="Xóa">🗑</button></div>`;
+  }).join('');
+}
+
+function buildDetail(pairs){ return pairs.filter(([,v])=>v&&v.trim()).map(([k,v])=>`<strong>${k}:</strong> ${v.replace(/\n/g,'<br>')}`).join('<br>'); }
+
+function deleteReport(type, idx){
+  if(!confirm('Xác nhận xóa báo cáo này?')) return;
+  const arr = getReports(type); arr.splice(idx,1); saveReports(type, arr);
+  loadReports(type); updateStats(); showToast('🗑 Đã xóa báo cáo.');
+}
+
+function clearForm(type){
+  if(type==='daily'){ ['d-done','d-pending','d-issue','d-plan'].forEach(id=>{ document.getElementById(id).value=''; }); }
+  else if(type==='weekly'){ ['w-done','w-pending','w-plan','w-suggest'].forEach(id=>{ document.getElementById(id).value=''; }); }
+  else if(type==='monthly'){ ['m-done','m-highlight','m-issue','m-plan','m-hr'].forEach(id=>{ document.getElementById(id).value=''; }); }
+  else if(type==='yearly'){ ['y-overview','y-projects','y-hr','y-plan'].forEach(id=>{ document.getElementById(id).value=''; }); }
+  showToast('🗑 Form đã được xóa.');
+}
+
+function updateStats(){
+  ['daily','weekly','monthly','yearly'].forEach(t=>{ const el=document.getElementById('stat-'+t); if(el) el.textContent=getReports(t).length; });
+}
+
+function renderChart(){
+  const allReports = [...getReports('daily'),...getReports('weekly')];
+  const groupCounts = {}; GROUPS.forEach(g=>{ groupCounts[`Nhóm ${g.num}`]=0; });
+  allReports.forEach(r=>{ if(r.group){ const key=r.group.split('–')[0].trim(); if(groupCounts[key]!==undefined) groupCounts[key]++; } });
+  const max = Math.max(...Object.values(groupCounts),1);
+  document.getElementById('chartBars').innerHTML = Object.entries(groupCounts).map(([k,v])=>`
+    <div class="bar-item"><div class="bar-label">${k}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.max(5,v/max*100)}%">${v||''}</div></div></div>`).join('');
+}
+
+function switchTab(id, btn){
+  document.querySelectorAll('.report-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.report-tabs button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active'); btn.classList.add('active');
+}
+
+function toggleMenu(){ document.getElementById('navLinks').classList.toggle('open'); }
+
+function showToast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+const sections=['hero','intro','groups','staff','report'];
+window.addEventListener('scroll',()=>{
+  const pos=window.scrollY+80;
+  sections.forEach(id=>{
+    const el=document.getElementById(id), link=document.querySelector(`.nav-links a[href="#${id}"]`);
+    if(!el||!link) return;
+    if(el.offsetTop<=pos && el.offsetTop+el.offsetHeight>pos){
+      document.querySelectorAll('.nav-links a').forEach(a=>a.classList.remove('active')); link.classList.add('active');
+    }
+  });
+});
+</script>
+</body>
+</html>
