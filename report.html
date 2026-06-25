@@ -2375,7 +2375,7 @@ function openTaskDetail(id){
     <div style="font-size:.72rem;color:var(--muted);text-align:right;margin:.2rem 0 .75rem;">Tiến độ: ${pct}%</div>
     ${logHTML}
   `;
-  document.getElementById('task-modal').style.display='flex';
+  document.getElementById('task-modal').classList.add('open');
 }
 
 function openTaskUpdate(id){
@@ -2402,11 +2402,11 @@ function openTaskUpdate(id){
       <button class="btn-primary" onclick="submitTaskUpdate(${id})">Lưu cập nhật</button>
     </div>
   `;
-  document.getElementById('task-modal').style.display='flex';
+  document.getElementById('task-modal').classList.add('open');
 }
 
 function closeTaskModal(){
-  document.getElementById('task-modal').style.display='none';
+  document.getElementById('task-modal').classList.remove('open');
 }
 
 /* =====================================================
