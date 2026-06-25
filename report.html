@@ -299,6 +299,7 @@ a{color:inherit;text-decoration:none}
       <a href="index.html" class="btn-back">← Trang chủ</a>
       <span id="user-info" style="display:none"></span>
       <button class="btn-sm" id="btn-change-pw" onclick="openChangePw()" style="display:none">🔑 Đổi mật khẩu</button>
+      <button class="btn-sm" id="btn-notif" onclick="openNotifPanel()" style="display:none;position:relative;padding:.35rem .7rem;font-size:1rem;">🔔<span id="notif-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:#E53935;color:#fff;font-size:.6rem;font-weight:800;border-radius:999px;min-width:16px;height:16px;line-height:16px;text-align:center;padding:0 3px;"></span></button>
       <button class="btn-sm" id="btn-logout" onclick="logout()" style="display:none;background:var(--purple);color:#fff;border-color:var(--purple);">Đăng xuất</button>
     </div>
   </div>
@@ -752,6 +753,18 @@ a{color:inherit;text-decoration:none}
   </div>
 </div>
 
+<!-- Notification panel -->
+<div id="notif-panel" style="display:none;position:fixed;top:64px;right:12px;z-index:9000;width:320px;max-height:420px;overflow-y:auto;background:#fff;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.18);border:1.5px solid var(--border);">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:.75rem 1rem;border-bottom:1.5px solid var(--border);position:sticky;top:0;background:#fff;z-index:1;">
+    <span style="font-weight:800;font-size:.9rem;color:var(--purple-d)">🔔 Thông báo</span>
+    <div style="display:flex;gap:.5rem;">
+      <button onclick="markAllNotifsRead()" style="font-size:.72rem;border:none;background:none;color:var(--purple);cursor:pointer;font-weight:700;">Đọc tất cả</button>
+      <button onclick="closeNotifPanel()" style="font-size:.9rem;border:none;background:none;cursor:pointer;color:var(--muted);">✕</button>
+    </div>
+  </div>
+  <div id="notif-list" style="padding:.5rem 0;"></div>
+</div>
+
 <!-- Task detail / update modal -->
 <div class="modal-overlay task-modal" id="task-modal" onclick="if(event.target===this)closeTaskModal()">
   <div class="modal" style="max-width:580px;width:95%;">
@@ -860,6 +873,7 @@ async function syncFromCloud(){
   if(gv&&gv!=='null'){ try{ localStorage.setItem('cntt_staff_groups',gv); }catch(e){} }
   const tv = await fbGet('tasks');
   if(tv&&tv!=='null'){ try{ localStorage.setItem('cntt_tasks',tv); }catch(e){} }
+  await syncTaskNotifsFromCloud();
 }
 
 function getPwKey(n){ return 'cntt_pw_'+n; }
@@ -1128,6 +1142,16 @@ function enterApp(session){
     const ovs=document.getElementById('ov-staff');
     STAFF.forEach(s=>{const o=document.createElement('option');o.value=s.name;o.textContent=s.name;ovs.appendChild(o);});
   }
+
+  // Show notification bell for all logged-in users
+  document.getElementById('btn-notif').style.display='';
+  updateNotifBell();
+  // Poll for new notifications every 30s
+  if(window._notifInterval) clearInterval(window._notifInterval);
+  window._notifInterval = setInterval(async ()=>{
+    await syncTaskNotifsFromCloud();
+    updateNotifBell();
+  }, 30000);
 
   // Task nav buttons: all users see "Việc của tôi"; assigners also see "Giao việc"
   document.getElementById('snav-tasks-mine').style.display='';
@@ -2152,6 +2176,8 @@ function createTask(){
   const arr=getTasks();
   arr.unshift(task);
   saveTasks(arr);
+  // Notify assignee
+  pushTaskNotif(assigneeId, 'assigned', title);
   document.getElementById('ta-title').value='';
   document.getElementById('ta-desc').value='';
   document.getElementById('ta-assignee').value='';
@@ -2177,6 +2203,8 @@ function approveTask(id){
   t.updatedAt=new Date().toLocaleString('vi-VN');
   t.updates.push({fromName:getSession().name,text:'Đã duyệt hoàn thành.',status:'Đã duyệt',progress:100,ts:new Date().toLocaleString('vi-VN')});
   saveTasks(arr);
+  // Notify assignee that their work was approved
+  pushTaskNotif(t.assignedToId, 'approved', t.title);
   closeTaskModal();
   renderTaskAssign();
   renderMyTasks();
@@ -2197,6 +2225,9 @@ function submitTaskUpdate(id){
     t.updates.push({fromName:s.name,text:note||'Cập nhật tiến độ.',status,progress,ts:new Date().toLocaleString('vi-VN')});
   }
   saveTasks(arr);
+  // Notify assigner about the update; if completed, send 'completed' type
+  const notifType = status==='Hoàn thành' ? 'completed' : 'updated';
+  pushTaskNotif(t.assignedById, notifType, t.title);
   closeTaskModal();
   renderMyTasks();
   renderTaskAssign();
@@ -2376,6 +2407,111 @@ function openTaskUpdate(id){
 
 function closeTaskModal(){
   document.getElementById('task-modal').style.display='none';
+}
+
+/* =====================================================
+   TASK NOTIFICATIONS
+===================================================== */
+function getTaskNotifs(){
+  try{ return JSON.parse(localStorage.getItem('cntt_task_notifs')||'[]'); }catch(e){ return []; }
+}
+function saveTaskNotifs(arr){
+  localStorage.setItem('cntt_task_notifs', JSON.stringify(arr));
+  fbSet('task_notifs', JSON.stringify(arr));
+}
+
+function pushTaskNotif(toUserId, type, taskTitle, fromName){
+  const s=getSession(); if(!s) return;
+  const arr=getTaskNotifs();
+  arr.unshift({
+    id: Date.now(),
+    toUserId,
+    type,   // 'assigned'|'updated'|'approved'|'completed'
+    taskTitle,
+    fromName: fromName||s.name,
+    ts: new Date().toLocaleString('vi-VN'),
+    read: false
+  });
+  // Keep max 100
+  if(arr.length>100) arr.length=100;
+  saveTaskNotifs(arr);
+  // If the current user is the target, refresh bell
+  if(s.id===toUserId) updateNotifBell();
+}
+
+function getMyNotifs(){
+  const s=getSession(); if(!s) return [];
+  return getTaskNotifs().filter(n=>n.toUserId===s.id);
+}
+
+function updateNotifBell(){
+  const badge=document.getElementById('notif-badge'); if(!badge) return;
+  const unread=getMyNotifs().filter(n=>!n.read).length;
+  if(unread>0){ badge.textContent=unread>9?'9+':unread; badge.style.display='block'; }
+  else{ badge.style.display='none'; }
+}
+
+function openNotifPanel(){
+  const panel=document.getElementById('notif-panel');
+  if(panel.style.display!=='none'){ closeNotifPanel(); return; }
+  renderNotifList();
+  panel.style.display='block';
+  // Close on outside click
+  setTimeout(()=>document.addEventListener('click', notifOutsideClick), 10);
+}
+
+function closeNotifPanel(){
+  document.getElementById('notif-panel').style.display='none';
+  document.removeEventListener('click', notifOutsideClick);
+}
+
+function notifOutsideClick(e){
+  const panel=document.getElementById('notif-panel');
+  const btn=document.getElementById('btn-notif');
+  if(!panel.contains(e.target)&&!btn.contains(e.target)) closeNotifPanel();
+}
+
+function markAllNotifsRead(){
+  const s=getSession(); if(!s) return;
+  const arr=getTaskNotifs();
+  arr.forEach(n=>{ if(n.toUserId===s.id) n.read=true; });
+  saveTaskNotifs(arr);
+  updateNotifBell();
+  renderNotifList();
+}
+
+const NOTIF_LABELS={
+  assigned:'🎯 Bạn được giao việc mới',
+  updated:'🔄 Tiến độ được cập nhật',
+  approved:'✅ Việc đã được duyệt',
+  completed:'📢 Nhân viên báo hoàn thành'
+};
+
+function renderNotifList(){
+  const c=document.getElementById('notif-list'); if(!c) return;
+  const notifs=getMyNotifs();
+  if(!notifs.length){ c.innerHTML='<div style="text-align:center;color:var(--muted);padding:1.5rem;font-size:.85rem;">Không có thông báo</div>'; return; }
+  c.innerHTML=notifs.slice(0,30).map(n=>`
+    <div style="padding:.65rem 1rem;border-bottom:1px solid var(--border);background:${n.read?'#fff':'#F3E5F5'};cursor:default;" onclick="markNotifRead(${n.id})">
+      <div style="font-size:.8rem;font-weight:700;color:var(--purple-d);margin-bottom:.15rem;">${NOTIF_LABELS[n.type]||'📌 Thông báo'}</div>
+      <div style="font-size:.78rem;color:var(--text);margin-bottom:.15rem;">📋 <strong>${n.taskTitle}</strong></div>
+      <div style="font-size:.72rem;color:var(--muted);">Từ: ${n.fromName} · ${n.ts}</div>
+    </div>
+  `).join('');
+}
+
+function markNotifRead(id){
+  const arr=getTaskNotifs();
+  const n=arr.find(n=>n.id===id); if(n) n.read=true;
+  saveTaskNotifs(arr);
+  updateNotifBell();
+  renderNotifList();
+}
+
+async function syncTaskNotifsFromCloud(){
+  if(!FB_URL) return;
+  const v=await fbGet('task_notifs');
+  if(v&&v!=='null'){ try{ localStorage.setItem('cntt_task_notifs',v); }catch(e){} }
 }
 
 /* =====================================================
