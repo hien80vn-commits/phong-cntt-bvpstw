@@ -589,7 +589,7 @@ const DEFAULT_PW = 'cntt2026';
 /* =====================================================
    CLOUD SYNC (Firebase)
 ===================================================== */
-const FB_URL = ''; // Dán Firebase Database URL vào đây
+const FB_URL = 'https://cntt-bvpstw-default-rtdb.asia-southeast1.firebasedatabase.app';
 
 function fbGet(path){ return fetch(FB_URL+'/'+path+'.json').then(r=>r.text()).catch(()=>'null'); }
 function fbSet(path,val){ if(!FB_URL) return; fetch(FB_URL+'/'+path+'.json',{method:'PUT',headers:{'Content-Type':'application/json'},body:val}).catch(()=>{}); }
