@@ -768,7 +768,8 @@ a{color:inherit;text-decoration:none}
 <!-- Task detail / update modal -->
 <div class="modal-overlay task-modal" id="task-modal" onclick="if(event.target===this)closeTaskModal()">
   <div class="modal" style="max-width:580px;width:95%;">
-    <div class="modal-head" id="task-modal-head">
+    <div class="modal-head" id="task-modal-head" style="position:relative;">
+      <button onclick="closeTaskModal()" style="position:absolute;top:.75rem;right:.75rem;background:rgba(255,255,255,.2);border:none;color:#fff;width:28px;height:28px;border-radius:50%;font-size:1rem;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;">✕</button>
       <h3 id="task-modal-title">Chi tiết việc</h3>
       <p id="task-modal-sub"></p>
     </div>
@@ -2199,6 +2200,7 @@ function deleteTask(id){
 function approveTask(id){
   const arr=getTasks();
   const t=arr.find(t=>t.id===id); if(!t) return;
+  if(!t.updates) t.updates=[];
   t.status='Đã duyệt'; t.progress=100;
   t.updatedAt=new Date().toLocaleString('vi-VN');
   t.updates.push({fromName:getSession().name,text:'Đã duyệt hoàn thành.',status:'Đã duyệt',progress:100,ts:new Date().toLocaleString('vi-VN')});
@@ -2219,9 +2221,11 @@ function submitTaskUpdate(id){
   const note=(document.getElementById('tu-note').value||'').trim();
   const arr=getTasks();
   const t=arr.find(t=>t.id===id); if(!t) return;
+  if(!t.updates) t.updates=[];
+  const prevStatus=t.status;
   t.status=status; t.progress=progress;
   t.updatedAt=new Date().toLocaleString('vi-VN');
-  if(note||status!==t.status){
+  if(note||status!==prevStatus){
     t.updates.push({fromName:s.name,text:note||'Cập nhật tiến độ.',status,progress,ts:new Date().toLocaleString('vi-VN')});
   }
   saveTasks(arr);
