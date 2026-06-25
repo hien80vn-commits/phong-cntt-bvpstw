@@ -220,6 +220,67 @@ a{color:inherit;text-decoration:none}
 .print-header .icon{font-size:1.5rem;}
 .section-nav button.print-btn{border-color:#1565C0;color:#1565C0;}
 .section-nav button.print-btn.active{background:#1565C0;color:#fff;}
+.section-nav button.task-btn{border-color:#E53935;color:#C62828;}
+.section-nav button.task-btn.active{background:#C62828;color:#fff;}
+.section-nav button.mytask-btn{border-color:#F57C00;color:#E65100;}
+.section-nav button.mytask-btn.active{background:#E65100;color:#fff;}
+
+/* TASK MANAGEMENT */
+.task-card{border-radius:12px;border:2px solid var(--border);padding:1rem 1.25rem;margin-bottom:.75rem;background:#fff;position:relative;transition:border-color .2s,background .2s;}
+.task-card.task-warning{border-color:#FF8F00;background:#FFFDE7;}
+.task-card.task-overdue{border-color:#C62828;background:#FFF5F5;}
+.task-card.task-done{border-color:#2E7D32;background:#F9FBE7;opacity:.82;}
+.task-card-hdr{display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;flex-wrap:wrap;margin-bottom:.5rem;}
+.task-title{font-weight:700;font-size:.9rem;color:var(--text);flex:1;}
+.task-badges{display:flex;gap:.3rem;flex-wrap:wrap;align-items:center;}
+.tbadge{font-size:.68rem;padding:.15rem .55rem;border-radius:999px;font-weight:700;white-space:nowrap;}
+.tbadge.st-chua{background:#F3F4F6;color:#6B7280;}
+.tbadge.st-dang{background:#E3F2FD;color:#1565C0;}
+.tbadge.st-xong{background:#E8F5E9;color:#2E7D32;}
+.tbadge.st-duyet{background:#E8F5E9;color:#1B5E20;}
+.tbadge.pri-cao{background:#FFEBEE;color:#C62828;}
+.tbadge.pri-tb{background:#FFF3E0;color:#E65100;}
+.tbadge.pri-thap{background:#F3F4F6;color:#555;}
+.tbadge.deadline-ok{background:#E8F5E9;color:#2E7D32;}
+.tbadge.deadline-warn{background:#FFF8E1;color:#F57F17;}
+.tbadge.deadline-over{background:#FFEBEE;color:#C62828;animation:blink .9s step-end infinite;}
+@keyframes blink{50%{opacity:.4;}}
+.task-meta{font-size:.75rem;color:var(--muted);margin-bottom:.5rem;}
+.task-progress-bar{height:8px;border-radius:999px;background:#e0e0e0;overflow:hidden;margin:.5rem 0;}
+.task-progress-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#2196F3,#1565C0);transition:width .4s;}
+.task-progress-fill.done{background:linear-gradient(90deg,#43A047,#1B5E20);}
+.task-progress-fill.over{background:linear-gradient(90deg,#E53935,#B71C1C);}
+.task-actions{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.7rem;}
+.task-action-btn{padding:.3rem .75rem;border-radius:7px;border:1.5px solid var(--border);background:#fff;font-family:var(--font);font-size:.75rem;font-weight:600;cursor:pointer;transition:.2s;}
+.task-action-btn:hover{border-color:var(--purple);color:var(--purple);}
+.task-action-btn.approve{border-color:#2E7D32;color:#2E7D32;}
+.task-action-btn.approve:hover{background:#2E7D32;color:#fff;}
+.task-action-btn.del{border-color:#C62828;color:#C62828;}
+.task-action-btn.del:hover{background:#C62828;color:#fff;}
+.task-section-hdr{font-size:.82rem;font-weight:800;color:var(--purple-d);padding:.5rem .9rem;background:rgba(107,45,139,.07);border-left:4px solid var(--purple);border-radius:0 8px 8px 0;margin:1rem 0 .6rem;}
+.task-empty{text-align:center;color:var(--muted);padding:2rem;font-size:.88rem;}
+.task-form-card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:1.5rem;margin-bottom:1.5rem;}
+.task-form-card h3{font-size:1rem;font-weight:800;color:var(--purple-d);margin-bottom:1.2rem;}
+.task-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:.75rem;margin-bottom:1.5rem;}
+.task-stat{background:#fff;border-radius:10px;padding:.75rem 1rem;box-shadow:var(--shadow);text-align:center;border-top:3px solid var(--purple);}
+.task-stat .tsn{font-size:1.6rem;font-weight:800;color:var(--purple);display:block;}
+.task-stat .tsl{font-size:.72rem;color:var(--muted);}
+.task-stat.warn{border-top-color:#FF8F00;}.task-stat.warn .tsn{color:#FF8F00;}
+.task-stat.over{border-top-color:#C62828;}.task-stat.over .tsn{color:#C62828;}
+.task-stat.done{border-top-color:#2E7D32;}.task-stat.done .tsn{color:#2E7D32;}
+.task-filter-bar{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;margin-bottom:1rem;}
+.task-filter-bar select,.task-filter-bar input{padding:.4rem .7rem;border:2px solid var(--border);border-radius:8px;font-family:var(--font);font-size:.8rem;outline:none;}
+.task-filter-bar select:focus,.task-filter-bar input:focus{border-color:var(--purple);}
+/* Task update log */
+.task-log{margin-top:.7rem;padding-top:.7rem;border-top:1px dashed var(--border);}
+.task-log-item{font-size:.76rem;color:var(--muted);padding:.25rem 0;border-bottom:1px solid var(--border);}
+.task-log-item:last-child{border-bottom:none;}
+.task-log-item strong{color:var(--text);}
+/* Modal task */
+.task-modal{max-width:580px;}
+.task-modal .modal-body{padding:1.2rem 1.5rem;}
+.progress-input{width:100%;-webkit-appearance:none;height:8px;border-radius:999px;background:#e0e0e0;outline:none;cursor:pointer;}
+.progress-input::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--purple);cursor:pointer;}
 </style>
 </head>
 <body>
@@ -267,6 +328,8 @@ a{color:inherit;text-decoration:none}
       <button id="snav-assign" class="assign-btn" onclick="switchSection('assign',this)" style="display:none">👥 Phân nhóm</button>
       <button id="snav-overview" class="overview-btn" onclick="switchSection('overview',this)" style="display:none">🛡️ Tổng quan</button>
       <button id="snav-print" class="print-btn" onclick="switchSection('print',this)" style="display:none">🖨️ In báo cáo</button>
+      <button id="snav-tasks-assign" class="task-btn" onclick="switchSection('tasks-assign',this)" style="display:none">🎯 Giao việc</button>
+      <button id="snav-tasks-mine" class="mytask-btn" onclick="switchSection('tasks-mine',this)" style="display:none">📋 Việc của tôi</button>
     </div>
 
     <!-- ===== SECTION: INBOX ===== -->
@@ -607,6 +670,96 @@ a{color:inherit;text-decoration:none}
       <div id="print-section-body"></div>
     </div>
 
+    <!-- ===== SECTION: GIAO VIỆC ===== -->
+    <div id="section-tasks-assign" class="section">
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.25rem;">
+        <div class="icon">🎯</div>
+        <div><h3 style="margin:0;font-size:1.1rem;font-weight:800;color:var(--purple-d)">Giao việc</h3>
+        <p style="margin:0;font-size:.82rem;color:var(--muted)">Tạo và quản lý đầu việc giao cho nhân viên</p></div>
+      </div>
+      <div id="task-stats-bar" class="task-stats"></div>
+      <div class="task-form-card" id="task-create-form">
+        <h3>➕ Tạo việc mới</h3>
+        <div class="form-row">
+          <label>Tiêu đề công việc <span style="color:red">*</span></label>
+          <input type="text" id="ta-title" placeholder="Nhập tên công việc...">
+        </div>
+        <div class="form-row">
+          <label>Mô tả / Yêu cầu</label>
+          <textarea id="ta-desc" rows="2" placeholder="Chi tiết yêu cầu..."></textarea>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
+          <div class="form-row">
+            <label>Giao cho <span style="color:red">*</span></label>
+            <select id="ta-assignee"><option value="">-- Chọn nhân viên --</option></select>
+          </div>
+          <div class="form-row">
+            <label>Deadline <span style="color:red">*</span></label>
+            <input type="date" id="ta-deadline">
+          </div>
+          <div class="form-row">
+            <label>Ưu tiên</label>
+            <select id="ta-priority">
+              <option value="Cao">🔴 Cao</option>
+              <option value="Trung bình" selected>🟡 Trung bình</option>
+              <option value="Thấp">🟢 Thấp</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;gap:.6rem;margin-top:.5rem;">
+          <button class="btn-primary" onclick="createTask()">Tạo việc</button>
+        </div>
+      </div>
+      <div class="task-filter-bar">
+        <select id="tf-status" onchange="renderTaskAssign()">
+          <option value="">Tất cả trạng thái</option>
+          <option value="Chưa bắt đầu">Chưa bắt đầu</option>
+          <option value="Đang thực hiện">Đang thực hiện</option>
+          <option value="Hoàn thành">Hoàn thành</option>
+          <option value="Đã duyệt">Đã duyệt</option>
+        </select>
+        <select id="tf-pri" onchange="renderTaskAssign()">
+          <option value="">Tất cả ưu tiên</option>
+          <option value="Cao">Cao</option>
+          <option value="Trung bình">Trung bình</option>
+          <option value="Thấp">Thấp</option>
+        </select>
+        <input type="text" id="tf-search" placeholder="🔍 Tìm kiếm..." oninput="renderTaskAssign()" style="min-width:160px;">
+      </div>
+      <div id="task-assign-list"></div>
+    </div>
+
+    <!-- ===== SECTION: VIỆC CỦA TÔI ===== -->
+    <div id="section-tasks-mine" class="section">
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.25rem;">
+        <div class="icon">📋</div>
+        <div><h3 style="margin:0;font-size:1.1rem;font-weight:800;color:var(--purple-d)">Việc của tôi</h3>
+        <p style="margin:0;font-size:.82rem;color:var(--muted)">Các đầu việc được giao và tiến độ thực hiện</p></div>
+      </div>
+      <div class="task-filter-bar">
+        <select id="mf-status" onchange="renderMyTasks()">
+          <option value="">Tất cả trạng thái</option>
+          <option value="Chưa bắt đầu">Chưa bắt đầu</option>
+          <option value="Đang thực hiện">Đang thực hiện</option>
+          <option value="Hoàn thành">Hoàn thành</option>
+          <option value="Đã duyệt">Đã duyệt</option>
+        </select>
+        <input type="text" id="mf-search" placeholder="🔍 Tìm kiếm..." oninput="renderMyTasks()" style="min-width:160px;">
+      </div>
+      <div id="task-mine-list"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Task detail / update modal -->
+<div class="modal-overlay task-modal" id="task-modal" onclick="if(event.target===this)closeTaskModal()">
+  <div class="modal" style="max-width:580px;width:95%;">
+    <div class="modal-head" id="task-modal-head">
+      <h3 id="task-modal-title">Chi tiết việc</h3>
+      <p id="task-modal-sub"></p>
+    </div>
+    <div class="modal-body" id="task-modal-body" style="padding:1.2rem 1.5rem;max-height:75vh;overflow-y:auto;"></div>
   </div>
 </div>
 
@@ -705,6 +858,8 @@ async function syncFromCloud(){
   }
   const gv = await fbGet('staff_groups');
   if(gv&&gv!=='null'){ try{ localStorage.setItem('cntt_staff_groups',gv); }catch(e){} }
+  const tv = await fbGet('tasks');
+  if(tv&&tv!=='null'){ try{ localStorage.setItem('cntt_tasks',tv); }catch(e){} }
 }
 
 function getPwKey(n){ return 'cntt_pw_'+n; }
@@ -889,7 +1044,7 @@ function enterApp(session){
   document.getElementById('app-screen').style.display='block';
 
   // Reset section nav & sections to default state (prevents state leak between logins)
-  ['snav-inbox','snav-assign','snav-overview'].forEach(id=>document.getElementById(id).style.display='none');
+  ['snav-inbox','snav-assign','snav-overview','snav-tasks-assign','snav-tasks-mine'].forEach(id=>document.getElementById(id).style.display='none');
   document.querySelectorAll('.section-nav button').forEach(b=>b.classList.remove('active'));
   document.getElementById('snav-submit').classList.add('active');
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
@@ -974,6 +1129,14 @@ function enterApp(session){
     STAFF.forEach(s=>{const o=document.createElement('option');o.value=s.name;o.textContent=s.name;ovs.appendChild(o);});
   }
 
+  // Task nav buttons: all users see "Việc của tôi"; assigners also see "Giao việc"
+  document.getElementById('snav-tasks-mine').style.display='';
+  if(canAssignTask()){
+    document.getElementById('snav-tasks-assign').style.display='';
+    initTaskForm();
+    renderTaskStatsBar();
+  }
+
   // Set inbox title/desc
   setInboxMeta(session);
 
@@ -1039,6 +1202,8 @@ function switchSection(id,btn){
   if(id==='assign') loadAssignPanel();
   if(id==='overview'){loadOverviewStats();loadOverview();}
   if(id==='print') renderPrintSection();
+  if(id==='tasks-assign'){ initTaskForm(); renderTaskAssign(); renderTaskStatsBar(); }
+  if(id==='tasks-mine') renderMyTasks();
 }
 
 function switchTab(id,btn){
@@ -1881,6 +2046,336 @@ function initClDates(){
   const today=new Date().toISOString().slice(0,10);
   const d=document.getElementById('cl-date'); if(d) d.value=today;
   const m=document.getElementById('cl-month'); if(m) m.value=today.slice(0,7);
+}
+
+/* =====================================================
+   TASK MANAGEMENT
+===================================================== */
+function getTasks(){ try{ return JSON.parse(localStorage.getItem('cntt_tasks')||'[]'); }catch(e){ return []; } }
+function saveTasks(arr){
+  localStorage.setItem('cntt_tasks', JSON.stringify(arr));
+  fbSet('tasks', JSON.stringify(arr));
+}
+
+function taskDeadlineInfo(task){
+  if(task.status==='Hoàn thành'||task.status==='Đã duyệt') return {cls:'task-done', badgeCls:'deadline-ok', label:'Hoàn thành'};
+  const ms = new Date(task.deadline) - new Date();
+  const days = Math.ceil(ms/86400000);
+  if(days < 0) return {cls:'task-overdue', badgeCls:'deadline-over', label:`Trễ ${-days} ngày`};
+  if(days <= 3) return {cls:'task-warning', badgeCls:'deadline-warn', label:`Còn ${days} ngày`};
+  return {cls:'', badgeCls:'deadline-ok', label:`Còn ${days} ngày`};
+}
+
+function stBadgeCls(st){
+  return {
+    'Chưa bắt đầu':'st-chua','Đang thực hiện':'st-dang',
+    'Hoàn thành':'st-xong','Đã duyệt':'st-duyet'
+  }[st]||'st-chua';
+}
+
+function priBadgeCls(p){
+  return {'Cao':'pri-cao','Trung bình':'pri-tb','Thấp':'pri-thap'}[p]||'pri-tb';
+}
+
+function canAssignTask(){
+  const s=getSession(); if(!s) return false;
+  return ['lanh_dao','to_truong','leader'].includes(s.role);
+}
+
+function getAssignableStaff(){
+  const s=getSession(); if(!s) return [];
+  if(s.role==='lanh_dao'||s.role==='to_truong'){
+    return STAFF.filter(m=>m.id!==s.id);
+  }
+  if(s.role==='leader'){
+    // Find own groups
+    const myGroups=GROUPS.filter(g=>g.leaderId===s.id).map(g=>g.num);
+    return STAFF.filter(m=>m.id!==s.id && m.groups && m.groups.some(gn=>myGroups.includes(gn)));
+  }
+  return [];
+}
+
+function initTaskForm(){
+  const sel=document.getElementById('ta-assignee');
+  if(!sel) return;
+  const list=getAssignableStaff();
+  sel.innerHTML='<option value="">-- Chọn nhân viên --</option>';
+  // Group by nhóm
+  const grouped={};
+  list.forEach(m=>{
+    const gLabel=m.groups&&m.groups.length?m.groups.map(gn=>{const g=GROUPS.find(gg=>gg.num===gn);return g?g.name:'';}).join(', '):'Không có nhóm';
+    if(!grouped[gLabel]) grouped[gLabel]=[];
+    grouped[gLabel].push(m);
+  });
+  Object.entries(grouped).forEach(([grp,members])=>{
+    const og=document.createElement('optgroup');
+    og.label=grp;
+    members.forEach(m=>{
+      const o=document.createElement('option');
+      o.value=m.id;
+      o.textContent=`${m.name} (${m.position})`;
+      og.appendChild(o);
+    });
+    sel.appendChild(og);
+  });
+  // Default deadline = today + 7 days
+  const dd=document.getElementById('ta-deadline');
+  if(dd&&!dd.value){
+    const d=new Date(); d.setDate(d.getDate()+7);
+    dd.value=d.toISOString().slice(0,10);
+  }
+}
+
+function createTask(){
+  const s=getSession(); if(!s) return;
+  const title=(document.getElementById('ta-title').value||'').trim();
+  const desc=(document.getElementById('ta-desc').value||'').trim();
+  const assigneeId=parseInt(document.getElementById('ta-assignee').value||'0');
+  const deadline=document.getElementById('ta-deadline').value;
+  const priority=document.getElementById('ta-priority').value;
+  if(!title){ showToast('⚠️ Vui lòng nhập tiêu đề công việc!'); return; }
+  if(!assigneeId){ showToast('⚠️ Vui lòng chọn người thực hiện!'); return; }
+  if(!deadline){ showToast('⚠️ Vui lòng chọn deadline!'); return; }
+  const assignee=STAFF.find(m=>m.id===assigneeId);
+  const task={
+    id: Date.now(),
+    title, desc,
+    assignedById: s.id, assignedByName: s.name,
+    assignedToId: assigneeId, assignedToName: assignee?assignee.name:'',
+    deadline, priority,
+    status:'Chưa bắt đầu',
+    progress:0,
+    createdAt: new Date().toLocaleString('vi-VN'),
+    updatedAt: new Date().toLocaleString('vi-VN'),
+    updates:[]
+  };
+  const arr=getTasks();
+  arr.unshift(task);
+  saveTasks(arr);
+  document.getElementById('ta-title').value='';
+  document.getElementById('ta-desc').value='';
+  document.getElementById('ta-assignee').value='';
+  showToast(`✅ Đã giao việc "${title}" cho ${assignee?assignee.name:''}!`);
+  renderTaskAssign();
+  renderTaskStatsBar();
+}
+
+function deleteTask(id){
+  if(!confirm('Xóa việc này?')) return;
+  const arr=getTasks().filter(t=>t.id!==id);
+  saveTasks(arr);
+  closeTaskModal();
+  renderTaskAssign();
+  renderTaskStatsBar();
+  showToast('🗑️ Đã xóa việc!');
+}
+
+function approveTask(id){
+  const arr=getTasks();
+  const t=arr.find(t=>t.id===id); if(!t) return;
+  t.status='Đã duyệt'; t.progress=100;
+  t.updatedAt=new Date().toLocaleString('vi-VN');
+  t.updates.push({fromName:getSession().name,text:'Đã duyệt hoàn thành.',status:'Đã duyệt',progress:100,ts:new Date().toLocaleString('vi-VN')});
+  saveTasks(arr);
+  closeTaskModal();
+  renderTaskAssign();
+  renderMyTasks();
+  renderTaskStatsBar();
+  showToast('✅ Đã duyệt hoàn thành việc!');
+}
+
+function submitTaskUpdate(id){
+  const s=getSession(); if(!s) return;
+  const status=document.getElementById('tu-status').value;
+  const progress=parseInt(document.getElementById('tu-progress').value||'0');
+  const note=(document.getElementById('tu-note').value||'').trim();
+  const arr=getTasks();
+  const t=arr.find(t=>t.id===id); if(!t) return;
+  t.status=status; t.progress=progress;
+  t.updatedAt=new Date().toLocaleString('vi-VN');
+  if(note||status!==t.status){
+    t.updates.push({fromName:s.name,text:note||'Cập nhật tiến độ.',status,progress,ts:new Date().toLocaleString('vi-VN')});
+  }
+  saveTasks(arr);
+  closeTaskModal();
+  renderMyTasks();
+  renderTaskAssign();
+  renderTaskStatsBar();
+  showToast('✅ Đã cập nhật tiến độ!');
+}
+
+function renderTaskStatsBar(){
+  const el=document.getElementById('task-stats-bar'); if(!el) return;
+  const s=getSession(); if(!s) return;
+  const all=getTasksForAssigner();
+  const total=all.length;
+  const done=all.filter(t=>t.status==='Hoàn thành'||t.status==='Đã duyệt').length;
+  const warn=all.filter(t=>{
+    if(t.status==='Hoàn thành'||t.status==='Đã duyệt') return false;
+    const d=Math.ceil((new Date(t.deadline)-new Date())/86400000);
+    return d>=0&&d<=3;
+  }).length;
+  const over=all.filter(t=>{
+    if(t.status==='Hoàn thành'||t.status==='Đã duyệt') return false;
+    return new Date(t.deadline)<new Date();
+  }).length;
+  el.innerHTML=`
+    <div class="task-stat"><span class="tsn">${total}</span><span class="tsl">Tổng việc</span></div>
+    <div class="task-stat done"><span class="tsn">${done}</span><span class="tsl">Hoàn thành</span></div>
+    <div class="task-stat warn"><span class="tsn">${warn}</span><span class="tsl">Sắp hết hạn</span></div>
+    <div class="task-stat over"><span class="tsn">${over}</span><span class="tsl">Trễ deadline</span></div>
+  `;
+}
+
+function getTasksForAssigner(){
+  const s=getSession(); if(!s) return [];
+  const all=getTasks();
+  if(s.role==='lanh_dao'||s.role==='to_truong') return all;
+  if(s.role==='leader'){
+    // Tasks assigned by me OR tasks assigned to my group members
+    const myGroups=GROUPS.filter(g=>g.leaderId===s.id).map(g=>g.num);
+    const myMemberIds=STAFF.filter(m=>m.groups&&m.groups.some(gn=>myGroups.includes(gn))).map(m=>m.id);
+    return all.filter(t=>t.assignedById===s.id||myMemberIds.includes(t.assignedToId));
+  }
+  return [];
+}
+
+function buildTaskCardHTML(t, mode){
+  const di=taskDeadlineInfo(t);
+  const pct=t.progress||0;
+  const fillCls=t.status==='Hoàn thành'||t.status==='Đã duyệt'?'done':(di.cls==='task-overdue'?'over':'');
+  const lastUpdate=t.updates&&t.updates.length?t.updates[t.updates.length-1]:null;
+  const s=getSession();
+  const canApprove=s&&(s.role==='lanh_dao'||s.role==='to_truong'||(s.role==='leader'&&t.assignedById===s.id))&&(t.status==='Hoàn thành');
+  const canDelete=s&&(t.assignedById===s.id)&&(t.status==='Chưa bắt đầu');
+  const canUpdate=s&&(t.assignedToId===s.id)&&(t.status!=='Đã duyệt');
+
+  return `<div class="task-card ${di.cls}" id="tcard-${t.id}">
+    <div class="task-card-hdr">
+      <div class="task-title">${t.title}</div>
+      <div class="task-badges">
+        <span class="tbadge ${priBadgeCls(t.priority)}">${t.priority}</span>
+        <span class="tbadge ${stBadgeCls(t.status)}">${t.status}</span>
+        <span class="tbadge ${di.badgeCls}">📅 ${di.label}</span>
+      </div>
+    </div>
+    <div class="task-meta">
+      ${mode==='assign'?`👤 Giao cho: <strong>${t.assignedToName}</strong> · `:''}
+      ${mode==='mine'?`📌 Từ: <strong>${t.assignedByName}</strong> · `:''}
+      Deadline: <strong>${t.deadline}</strong>
+      ${t.desc?`<br>📝 ${t.desc}`:''}
+    </div>
+    <div class="task-progress-bar"><div class="task-progress-fill ${fillCls}" style="width:${pct}%"></div></div>
+    <div style="font-size:.72rem;color:var(--muted);text-align:right;margin-top:-.2rem;">${pct}%</div>
+    ${lastUpdate?`<div style="font-size:.74rem;color:var(--muted);margin-top:.3rem;">🔄 ${lastUpdate.fromName}: ${lastUpdate.text} (${lastUpdate.ts})</div>`:''}
+    <div class="task-actions">
+      <button class="task-action-btn" onclick="openTaskDetail(${t.id})">🔍 Chi tiết</button>
+      ${canUpdate?`<button class="task-action-btn" onclick="openTaskUpdate(${t.id})">✏️ Cập nhật</button>`:''}
+      ${canApprove?`<button class="task-action-btn approve" onclick="approveTask(${t.id})">✅ Duyệt</button>`:''}
+      ${canDelete?`<button class="task-action-btn del" onclick="deleteTask(${t.id})">🗑️ Xóa</button>`:''}
+    </div>
+  </div>`;
+}
+
+function renderTaskAssign(){
+  const c=document.getElementById('task-assign-list'); if(!c) return;
+  const stF=(document.getElementById('tf-status')||{}).value||'';
+  const priF=(document.getElementById('tf-pri')||{}).value||'';
+  const q=((document.getElementById('tf-search')||{}).value||'').toLowerCase();
+  let tasks=getTasksForAssigner();
+  if(stF) tasks=tasks.filter(t=>t.status===stF);
+  if(priF) tasks=tasks.filter(t=>t.priority===priF);
+  if(q) tasks=tasks.filter(t=>t.title.toLowerCase().includes(q)||t.assignedToName.toLowerCase().includes(q));
+  // Sort: overdue first, then warning, then by deadline
+  tasks.sort((a,b)=>{
+    const ai=taskDeadlineInfo(a),bi=taskDeadlineInfo(b);
+    const rank={'task-overdue':0,'task-warning':1,'task-done':3,'':2};
+    if(rank[ai.cls]!==rank[bi.cls]) return rank[ai.cls]-rank[bi.cls];
+    return new Date(a.deadline)-new Date(b.deadline);
+  });
+  if(!tasks.length){ c.innerHTML='<div class="task-empty">📭 Chưa có việc nào được tạo.</div>'; return; }
+  c.innerHTML=tasks.map(t=>buildTaskCardHTML(t,'assign')).join('');
+}
+
+function renderMyTasks(){
+  const c=document.getElementById('task-mine-list'); if(!c) return;
+  const s=getSession(); if(!s) return;
+  const stF=(document.getElementById('mf-status')||{}).value||'';
+  const q=((document.getElementById('mf-search')||{}).value||'').toLowerCase();
+  let tasks=getTasks().filter(t=>t.assignedToId===s.id);
+  if(stF) tasks=tasks.filter(t=>t.status===stF);
+  if(q) tasks=tasks.filter(t=>t.title.toLowerCase().includes(q)||t.assignedByName.toLowerCase().includes(q));
+  tasks.sort((a,b)=>{
+    const ai=taskDeadlineInfo(a),bi=taskDeadlineInfo(b);
+    const rank={'task-overdue':0,'task-warning':1,'task-done':3,'':2};
+    if(rank[ai.cls]!==rank[bi.cls]) return rank[ai.cls]-rank[bi.cls];
+    return new Date(a.deadline)-new Date(b.deadline);
+  });
+  if(!tasks.length){ c.innerHTML='<div class="task-empty">📭 Chưa có việc nào được giao cho bạn.</div>'; return; }
+  c.innerHTML=tasks.map(t=>buildTaskCardHTML(t,'mine')).join('');
+}
+
+function openTaskDetail(id){
+  const t=getTasks().find(t=>t.id===id); if(!t) return;
+  const di=taskDeadlineInfo(t);
+  const pct=t.progress||0;
+  const fillCls=t.status==='Hoàn thành'||t.status==='Đã duyệt'?'done':(di.cls==='task-overdue'?'over':'');
+  const logHTML=(t.updates&&t.updates.length)?`
+    <div class="task-log">
+      <div style="font-size:.78rem;font-weight:700;color:var(--purple-d);margin-bottom:.4rem;">📜 Lịch sử cập nhật:</div>
+      ${t.updates.slice().reverse().map(u=>`<div class="task-log-item">
+        <strong>${u.fromName}</strong> · ${u.ts}<br>${u.text} · Tiến độ: ${u.progress}% · Trạng thái: ${u.status}
+      </div>`).join('')}
+    </div>`:'';
+  document.getElementById('task-modal-title').textContent=t.title;
+  document.getElementById('task-modal-sub').textContent=`Giao cho: ${t.assignedToName} · Deadline: ${t.deadline}`;
+  document.getElementById('task-modal-body').innerHTML=`
+    <div class="task-badges" style="margin-bottom:.75rem;">
+      <span class="tbadge ${priBadgeCls(t.priority)}">${t.priority}</span>
+      <span class="tbadge ${stBadgeCls(t.status)}">${t.status}</span>
+      <span class="tbadge ${di.badgeCls}">📅 ${di.label}</span>
+    </div>
+    ${t.desc?`<p style="font-size:.84rem;color:var(--muted);margin-bottom:.75rem;">📝 ${t.desc}</p>`:''}
+    <div style="font-size:.78rem;color:var(--muted);margin-bottom:.75rem;">
+      👤 Giao bởi: <strong>${t.assignedByName}</strong><br>
+      📅 Tạo lúc: ${t.createdAt} · Cập nhật: ${t.updatedAt}
+    </div>
+    <div class="task-progress-bar"><div class="task-progress-fill ${fillCls}" style="width:${pct}%"></div></div>
+    <div style="font-size:.72rem;color:var(--muted);text-align:right;margin:.2rem 0 .75rem;">Tiến độ: ${pct}%</div>
+    ${logHTML}
+  `;
+  document.getElementById('task-modal').style.display='flex';
+}
+
+function openTaskUpdate(id){
+  const t=getTasks().find(t=>t.id===id); if(!t) return;
+  document.getElementById('task-modal-title').textContent='✏️ Cập nhật tiến độ';
+  document.getElementById('task-modal-sub').textContent=t.title;
+  document.getElementById('task-modal-body').innerHTML=`
+    <div class="form-row"><label>Trạng thái</label>
+      <select id="tu-status">
+        <option ${t.status==='Chưa bắt đầu'?'selected':''}>Chưa bắt đầu</option>
+        <option ${t.status==='Đang thực hiện'?'selected':''}>Đang thực hiện</option>
+        <option ${t.status==='Hoàn thành'?'selected':''}>Hoàn thành</option>
+      </select>
+    </div>
+    <div class="form-row"><label>Tiến độ: <span id="tu-pct-lbl">${t.progress||0}</span>%</label>
+      <input type="range" class="progress-input" id="tu-progress" min="0" max="100" value="${t.progress||0}"
+        oninput="document.getElementById('tu-pct-lbl').textContent=this.value">
+    </div>
+    <div class="form-row"><label>Ghi chú / Báo cáo tiến độ</label>
+      <textarea id="tu-note" rows="3" placeholder="Nhập ghi chú..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-outline" onclick="closeTaskModal()">Hủy</button>
+      <button class="btn-primary" onclick="submitTaskUpdate(${id})">Lưu cập nhật</button>
+    </div>
+  `;
+  document.getElementById('task-modal').style.display='flex';
+}
+
+function closeTaskModal(){
+  document.getElementById('task-modal').style.display='none';
 }
 
 /* =====================================================
