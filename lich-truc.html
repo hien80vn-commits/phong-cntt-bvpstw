@@ -817,7 +817,23 @@ function renderAssign(c){
   <hr style="margin:1.5rem 0;border:none;border-top:2px dashed var(--border);">
   <div style="background:#fff5f5;border:2px solid #ffcdd2;border-radius:12px;padding:1.2rem;">
     <p style="font-weight:700;color:#c62828;margin-bottom:.5rem;">⚠️ Vùng nguy hiểm</p>
-    <p style="font-size:.82rem;color:var(--muted);margin-bottom:.9rem;">Xóa toàn bộ dữ liệu lịch trực và đăng ký nghỉ đã lưu. Hành động này <strong>không thể hoàn tác</strong>.</p>
+    <p style="font-size:.82rem;color:var(--muted);margin-bottom:.9rem;">Xóa dữ liệu lịch trực đã lưu. Hành động này <strong>không thể hoàn tác</strong>.</p>
+    <div style="display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin-bottom:.75rem;">
+      <span style="font-size:.8rem;font-weight:600;color:#c62828;">Xóa theo:</span>
+      <div style="display:flex;align-items:center;gap:.4rem;">
+        <input type="date" id="clear-day-dt" style="padding:.3rem .6rem;border:1.5px solid #ffcdd2;border-radius:7px;font-size:.8rem;">
+        <button class="btn btn-danger" style="padding:.35rem .9rem;font-size:.8rem;" onclick="clearByDay()">🗑 Xóa ngày</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:.4rem;">
+        <input type="week" id="clear-week-dt" style="padding:.3rem .6rem;border:1.5px solid #ffcdd2;border-radius:7px;font-size:.8rem;">
+        <button class="btn btn-danger" style="padding:.35rem .9rem;font-size:.8rem;" onclick="clearByWeek()">🗑 Xóa tuần</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:.4rem;">
+        <input type="month" id="clear-month-dt" style="padding:.3rem .6rem;border:1.5px solid #ffcdd2;border-radius:7px;font-size:.8rem;">
+        <button class="btn btn-danger" style="padding:.35rem .9rem;font-size:.8rem;" onclick="clearByMonth()">🗑 Xóa tháng</button>
+      </div>
+    </div>
+    <hr style="border:none;border-top:1px dashed #ffcdd2;margin:.75rem 0;">
     <button class="btn btn-danger" onclick="clearAllSchedule()">🗑 Xóa toàn bộ lịch</button>
   </div>`;
   initAChips();
@@ -937,6 +953,54 @@ function renderOverview(c){
 }
 
 /* ===== XÓA TOÀN BỘ LỊCH ===== */
+function clearDaysRange(sd, ed, label){
+  const cur = new Date(sd);
+  let count = 0;
+  while(cur <= ed){
+    const key = dk(cur.getFullYear(), cur.getMonth(), cur.getDate());
+    schedule[key] = {morning:[], night:[]};
+    count++;
+    cur.setDate(cur.getDate()+1);
+  }
+  persistSchedule();
+  showTab('assign');
+  alert(`✅ Đã xóa lịch trực ${label} (${count} ngày) thành công!`);
+}
+
+function clearByDay(){
+  const val = document.getElementById('clear-day-dt').value;
+  if(!val){ alert('Vui lòng chọn ngày cần xóa!'); return; }
+  const [y,m,d] = val.split('-').map(Number);
+  if(!confirm(`Xóa lịch trực ngày ${d}/${m}/${y}?`)) return;
+  const dt = new Date(y, m-1, d);
+  clearDaysRange(dt, dt, `ngày ${d}/${m}/${y}`);
+}
+
+function clearByWeek(){
+  const val = document.getElementById('clear-week-dt').value;
+  if(!val){ alert('Vui lòng chọn tuần cần xóa!'); return; }
+  // val format: "2025-W23"
+  const [yr, wk] = val.split('-W').map(Number);
+  // Tính thứ 2 của tuần đó
+  const jan4 = new Date(yr, 0, 4);
+  const monday = new Date(jan4);
+  monday.setDate(jan4.getDate() - (jan4.getDay()||7) + 1 + (wk-1)*7);
+  const sunday = new Date(monday); sunday.setDate(monday.getDate()+6);
+  const fmt = d => `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
+  if(!confirm(`Xóa lịch trực tuần ${wk}/${yr} (${fmt(monday)} – ${fmt(sunday)})?`)) return;
+  clearDaysRange(monday, sunday, `tuần ${wk}/${yr}`);
+}
+
+function clearByMonth(){
+  const val = document.getElementById('clear-month-dt').value;
+  if(!val){ alert('Vui lòng chọn tháng cần xóa!'); return; }
+  const [y,m] = val.split('-').map(Number);
+  if(!confirm(`Xóa toàn bộ lịch trực tháng ${m}/${y}?`)) return;
+  const sd = new Date(y, m-1, 1);
+  const ed = new Date(y, m, 0);
+  clearDaysRange(sd, ed, `tháng ${m}/${y}`);
+}
+
 function clearAllSchedule(){
   if(!confirm('Bạn có chắc muốn XÓA TOÀN BỘ lịch trực và đăng ký nghỉ không?\nHành động này không thể hoàn tác!')) return;
   // Xóa dữ liệu và lưu lịch rỗng cho tất cả các ngày trong range để ngăn tự động fill lại
