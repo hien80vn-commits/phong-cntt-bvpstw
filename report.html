@@ -177,6 +177,36 @@ a{color:inherit;text-decoration:none}
   .form-card{padding:1.25rem;}
   .assign-grid{grid-template-columns:1fr;}
 }
+/* CHECKLIST */
+.cl-sub-tabs{display:flex;gap:.4rem;margin-bottom:1.5rem;flex-wrap:wrap;}
+.cl-sub-tabs button{padding:.45rem 1.1rem;border-radius:999px;border:2px solid var(--border);background:#fff;font-family:var(--font);font-weight:600;font-size:.82rem;cursor:pointer;color:var(--muted);transition:.2s;}
+.cl-sub-tabs button.active{background:var(--teal);border-color:var(--teal);color:#fff;}
+.cl-progress-bar{height:10px;border-radius:999px;background:#e0e0e0;overflow:hidden;margin-bottom:.5rem;}
+.cl-progress-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--teal),#00695C);transition:width .4s;}
+.cl-section-title{font-size:.82rem;font-weight:800;color:var(--purple-d);padding:.6rem 1rem;background:linear-gradient(90deg,rgba(107,45,139,.08),transparent);border-left:4px solid var(--purple);border-radius:0 8px 8px 0;margin:.9rem 0 .5rem;}
+.cl-item{display:flex;align-items:flex-start;gap:.75rem;padding:.6rem .9rem;border-radius:10px;border:1px solid var(--border);margin-bottom:.4rem;background:#fff;transition:background .15s;}
+.cl-item:hover{background:#faf8fd;}
+.cl-item.done{background:#f0faf5;border-color:#b2dfdb;}
+.cl-item input[type=checkbox]{width:18px;height:18px;accent-color:var(--teal);cursor:pointer;flex-shrink:0;margin-top:2px;}
+.cl-item-body{flex:1;}
+.cl-item-name{font-size:.86rem;font-weight:600;color:var(--text);line-height:1.4;}
+.cl-item.done .cl-item-name{text-decoration:line-through;color:var(--muted);}
+.cl-badges{display:flex;gap:.3rem;flex-wrap:wrap;margin-top:.25rem;}
+.cl-badge{font-size:.65rem;padding:.1rem .5rem;border-radius:999px;font-weight:700;}
+.cl-badge.cat{background:#f0ebf7;color:var(--purple-d);}
+.cl-badge.p-cao{background:#FFEBEE;color:#C62828;}
+.cl-badge.p-tb{background:#FFF3E0;color:#E65100;}
+.cl-badge.p-thap{background:#E8F5E9;color:#2E7D32;}
+.cl-badge.type-th{background:#E3F2FD;color:#1565C0;}
+.cl-badge.type-hd{background:#FFF8E1;color:#F57F17;}
+.cl-badge.type-ts{background:#F3E5F5;color:#6A1B9A;}
+.cl-note{width:100%;margin-top:.4rem;padding:.3rem .6rem;border:1px solid var(--border);border-radius:6px;font-family:var(--font);font-size:.78rem;resize:vertical;min-height:32px;background:var(--bg);outline:none;}
+.cl-note:focus{border-color:var(--teal);}
+.cl-summary-box{background:#fff;border-radius:var(--radius);padding:1rem 1.25rem;border:1px solid var(--border);box-shadow:var(--shadow);margin-bottom:1.2rem;}
+.cl-weekly-table{width:100%;border-collapse:collapse;font-size:.82rem;}
+.cl-weekly-table th,.cl-weekly-table td{border:1px solid var(--border);padding:.4rem .6rem;text-align:center;}
+.cl-weekly-table th{background:var(--bg);font-weight:700;color:var(--purple-d);}
+.cl-weekly-table td input{width:100%;border:none;background:transparent;text-align:center;font-family:var(--font);font-size:.8rem;outline:none;}
 /* FILE ATTACHMENTS */
 .file-input{width:100%;padding:.6rem;border:2px dashed var(--border);border-radius:10px;background:var(--bg);cursor:pointer;font-size:.83rem;}
 .file-input:hover{border-color:var(--purple);}
@@ -273,6 +303,7 @@ a{color:inherit;text-decoration:none}
         <button onclick="switchTab('weekly',this)">📅 Tuần</button>
         <button onclick="switchTab('monthly',this)">📆 Tháng</button>
         <button onclick="switchTab('yearly',this)">📊 Năm</button>
+        <button onclick="switchTab('checklist',this)" style="border-color:var(--teal);color:var(--teal);">☑️ Checklist</button>
       </div>
 
       <!-- DAILY -->
@@ -488,6 +519,32 @@ a{color:inherit;text-decoration:none}
           <div id="yearly-list"></div>
         </div>
       </div>
+      <!-- CHECKLIST -->
+      <div class="report-panel" id="tab-checklist">
+        <div class="cl-summary-box">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.6rem;margin-bottom:.6rem;">
+            <strong style="color:var(--purple-d);font-size:.95rem;">☑️ Checklist công việc hàng ngày / tuần / tháng</strong>
+            <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;">
+              <input type="date" id="cl-date" style="padding:.4rem .7rem;border:2px solid var(--border);border-radius:8px;font-family:var(--font);font-size:.82rem;outline:none;">
+              <input type="month" id="cl-month" style="padding:.4rem .7rem;border:2px solid var(--border);border-radius:8px;font-family:var(--font);font-size:.82rem;outline:none;display:none;">
+            </div>
+          </div>
+          <div class="cl-sub-tabs">
+            <button class="active" id="clst-daily" onclick="switchClTab('daily',this)">🌅 Hàng ngày</button>
+            <button id="clst-weekly" onclick="switchClTab('weekly',this)">📅 Hàng tuần</button>
+            <button id="clst-monthly" onclick="switchClTab('monthly',this)">📆 Hàng tháng</button>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;flex-wrap:wrap;">
+            <div style="flex:1;min-width:180px;">
+              <div class="cl-progress-bar"><div class="cl-progress-fill" id="cl-prog-fill" style="width:0%"></div></div>
+              <div style="font-size:.74rem;color:var(--muted);" id="cl-prog-label">0 / 0 công việc</div>
+            </div>
+            <button class="btn-primary" style="padding:.5rem 1.2rem;font-size:.82rem;" onclick="submitChecklist()">💾 Nộp báo cáo checklist</button>
+          </div>
+        </div>
+        <div id="cl-body"></div>
+      </div>
+
     </div><!-- /section-submit -->
 
     <!-- ===== SECTION: ASSIGN ===== -->
@@ -733,12 +790,26 @@ function buildBody(pairs){
 function renderReport(r, showAuthor=false, canDelete=false, type=null, globalIdx=null){
   const rtype = r.type || type;
   let title='', body='';
-  if(rtype==='daily'){ title=`${r.date||''}${r.group?' · '+r.group:''}`; body=buildBody([['Đã hoàn thành',r.done],['Chưa xong',r.pending],['Sự cố',r.issue],['Kế hoạch mai',r.plan]]); }
+  if(r.isChecklist){
+    const clLabel={daily:'Checklist ngày',weekly:'Checklist tuần',monthly:'Checklist tháng'}[rtype]||'Checklist';
+    const period=r.date||r.from||r.month||'';
+    title=`${clLabel} ${period}${r.group?' · '+r.group:''}`;
+    // Render checklist lines with colored markers
+    const raw=r.done||'';
+    const htmlLines=raw.split('\n').map(ln=>{
+      if(ln.startsWith('✅')) return `<span style="color:var(--teal);">${ln}</span>`;
+      if(ln.startsWith('⬜')) return `<span style="color:var(--muted);">${ln}</span>`;
+      if(ln.startsWith('📊')) return `<strong style="color:var(--purple-d);">${ln}</strong>`;
+      if(ln.match(/^[🌅☀️🌙📊📅📈]/u)) return `<strong style="color:var(--purple-d);display:block;margin-top:.4rem;">${ln}</strong>`;
+      return ln;
+    });
+    body=`<div style="font-size:.8rem;line-height:1.7;white-space:pre-wrap;">${htmlLines.join('<br>')}</div>`;
+  } else if(rtype==='daily'){ title=`${r.date||''}${r.group?' · '+r.group:''}`; body=buildBody([['Đã hoàn thành',r.done],['Chưa xong',r.pending],['Sự cố',r.issue],['Kế hoạch mai',r.plan]]); }
   else if(rtype==='weekly'){ title=`${r.from||''} → ${r.to||''}${r.group?' · '+r.group:''}`; body=buildBody([['Kết quả tuần',r.done],['Tồn đọng',r.pending],['Tuần tới',r.plan],['Kiến nghị',r.suggest]]); }
   else if(rtype==='monthly'){ title=`Tháng ${r.month||''}${r.group?' · '+r.group:''}`; body=buildBody([['Kết quả tháng',r.done],['Nổi bật',r.highlight],['Khó khăn',r.issue],['Kế hoạch tới',r.plan],['Nhân sự',r.hr]]); }
   else if(rtype==='yearly'){ title=`Năm ${r.year||''}${r.rating?' · '+r.rating:''}`; body=buildBody([['Tổng quan',r.overview],['Dự án',r.projects],['Nhân sự',r.hr],['Kế hoạch',r.plan]]); }
   const authorLine = showAuthor ? `<strong>${r.reporter||''}</strong> · ${r.position||''} · ` : '';
-  const synthBadge = r.isSynthesis ? '<span class="ri-badge synth">Tổng hợp</span>' : '<span class="ri-badge indiv">Cá nhân</span>';
+  const synthBadge = r.isChecklist ? '<span class="ri-badge" style="background:#E0F2F1;color:#00695C;">☑️ Checklist</span>' : r.isSynthesis ? '<span class="ri-badge synth">Tổng hợp</span>' : '<span class="ri-badge indiv">Cá nhân</span>';
   const levelMap = {leader:'→ Nhóm trưởng', to_truong:'→ Tổ trưởng', lanh_dao:'→ Lãnh đạo'};
   const levelBadge = r.targetLevel ? `<span style="font-size:.7rem;color:var(--teal);margin-left:.3rem;">${levelMap[r.targetLevel]||''}</span>` : '';
   const delBtn = canDelete ? `<button class="ri-del" onclick="deleteReport('${rtype}',${globalIdx})" title="Xóa">🗑</button>` : '';
@@ -975,6 +1046,15 @@ function switchTab(id,btn){
   document.querySelectorAll('.report-tabs button').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+id).classList.add('active');
   btn.classList.add('active');
+  if(id==='checklist'){
+    initClDates();
+    renderClBody(clCurrentTab);
+    // Wire date change
+    const dEl=document.getElementById('cl-date');
+    const mEl=document.getElementById('cl-month');
+    if(dEl) dEl.onchange=()=>renderClBody(clCurrentTab);
+    if(mEl) mEl.onchange=()=>renderClBody(clCurrentTab);
+  }
 }
 
 /* =====================================================
@@ -1254,6 +1334,7 @@ function filterReportsByDate(reports, from, to){
 }
 
 function reportToText(r){
+  if(r.isChecklist) return (r.done||'').split('\n').filter(Boolean);
   const rtype=r.type;
   let lines=[];
   if(rtype==='daily'){
@@ -1517,6 +1598,289 @@ function printAdminReport(){
     `Từ ${fmtDate(from)} đến ${fmtDate(to)}`,
     sections
   );
+}
+
+/* =====================================================
+   CHECKLIST DATA
+===================================================== */
+const CL_DAILY = [
+  { section:'🌅 BUỔI SÁNG  (7:30 – 12:00)', items:[
+    {id:'d01', name:'Kiểm tra server: uptime, CPU, RAM, disk', cat:'Hệ thống', pri:'Cao'},
+    {id:'d02', name:'Xem log lỗi & cảnh báo qua đêm', cat:'Hệ thống', pri:'Cao'},
+    {id:'d03', name:'Xác nhận backup đêm trước thành công', cat:'Backup', pri:'Cao'},
+    {id:'d04', name:'Kiểm tra mạng LAN / WAN / WiFi', cat:'Mạng', pri:'Cao'},
+    {id:'d05', name:'Kiểm tra HIS / PACS / phần mềm nghiệp vụ', cat:'Phần mềm', pri:'Cao'},
+    {id:'d06', name:'Kiểm tra email, phân loại và trả lời yêu cầu từ các khoa/phòng', cat:'Hỗ trợ', pri:'Cao', type:'TH'},
+    {id:'d07', name:'Tiếp nhận yêu cầu qua helpdesk, ghi nhận và phân loại ticket', cat:'Helpdesk', pri:'Cao', type:'HD'},
+    {id:'d08', name:'Hỗ trợ người dùng xử lý sự cố cơ bản: phần mềm, in ấn, tài khoản', cat:'Helpdesk', pri:'Cao', type:'HD'},
+    {id:'d09', name:'Xử lý ticket ưu tiên cao (P1/P2)', cat:'Helpdesk', pri:'Cao', type:'HD'},
+    {id:'d10', name:'Thu thập số liệu đầu vào từ các bộ phận liên quan', cat:'Tổng hợp', pri:'Trung bình', type:'TH'},
+    {id:'d11', name:'Cập nhật bảng theo dõi số liệu hàng ngày', cat:'Tổng hợp', pri:'Trung bình', type:'TH'},
+    {id:'d12', name:'Tổng hợp báo cáo ngày: lượt khám, điều trị, công suất giường bệnh', cat:'Báo cáo', pri:'Trung bình', type:'TH'},
+    {id:'d13', name:'Họp giao ban / cập nhật tiến độ dự án', cat:'Quản lý', pri:'Trung bình'},
+  ]},
+  { section:'☀️ BUỔI CHIỀU  (13:00 – 16:00)', items:[
+    {id:'d14', name:'Tiếp tục xử lý ticket còn tồn đọng, cập nhật trạng thái', cat:'Helpdesk', pri:'Cao', type:'HD'},
+    {id:'d15', name:'Thực hiện kiểm thử (test) tính năng phần mềm mới hoặc vừa cập nhật', cat:'Kiểm thử', pri:'Trung bình', type:'TS'},
+    {id:'d16', name:'Ghi nhận lỗi phát sinh, lập báo cáo lỗi gửi nhà cung cấp', cat:'Kiểm thử', pri:'Trung bình', type:'TS'},
+    {id:'d17', name:'Kiểm tra lại tính năng sau khi nhà cung cấp xử lý lỗi (retest)', cat:'Kiểm thử', pri:'Trung bình', type:'TS'},
+    {id:'d18', name:'Cập nhật phần mềm / vá lỗi bảo mật theo kế hoạch', cat:'Bảo mật', pri:'Trung bình'},
+    {id:'d19', name:'Làm việc với khoa/phòng: lắp đặt, cấu hình thiết bị', cat:'Triển khai', pri:'Trung bình'},
+    {id:'d20', name:'Kiểm tra hiệu năng: băng thông, tài nguyên máy chủ', cat:'Hệ thống', pri:'Trung bình'},
+    {id:'d21', name:'Xử lý, làm sạch dữ liệu thô, lập bảng biểu và biểu đồ báo cáo', cat:'Tổng hợp', pri:'Trung bình', type:'TH'},
+    {id:'d22', name:'Soạn thảo văn bản, công văn, tờ trình theo yêu cầu', cat:'Hành chính', pri:'Thấp', type:'TH'},
+    {id:'d23', name:'Đào tạo / hướng dẫn người dùng cuối (nếu có)', cat:'Đào tạo', pri:'Thấp'},
+    {id:'d24', name:'Ghi chép sự cố & cách xử lý vào hệ thống ticket', cat:'Tài liệu', pri:'Trung bình'},
+    {id:'d25', name:'Phối hợp với các khoa/phòng xác nhận, bổ sung số liệu còn thiếu', cat:'Tổng hợp', pri:'Trung bình', type:'TH'},
+  ]},
+  { section:'🌙 CUỐI NGÀY  (16:00 – 16:30)', items:[
+    {id:'d26', name:'Kiểm tra lần cuối: server & dịch vụ quan trọng', cat:'Hệ thống', pri:'Cao'},
+    {id:'d27', name:'Cập nhật trạng thái tất cả ticket đang mở', cat:'Helpdesk', pri:'Cao', type:'HD'},
+    {id:'d28', name:'Rà soát lại báo cáo trước khi gửi lãnh đạo', cat:'Báo cáo', pri:'Cao', type:'TH'},
+    {id:'d29', name:'Ghi lại kết quả test trong ngày, cập nhật danh sách lỗi', cat:'Kiểm thử', pri:'Trung bình', type:'TS'},
+    {id:'d30', name:'Lên danh sách việc cần làm / chuẩn bị kế hoạch ngày hôm sau', cat:'Quản lý', pri:'Trung bình'},
+    {id:'d31', name:'Kiểm tra lịch bảo trì định kỳ sắp tới', cat:'Bảo trì', pri:'Trung bình'},
+    {id:'d32', name:'Bàn giao ca / trực đêm (nếu có)', cat:'Quản lý', pri:'Cao'},
+  ]},
+];
+
+const CL_WEEKLY = [
+  { section:'📊 CÔNG VIỆC HÀNG TUẦN', items:[
+    {id:'w01', name:'Kiểm tra SSL, domain, bản quyền phần mềm', cat:'Bảo mật'},
+    {id:'w02', name:'Rà soát tài khoản: thu hồi quyền nhân viên đã nghỉ', cat:'Bảo mật'},
+    {id:'w03', name:'Kiểm thử hồi quy các tính năng trọng yếu của hệ thống', cat:'Kiểm thử', type:'TS'},
+    {id:'w04', name:'Tổng hợp và gửi báo cáo tuần cho lãnh đạo', cat:'Báo cáo', type:'TH'},
+    {id:'w05', name:'Thống kê số lượng ticket: loại sự cố, thời gian xử lý, tỷ lệ giải quyết', cat:'Tổng hợp', type:'TH'},
+    {id:'w06', name:'Rà soát và cập nhật số liệu tồn đọng từ tuần trước', cat:'Tổng hợp', type:'TH'},
+    {id:'w07', name:'Tham gia họp giao ban, ghi biên bản cuộc họp', cat:'Quản lý', type:'TH'},
+    {id:'w08', name:'Báo cáo hiệu năng hệ thống cho Ban lãnh đạo', cat:'Báo cáo'},
+    {id:'w09', name:'Vệ sinh, kiểm tra phần cứng thiết bị đầu cuối', cat:'Bảo trì'},
+  ]},
+  { section:'📈 BẢNG TỔNG KẾT TUẦN', isTable:true, cols:['Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu'],
+    rows:[
+      {id:'wt01', label:'Số ticket nhận'},
+      {id:'wt02', label:'Số ticket giải quyết'},
+      {id:'wt03', label:'Sự cố hệ thống'},
+      {id:'wt04', label:'Thiết bị xử lý'},
+      {id:'wt05', label:'Thời gian downtime (phút)'},
+      {id:'wt06', label:'Ghi chú nổi bật'},
+    ]
+  },
+];
+
+const CL_MONTHLY = [
+  { section:'📅 CÔNG VIỆC HÀNG THÁNG', items:[
+    {id:'m01', name:'Kiểm thử DR – kế hoạch khôi phục thảm họa', cat:'Backup'},
+    {id:'m02', name:'Tổng hợp báo cáo tháng gửi Ban Giám đốc', cat:'Báo cáo', type:'TH'},
+    {id:'m03', name:'Lập báo cáo định kỳ theo yêu cầu Sở Y tế / Bộ Y tế', cat:'Báo cáo', type:'TH'},
+    {id:'m04', name:'Lập kế hoạch và thực hiện test toàn bộ khi nâng cấp phần mềm lớn', cat:'Kiểm thử', type:'TS'},
+    {id:'m05', name:'Phân tích xu hướng sự cố helpdesk, đề xuất giải pháp phòng ngừa', cat:'Helpdesk', type:'HD'},
+    {id:'m06', name:'Cập nhật biểu mẫu, quy trình thống kê khi có thay đổi', cat:'Tổng hợp', type:'TH'},
+    {id:'m07', name:'Viết tài liệu hướng dẫn sử dụng, quy trình vận hành cho người dùng', cat:'Tài liệu', type:'TS'},
+    {id:'m08', name:'Lưu trữ hồ sơ, tài liệu theo đúng quy trình', cat:'Hành chính', type:'TH'},
+    {id:'m09', name:'Kiểm tra và gia hạn SSL, domain, bản quyền phần mềm sắp hết hạn', cat:'Bảo mật'},
+    {id:'m10', name:'Rà soát tài khoản hệ thống, thu hồi quyền NV đã nghỉ trong tháng', cat:'Bảo mật'},
+  ]},
+];
+
+/* =====================================================
+   CHECKLIST STATE
+===================================================== */
+let clCurrentTab = 'daily';
+
+function clKey(type, period){
+  const session=getSession(); if(!session) return null;
+  return `cntt_cl_${type}_${session.id}_${period}`;
+}
+function clGetState(type, period){
+  try{ return JSON.parse(localStorage.getItem(clKey(type,period)))||{checked:{},notes:{},table:{}}; }catch(e){ return {checked:{},notes:{},table:{}}; }
+}
+function clSaveState(type, period, state){
+  const k=clKey(type,period); if(!k) return;
+  localStorage.setItem(k, JSON.stringify(state));
+}
+function clPeriod(type){
+  if(type==='daily') return document.getElementById('cl-date')?.value||new Date().toISOString().slice(0,10);
+  if(type==='monthly') return document.getElementById('cl-month')?.value||new Date().toISOString().slice(0,7);
+  if(type==='weekly'){
+    const d=new Date(document.getElementById('cl-date')?.value||new Date());
+    const day=d.getDay()||7;
+    const mon=new Date(d); mon.setDate(d.getDate()-day+1);
+    const jan4=new Date(mon.getFullYear(),0,4);
+    const wn=Math.ceil(((mon-jan4)/86400000+jan4.getDay()+1)/7);
+    return `${mon.getFullYear()}-W${String(wn).padStart(2,'0')}`;
+  }
+  return '';
+}
+
+function switchClTab(type, btn){
+  clCurrentTab=type;
+  document.querySelectorAll('.cl-sub-tabs button').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  const dateEl=document.getElementById('cl-date');
+  const monthEl=document.getElementById('cl-month');
+  if(type==='monthly'){ dateEl.style.display='none'; monthEl.style.display=''; }
+  else { dateEl.style.display=''; monthEl.style.display='none'; }
+  renderClBody(type);
+}
+
+function renderClBody(type){
+  const period=clPeriod(type);
+  const state=clGetState(type,period);
+  const data=type==='daily'?CL_DAILY:type==='weekly'?CL_WEEKLY:CL_MONTHLY;
+  const wrap=document.getElementById('cl-body');
+  let html='';
+  let total=0, done=0;
+  for(const sec of data){
+    html+=`<div class="cl-section-title">${sec.section}</div>`;
+    if(sec.isTable){
+      html+=renderClTable(sec,state);
+    } else {
+      for(const it of sec.items){
+        total++;
+        const isChecked=!!state.checked[it.id];
+        if(isChecked) done++;
+        const note=state.notes[it.id]||'';
+        const priCls=it.pri==='Cao'?'p-cao':it.pri==='Thấp'?'p-thap':'p-tb';
+        const typeBadge=it.type?`<span class="cl-badge type-${it.type.toLowerCase()}">${it.type}=${it.type==='TH'?'Tổng hợp':it.type==='HD'?'Helpdesk':'Tester'}</span>`:'';
+        html+=`<div class="cl-item${isChecked?' done':''}" id="cli-${it.id}">
+          <input type="checkbox" ${isChecked?'checked':''} onchange="clToggle('${type}','${period}','${it.id}',this.checked)">
+          <div class="cl-item-body">
+            <div class="cl-item-name">${it.name}</div>
+            <div class="cl-badges">
+              <span class="cl-badge cat">${it.cat}</span>
+              ${it.pri?`<span class="cl-badge ${priCls}">${it.pri}</span>`:''}
+              ${typeBadge}
+            </div>
+            <input class="cl-note" type="text" placeholder="Ghi chú..." value="${note.replace(/"/g,'&quot;')}"
+              onchange="clNote('${type}','${period}','${it.id}',this.value)">
+          </div>
+        </div>`;
+      }
+    }
+  }
+  wrap.innerHTML=html;
+  updateClProgress(total,done);
+}
+
+function renderClTable(sec, state){
+  const cols=sec.cols;
+  let h=`<div style="overflow-x:auto;margin-bottom:.8rem;"><table class="cl-weekly-table"><thead><tr><th style="text-align:left;min-width:160px;">Hạng mục</th>`;
+  cols.forEach(c=>h+=`<th>${c}</th>`);
+  h+=`</tr></thead><tbody>`;
+  for(const row of sec.rows){
+    h+=`<tr><td style="font-weight:600;color:var(--purple-d);text-align:left;">${row.label}</td>`;
+    cols.forEach((_,ci)=>{
+      const val=(state.table&&state.table[row.id]&&state.table[row.id][ci])||'';
+      h+=`<td><input type="text" value="${val.replace(/"/g,'&quot;')}" onchange="clTableCell('${clPeriod('weekly')}','${row.id}',${ci},this.value)"></td>`;
+    });
+    h+=`</tr>`;
+  }
+  h+=`</tbody></table></div>`;
+  return h;
+}
+
+function clToggle(type, period, id, checked){
+  const state=clGetState(type,period);
+  state.checked[id]=checked;
+  clSaveState(type,period,state);
+  const el=document.getElementById('cli-'+id);
+  if(el){ el.classList.toggle('done',checked); }
+  // recount
+  const data=type==='daily'?CL_DAILY:type==='weekly'?CL_WEEKLY:CL_MONTHLY;
+  let total=0, done=0;
+  for(const sec of data){ if(sec.items) for(const it of sec.items){ total++; if(state.checked[it.id]) done++; } }
+  updateClProgress(total,done);
+}
+
+function clNote(type, period, id, val){
+  const state=clGetState(type,period);
+  state.notes[id]=val;
+  clSaveState(type,period,state);
+}
+
+function clTableCell(period, rowId, colIdx, val){
+  const state=clGetState('weekly',period);
+  if(!state.table) state.table={};
+  if(!state.table[rowId]) state.table[rowId]={};
+  state.table[rowId][colIdx]=val;
+  clSaveState('weekly',period,state);
+}
+
+function updateClProgress(total, done){
+  const pct=total>0?Math.round(done/total*100):0;
+  const fill=document.getElementById('cl-prog-fill');
+  const lbl=document.getElementById('cl-prog-label');
+  if(fill) fill.style.width=pct+'%';
+  if(lbl) lbl.textContent=`${done} / ${total} công việc hoàn thành (${pct}%)`;
+}
+
+function submitChecklist(){
+  const session=getSession(); if(!session) return;
+  const type=clCurrentTab;
+  const period=clPeriod(type);
+  const state=clGetState(type,period);
+  const data=type==='daily'?CL_DAILY:type==='weekly'?CL_WEEKLY:CL_MONTHLY;
+
+  // Build summary text
+  let total=0, done=0;
+  let lines=[];
+  for(const sec of data){
+    if(sec.isTable) continue;
+    const secItems=sec.items||[];
+    const doneItems=secItems.filter(it=>state.checked[it.id]);
+    const pendItems=secItems.filter(it=>!state.checked[it.id]);
+    total+=secItems.length; done+=doneItems.length;
+    if(doneItems.length){
+      lines.push(`${sec.section}`);
+      doneItems.forEach(it=>{ lines.push(`  ✅ ${it.name}${state.notes[it.id]?' — '+state.notes[it.id]:''}`); });
+    }
+    if(pendItems.length){
+      pendItems.forEach(it=>{ if(state.notes[it.id]) lines.push(`  ⬜ ${it.name} — ${state.notes[it.id]}`); });
+    }
+  }
+
+  // Weekly table summary
+  if(type==='weekly' && state.table){
+    lines.push('📊 Bảng tổng kết tuần:');
+    CL_WEEKLY.filter(s=>s.isTable).forEach(sec=>{
+      sec.rows.forEach(row=>{
+        const vals=state.table[row.id];
+        if(vals){ const v=Object.values(vals).filter(Boolean); if(v.length) lines.push(`  ${row.label}: ${v.join(' | ')}`); }
+      });
+    });
+  }
+
+  const pct=total>0?Math.round(done/total*100):0;
+  const summary=`Hoàn thành: ${done}/${total} mục (${pct}%)\n\n`+lines.join('\n');
+
+  const groupSelId={daily:'d-group',weekly:'w-group',monthly:'m-group'}[type]||'d-group';
+  const selectedGroupNum=parseInt(document.getElementById(groupSelId)?.value||'0')||0;
+  const targetLevel=getTargetLevel(session.role,selectedGroupNum);
+  const now=new Date().toLocaleString('vi-VN');
+
+  const data2={
+    ts:Date.now(), createdAt:now, reporter:session.name, position:session.position,
+    authorId:session.id, authorGroup:selectedGroupNum, targetLevel, isSynthesis:false,
+    type:type==='daily'?'daily':type==='weekly'?'weekly':'monthly',
+    isChecklist:true,
+    done:summary,
+    ...(type==='daily'?{date:period,group:getGroupName(selectedGroupNum)}:{}),
+    ...(type==='weekly'?{from:period,to:period,group:getGroupName(selectedGroupNum)}:{}),
+    ...(type==='monthly'?{month:period,group:getGroupName(selectedGroupNum)}:{}),
+  };
+
+  const rtype=data2.type;
+  const arr=getReports(rtype); arr.unshift(data2); saveReports(rtype,arr);
+  loadMyReports(rtype);
+  showToast(`✅ Đã nộp checklist ${type==='daily'?'ngày '+period:type==='weekly'?period:period} (${done}/${total} mục)!`);
+}
+
+// Init checklist tab date pickers
+function initClDates(){
+  const today=new Date().toISOString().slice(0,10);
+  const d=document.getElementById('cl-date'); if(d) d.value=today;
+  const m=document.getElementById('cl-month'); if(m) m.value=today.slice(0,7);
 }
 
 /* =====================================================
