@@ -213,6 +213,11 @@ button { font-family: var(--font); }
   .form-grid { grid-template-columns: 1fr; }
   .stats-row { grid-template-columns: repeat(2,1fr); }
 }
+
+/* NOTIFICATION BELL */
+.notif-bell { background: none; border: none; cursor: pointer; font-size: .88rem; padding: .3rem .6rem; border-radius: 8px; color: var(--text); display: flex; align-items: center; gap: .2rem; }
+.notif-bell:hover { background: var(--bg); }
+.notif-cnt { background: var(--pink); color: #fff; font-size: .62rem; font-weight: 700; padding: .1rem .38rem; border-radius: 999px; min-width: 16px; text-align: center; }
 </style>
 </head>
 <body>
@@ -234,6 +239,7 @@ button { font-family: var(--font); }
       <a href="report.html" style="background:var(--pink);color:#fff;">📋 Cổng báo cáo</a>
       <div class="nav-user" id="nav-user">
         <span class="nav-ubadge" id="nav-ubadge"></span>
+        <button class="notif-bell" id="notif-bell" onclick="openNotifsModal()" style="display:none;" title="Thông báo">🔔<span class="notif-cnt" id="notif-cnt" style="display:none;"></span></button>
         <button class="nav-logout" onclick="doLogout()">Đăng xuất</button>
       </div>
     </div>
@@ -316,6 +322,15 @@ button { font-family: var(--font); }
       <button class="btn btn-outline" onclick="reAutoModal()">Tự động</button>
       <button class="btn btn-primary" style="width:auto;" onclick="saveModalAssign()">Lưu</button>
     </div>
+  </div>
+</div>
+
+<!-- NOTIFICATIONS MODAL -->
+<div class="modal-overlay" id="modal-notifs">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-hdr"><h3>🔔 Thông báo</h3><button class="modal-close" onclick="closeModal('modal-notifs')">✕</button></div>
+    <div class="modal-body" id="notifs-body" style="max-height:60vh;overflow-y:auto;padding:0;"></div>
+    <div class="modal-footer"><button class="btn" onclick="markAllNotifsRead()">Đánh dấu đã đọc tất cả</button><button class="btn btn-outline" onclick="closeModal('modal-notifs')">Đóng</button></div>
   </div>
 </div>
 
@@ -502,6 +517,7 @@ function enterUser(s){
   document.getElementById('main-wrap').classList.remove('hide');
   document.getElementById('nav-user').classList.add('show');
   document.getElementById('nav-ubadge').textContent = (isAdmin?'⭐ ':'') + user.name;
+  updateNotifBell();
   buildTabs();
   showTab('day');
 }
@@ -530,7 +546,7 @@ function buildTabs(){
     {id:'day', label:'Theo ngày'}, {id:'week', label:'Theo tuần'}, {id:'month', label:'Theo tháng'},
     {id:'mine', label:'Lịch của tôi'}, {id:'reg', label:'Đăng ký'},
   ];
-  if(user.isAdmin) tabs.push({id:'staff', label:'👥 Nhân sự'}, {id:'assign', label:'⚙️ Phân công'}, {id:'overview', label:'📊 Tổng quan'});
+  if(user.isAdmin) tabs.push({id:'staff', label:'👥 Nhân sự'}, {id:'assign', label:'⚙️ Phân công'}, {id:'overview', label:'📊 Tổng quan'}, {id:'report', label:'📋 Báo cáo'});
   tabs.forEach(t=>{
     const b = document.createElement('button');
     b.className='tab-btn'; b.textContent=t.label; b.id='tb-'+t.id;
@@ -545,7 +561,7 @@ function showTab(id){
   ({
     day:()=>renderDay(host), week:()=>renderWeek(host), month:()=>renderMonth(host),
     mine:()=>renderMine(host), reg:()=>renderReg(host),
-    staff:()=>renderStaffDir(host), assign:()=>renderAssign(host), overview:()=>renderOverview(host)
+    staff:()=>renderStaffDir(host), assign:()=>renderAssign(host), overview:()=>renderOverview(host), report:()=>renderReport(host)
   }[id]||function(){})();
 }
 
@@ -692,6 +708,8 @@ function submitReg(){
   if(regs.find(r=>r.staffId===user.id&&r.date===date&&r.type===type)){ alert('Bạn đã đăng ký rồi!'); return; }
   regs.push({staffId:user.id, date, type, note}); persistRegs();
   if(type==='leave'){ const s=schedule[date]; if(s){ s.morning=s.morning.filter(i=>i!==user.id); s.night=s.night.filter(i=>i!==user.id); persistSchedule(); } }
+  // Gửi thông báo: nghỉ/ốm → admin + trưởng nhóm; trực sáng/đêm → admin
+  pushNotif(type==='leave'?['admin','leader']:['admin'], type, date, note);
   document.getElementById('rnote').value=''; paintRegs(); alert('Đã gửi đăng ký!');
 }
 function paintRegs(){
@@ -861,7 +879,7 @@ function initAChips(){
   const dv = document.getElementById('asgn-dt'); if(!dv||!dv.value) return;
   const s = schedule[dv.value]||{morning:[],night:[]};
   aSelM=new Set(s.morning); aSelN=new Set(s.night);
-  initAChips();
+  renderAChips();
 }
 function renderAChips(){
   const dv = document.getElementById('asgn-dt'); if(!dv||!dv.value) return;
@@ -1041,6 +1059,197 @@ function clearAllSchedule(){
   alert('✅ Đã xóa toàn bộ lịch trực thành công!');
 }
 
+/* ===== THÔNG BÁO (NOTIFICATIONS) ===== */
+let notifs = [];
+function getReadKey(){ return 'cntt_read_notifs_'+(user?user.id:0); }
+function getReadSet(){ try{ return new Set(JSON.parse(localStorage.getItem(getReadKey())||'[]')); }catch(e){ return new Set(); } }
+function saveReadSet(s){ localStorage.setItem(getReadKey(), JSON.stringify([...s])); }
+
+async function syncNotifsFromCloud(){
+  const v = await fbGet('notifs');
+  if(v&&v!=='null'){ try{ const obj=JSON.parse(v); notifs=Object.values(obj).sort((a,b)=>b.ts-a.ts); }catch(e){} }
+}
+function pushNotif(targets, type, date, note){
+  if(!FB_URL) return;
+  const ts = Date.now();
+  const notif = {ts, fromId:user.id, fromName:user.name, type, date, note, targets};
+  fbSet('notifs/n'+ts, JSON.stringify(notif));
+  notifs.unshift(notif);
+  updateNotifBell();
+}
+function isNotifTarget(){ if(!user) return false; const sv=staffById(user.id); return user.isAdmin||(sv&&sv.position==='Trưởng nhóm'); }
+function getMyNotifs(){ if(!user) return []; const myT=user.isAdmin?['admin','leader']:['leader']; return notifs.filter(n=>n.fromId!==user.id&&n.targets.some(t=>myT.includes(t))); }
+function getUnreadCount(){ const rs=getReadSet(); return getMyNotifs().filter(n=>!rs.has(String(n.ts))).length; }
+function updateNotifBell(){
+  const bell=document.getElementById('notif-bell'); const cnt=document.getElementById('notif-cnt');
+  if(!bell) return;
+  const show = isNotifTarget(); bell.style.display=show?'':'none';
+  const uc=getUnreadCount();
+  if(cnt){ cnt.textContent=uc>0?uc:''; cnt.style.display=uc>0?'':'none'; }
+}
+function renderNotifsBody(){
+  const mine=getMyNotifs(); const rs=getReadSet();
+  const typeLabels={morning:'Đăng ký trực sáng',night:'Đăng ký trực đêm',leave:'Đăng ký nghỉ/ốm'};
+  const typeColors={morning:'var(--morning)',night:'var(--night)',leave:'var(--leave)'};
+  const body=document.getElementById('notifs-body');
+  if(!mine.length){ body.innerHTML='<p class="empty-txt" style="padding:1.2rem;">Không có thông báo nào.</p>'; return; }
+  body.innerHTML=mine.slice(0,60).map(n=>{
+    const isRead=rs.has(String(n.ts));
+    const dt=new Date(n.ts);
+    const dtStr=`${dt.getDate()}/${dt.getMonth()+1}/${dt.getFullYear()} ${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+    const p=n.date?n.date.split('-'):null;
+    const dateStr=p?`${p[2]}/${p[1]}/${p[0]}`:'';
+    return `<div style="padding:.8rem 1.1rem;border-bottom:1px solid var(--border);background:${isRead?'#fff':'#f8f4fc'};">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;">
+        <div style="flex:1;">
+          <span style="font-weight:700;font-size:.82rem;color:${typeColors[n.type]||'var(--text)'};">${typeLabels[n.type]||n.type}</span>
+          ${!isRead?'<span style="background:var(--pink);color:#fff;font-size:.6rem;padding:.05rem .35rem;border-radius:999px;margin-left:.4rem;">Mới</span>':''}
+          <div style="font-size:.82rem;margin-top:.25rem;"><b>${n.fromName}</b> — ngày <span style="color:var(--purple-d);font-weight:600;">${dateStr}</span>${n.note?` <span style="color:var(--muted);">(${n.note})</span>`:''}</div>
+        </div>
+        <span style="font-size:.7rem;color:var(--muted);white-space:nowrap;margin-top:.1rem;">${dtStr}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+function openNotifsModal(){
+  const rs=getReadSet(); getMyNotifs().forEach(n=>rs.add(String(n.ts))); saveReadSet(rs);
+  renderNotifsBody(); openModal('modal-notifs'); updateNotifBell();
+}
+function markAllNotifsRead(){
+  const rs=getReadSet(); getMyNotifs().forEach(n=>rs.add(String(n.ts))); saveReadSet(rs);
+  renderNotifsBody(); updateNotifBell();
+}
+
+/* ===== IN LỊCH TRỰC & BÁO CÁO (ADMIN) ===== */
+function renderReport(c){
+  const monthStart=`${curYear}-${pad(curMon+1)}-01`;
+  const monthEnd=`${curYear}-${pad(curMon+1)}-${pad(new Date(curYear,curMon+1,0).getDate())}`;
+  c.innerHTML=`<p style="font-weight:700;color:var(--purple-d);margin-bottom:1.2rem;">📋 Báo cáo & In lịch</p>
+
+  <div style="background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:1.2rem;margin-bottom:1.2rem;box-shadow:var(--shadow);">
+    <p style="font-weight:700;font-size:.92rem;color:var(--purple-d);margin-bottom:.9rem;">🖨️ In lịch trực tổng hợp</p>
+    <div class="form-grid">
+      <div class="fg"><label>Từ ngày</label><input type="date" id="rpt-pf" value="${monthStart}"></div>
+      <div class="fg"><label>Đến ngày</label><input type="date" id="rpt-pt" value="${monthEnd}"></div>
+      <div class="fg full"><label>Tiêu đề in</label><input type="text" id="rpt-ptitle" value="LỊCH TRỰC PHÒNG CNTT — ${MONS[curMon].toUpperCase()} ${curYear}"></div>
+    </div>
+    <button class="btn btn-primary" style="width:auto;" onclick="doPrintSchedule()">🖨️ Xem trước & In</button>
+  </div>
+
+  <div style="background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:1.2rem;box-shadow:var(--shadow);">
+    <p style="font-weight:700;font-size:.92rem;color:var(--purple-d);margin-bottom:.9rem;">📊 Tổng hợp nghỉ phép / ốm</p>
+    <div class="form-grid">
+      <div class="fg"><label>Từ ngày</label><input type="date" id="rpt-lf" value="${monthStart}"></div>
+      <div class="fg"><label>Đến ngày</label><input type="date" id="rpt-lt" value="${monthEnd}"></div>
+    </div>
+    <button class="btn btn-outline" onclick="renderLeaveTable()">🔍 Xem tổng hợp</button>
+    <div id="leave-tbl-wrap" style="margin-top:1rem;"></div>
+  </div>`;
+}
+
+function doPrintSchedule(){
+  const from=document.getElementById('rpt-pf').value, to=document.getElementById('rpt-pt').value;
+  const title=document.getElementById('rpt-ptitle').value||'LỊCH TRỰC PHÒNG CNTT';
+  if(!from||!to){ alert('Chọn ngày!'); return; }
+  if(from>to){ alert('Ngày bắt đầu phải trước ngày kết thúc!'); return; }
+  const [fy,fm,fd]=from.split('-').map(Number), [ty,tm,td]=to.split('-').map(Number);
+  const sd=new Date(fy,fm-1,fd), ed=new Date(ty,tm-1,td);
+  let rows=''; const cur=new Date(sd);
+  while(cur<=ed){
+    const key=dk(cur.getFullYear(),cur.getMonth(),cur.getDate());
+    const s=schedule[key]||{morning:[],night:[]}; const lv=regs.filter(r=>r.date===key&&r.type==='leave');
+    const d=cur.getDate(),m=cur.getMonth()+1,y=cur.getFullYear();
+    const bg=cur.getDay()===0||cur.getDay()===6?'#f0e8f8':'';
+    rows+=`<tr style="background:${bg};">
+      <td style="font-weight:600;white-space:nowrap;">${DOW_S[cur.getDay()]} ${d}/${m}/${y}</td>
+      <td>${s.morning.map(id=>nameById(id)).join('<br>')||'—'}</td>
+      <td>${s.night.map(id=>nameById(id)).join('<br>')||'—'}</td>
+      <td>${lv.map(r=>nameById(r.staffId)).join('<br>')||''}</td>
+    </tr>`;
+    cur.setDate(cur.getDate()+1);
+  }
+  const [pf1,pf2,pf3]=from.split('-'), [pt1,pt2,pt3]=to.split('-');
+  const win=window.open('','_blank');
+  win.document.write(`<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><title>${title}</title>
+  <style>body{font-family:'Times New Roman',serif;font-size:10.5pt;margin:1.5cm;}
+  h3{text-align:center;text-transform:uppercase;margin:.25rem 0;}
+  .sub{text-align:center;font-size:9pt;color:#555;margin-bottom:.8rem;}
+  table{width:100%;border-collapse:collapse;margin-top:.5rem;}
+  th,td{border:1px solid #333;padding:4px 7px;vertical-align:top;}
+  th{background:#ddd;font-weight:bold;text-align:center;}
+  .no-print{margin-bottom:.8rem;}@media print{.no-print{display:none;}}</style></head><body>
+  <h3>Bệnh viện Phụ Sản Trung Ương</h3>
+  <h3>Phòng Công nghệ thông tin</h3>
+  <h3 style="color:#4A1D62;">${title}</h3>
+  <div class="sub">Từ ngày ${pf3}/${pf2}/${pf1} đến ngày ${pt3}/${pt2}/${pt1}</div>
+  <div class="no-print"><button onclick="window.print()" style="padding:.4rem 1.2rem;cursor:pointer;font-size:10pt;">🖨️ In</button></div>
+  <table><thead><tr><th style="width:14%;">Ngày</th><th style="width:42%;">Ca sáng 5h30–7h30 (5 người)</th><th style="width:26%;">Ca đêm 16h30–5h30 (2 người)</th><th style="width:18%;">Nghỉ phép/ốm</th></tr></thead>
+  <tbody>${rows}</tbody></table>
+  <div style="font-size:8pt;color:#666;margin-top:.8rem;text-align:right;">In ngày ${new Date().getDate()}/${new Date().getMonth()+1}/${new Date().getFullYear()}</div>
+  </body></html>`);
+  win.document.close();
+}
+
+function renderLeaveTable(){
+  const from=document.getElementById('rpt-lf').value, to=document.getElementById('rpt-lt').value;
+  if(!from||!to){ alert('Chọn ngày!'); return; }
+  if(from>to){ alert('Ngày bắt đầu phải trước ngày kết thúc!'); return; }
+  const leaveRegs=regs.filter(r=>r.type==='leave'&&r.date>=from&&r.date<=to);
+  const [pf1,pf2,pf3]=from.split('-'), [pt1,pt2,pt3]=to.split('-');
+  const wrap=document.getElementById('leave-tbl-wrap');
+  if(!leaveRegs.length){ wrap.innerHTML='<p class="empty-txt">Không có đăng ký nghỉ nào trong khoảng thời gian này.</p>'; return; }
+  const byStaff={};
+  leaveRegs.forEach(r=>{ if(!byStaff[r.staffId]) byStaff[r.staffId]=[]; byStaff[r.staffId].push(r); });
+  const sumRows=Object.entries(byStaff).map(([id,rs])=>{
+    const s=staffById(+id);
+    return `<tr><td><b>${s?s.name:'?'}</b>${s&&s.position?`<br><span style="font-size:.72rem;color:var(--muted);">${s.position}</span>`:''}</td>
+      <td style="text-align:center;font-weight:700;color:var(--leave);">${rs.length}</td>
+      <td style="font-size:.78rem;">${rs.sort((a,b)=>a.date.localeCompare(b.date)).map(r=>{const p=r.date.split('-');return `${p[2]}/${p[1]}${r.note?` (${r.note})`:''}`}).join(', ')}</td></tr>`;
+  }).join('');
+  const detRows=leaveRegs.sort((a,b)=>a.date.localeCompare(b.date)).map(r=>{
+    const p=r.date.split('-'); const dt=new Date(+p[0],+p[1]-1,+p[2]); const s=staffById(r.staffId);
+    return `<tr><td>${DOW_S[dt.getDay()]} ${p[2]}/${p[1]}/${p[0]}</td><td>${s?s.name:'?'}</td><td style="font-size:.78rem;color:var(--muted);">${r.note||'—'}</td></tr>`;
+  }).join('');
+  wrap.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.7rem;flex-wrap:wrap;gap:.5rem;">
+    <p style="font-size:.85rem;color:var(--muted);">Từ ${pf3}/${pf2}/${pf1} đến ${pt3}/${pt2}/${pt1} — <b>${leaveRegs.length} lượt nghỉ</b></p>
+    <button class="btn btn-sm btn-blue" onclick="printLeaveReport('${from}','${to}')">🖨️ In bảng này</button>
+  </div>
+  <p style="font-weight:700;font-size:.82rem;color:var(--purple-d);margin-bottom:.4rem;">Tổng hợp theo người</p>
+  <div class="tbl-wrap" style="margin-bottom:1rem;"><table class="tbl"><thead><tr><th>Họ tên</th><th>Số ngày nghỉ</th><th>Các ngày nghỉ</th></tr></thead><tbody>${sumRows}</tbody></table></div>
+  <p style="font-weight:700;font-size:.82rem;color:var(--purple-d);margin-bottom:.4rem;">Chi tiết theo ngày</p>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Ngày</th><th>Nhân viên</th><th>Ghi chú</th></tr></thead><tbody>${detRows}</tbody></table></div>`;
+}
+
+function printLeaveReport(from, to){
+  const leaveRegs=regs.filter(r=>r.type==='leave'&&r.date>=from&&r.date<=to);
+  const [pf1,pf2,pf3]=from.split('-'), [pt1,pt2,pt3]=to.split('-');
+  const byStaff={};
+  leaveRegs.forEach(r=>{ if(!byStaff[r.staffId]) byStaff[r.staffId]=[]; byStaff[r.staffId].push(r); });
+  const rows=Object.entries(byStaff).map(([id,rs])=>{
+    const s=staffById(+id);
+    return `<tr><td>${s?s.name:'?'}</td><td>${s&&s.position?s.position:''}</td>
+      <td style="text-align:center;">${rs.length}</td>
+      <td>${rs.sort((a,b)=>a.date.localeCompare(b.date)).map(r=>{const p=r.date.split('-');return `${p[2]}/${p[1]}${r.note?` (${r.note})`:''}`}).join(', ')}</td></tr>`;
+  }).join('');
+  const win=window.open('','_blank');
+  win.document.write(`<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><title>Tổng hợp nghỉ phép/ốm</title>
+  <style>body{font-family:'Times New Roman',serif;font-size:10.5pt;margin:1.5cm;}
+  h3{text-align:center;text-transform:uppercase;margin:.25rem 0;}
+  .sub{text-align:center;font-size:9pt;color:#555;margin-bottom:.8rem;}
+  table{width:100%;border-collapse:collapse;margin-top:.5rem;}
+  th,td{border:1px solid #333;padding:4px 7px;vertical-align:top;}
+  th{background:#ddd;font-weight:bold;}
+  .no-print{margin-bottom:.8rem;}@media print{.no-print{display:none;}}</style></head><body>
+  <h3>Bệnh viện Phụ Sản Trung Ương — Phòng Công nghệ thông tin</h3>
+  <h3>Tổng hợp nghỉ phép / ốm</h3>
+  <div class="sub">Từ ngày ${pf3}/${pf2}/${pf1} đến ngày ${pt3}/${pt2}/${pt1} — Tổng: ${leaveRegs.length} lượt</div>
+  <div class="no-print"><button onclick="window.print()" style="padding:.4rem 1.2rem;cursor:pointer;">🖨️ In</button></div>
+  <table><thead><tr><th>Họ tên</th><th>Chức vụ</th><th>Số ngày nghỉ</th><th>Các ngày nghỉ</th></tr></thead><tbody>${rows}</tbody></table>
+  <div style="font-size:8pt;color:#666;margin-top:.8rem;text-align:right;">In ngày ${new Date().getDate()}/${new Date().getMonth()+1}/${new Date().getFullYear()}</div>
+  </body></html>`);
+  win.document.close();
+}
+
 /* ===== INIT ===== */
 populateSel();
 (async function(){
@@ -1052,6 +1261,7 @@ populateSel();
     const toast = document.getElementById('sync-toast');
     if(toast) toast.style.display='block';
     await syncFromCloud();
+    await syncNotifsFromCloud();
     if(toast) toast.style.display='none';
   }
   // initSchedule() tạm tắt — sắp xếp thủ công
