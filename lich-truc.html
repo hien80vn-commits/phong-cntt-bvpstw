@@ -1047,7 +1047,7 @@ populateSel();
   if(!sess){ window.location.href='index.html'; return; }
   const s = staffById(sess.id);
   if(!s){ window.location.href='index.html'; return; }
-  if(SYNC_URL){
+  if(FB_URL){
     const toast = document.getElementById('sync-toast');
     if(toast) toast.style.display='block';
     await syncFromCloud();
