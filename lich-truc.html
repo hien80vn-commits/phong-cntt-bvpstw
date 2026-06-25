@@ -939,10 +939,20 @@ function renderOverview(c){
 /* ===== XÓA TOÀN BỘ LỊCH ===== */
 function clearAllSchedule(){
   if(!confirm('Bạn có chắc muốn XÓA TOÀN BỘ lịch trực và đăng ký nghỉ không?\nHành động này không thể hoàn tác!')) return;
-  localStorage.removeItem(LS.schedule);
-  localStorage.removeItem(LS.regs);
+  // Xóa dữ liệu và lưu lịch rỗng cho tất cả các ngày trong range để ngăn tự động fill lại
   schedule = {};
   regs = [];
+  const now = new Date();
+  const sd = new Date(now.getFullYear(), now.getMonth()-1, 1);
+  const ed = new Date(now.getFullYear(), now.getMonth()+2, 0);
+  const cur = new Date(sd);
+  while(cur<=ed){
+    const key = dk(cur.getFullYear(),cur.getMonth(),cur.getDate());
+    schedule[key] = {morning:[], night:[]};
+    cur.setDate(cur.getDate()+1);
+  }
+  localStorage.removeItem(LS.regs);
+  persistSchedule();
   showTab('assign');
   alert('✅ Đã xóa toàn bộ lịch trực thành công!');
 }
