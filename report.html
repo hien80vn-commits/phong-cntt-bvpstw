@@ -177,6 +177,19 @@ a{color:inherit;text-decoration:none}
   .form-card{padding:1.25rem;}
   .assign-grid{grid-template-columns:1fr;}
 }
+/* FILE ATTACHMENTS */
+.file-input{width:100%;padding:.6rem;border:2px dashed var(--border);border-radius:10px;background:var(--bg);cursor:pointer;font-size:.83rem;}
+.file-input:hover{border-color:var(--purple);}
+.file-chips{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.5rem;}
+.file-chip{display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .75rem;border:1px solid var(--border);border-radius:6px;font-size:.75rem;background:#fff;color:var(--purple-d);}
+.file-chip img{height:40px;border-radius:4px;}
+.file-chip a{color:var(--purple-d);text-decoration:none;font-weight:600;}
+.file-chip a:hover{color:var(--purple);}
+/* PRINT SECTION */
+.print-header{background:linear-gradient(135deg,#1565C0,#0D47A1);border-radius:var(--radius);padding:1.25rem 1.5rem;color:#fff;margin-bottom:1.5rem;display:flex;align-items:center;gap:.75rem;}
+.print-header .icon{font-size:1.5rem;}
+.section-nav button.print-btn{border-color:#1565C0;color:#1565C0;}
+.section-nav button.print-btn.active{background:#1565C0;color:#fff;}
 </style>
 </head>
 <body>
@@ -223,6 +236,7 @@ a{color:inherit;text-decoration:none}
       <button id="snav-submit" class="active" onclick="switchSection('submit',this)">📝 Nộp báo cáo</button>
       <button id="snav-assign" class="assign-btn" onclick="switchSection('assign',this)" style="display:none">👥 Phân nhóm</button>
       <button id="snav-overview" class="overview-btn" onclick="switchSection('overview',this)" style="display:none">🛡️ Tổng quan</button>
+      <button id="snav-print" class="print-btn" onclick="switchSection('print',this)" style="display:none">🖨️ In báo cáo</button>
     </div>
 
     <!-- ===== SECTION: INBOX ===== -->
@@ -291,6 +305,11 @@ a{color:inherit;text-decoration:none}
             <label>Kế hoạch ngày mai</label>
             <textarea id="d-plan" placeholder="Dự kiến công việc ngày mai..." style="min-height:75px;"></textarea>
           </div>
+          <div class="form-row">
+            <label>📎 Đính kèm tài liệu (PDF, DOC, JPG — tối đa 2MB/file, 3 file)</label>
+            <input type="file" id="d-files" class="file-input" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" multiple>
+            <div id="d-files-preview" class="file-chips"></div>
+          </div>
           <div id="synthesis-daily" class="synthesis-check" style="display:none">
             <input type="checkbox" id="d-synth"> <label for="d-synth">Đây là báo cáo tổng hợp nhóm (gửi lên cấp trên)</label>
           </div>
@@ -339,6 +358,11 @@ a{color:inherit;text-decoration:none}
             <label>Kiến nghị / Đề xuất</label>
             <textarea id="w-suggest" placeholder="Đề xuất cải tiến hoặc vấn đề cần chỉ đạo..." style="min-height:75px;"></textarea>
           </div>
+          <div class="form-row">
+            <label>📎 Đính kèm tài liệu (PDF, DOC, JPG — tối đa 2MB/file, 3 file)</label>
+            <input type="file" id="w-files" class="file-input" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" multiple>
+            <div id="w-files-preview" class="file-chips"></div>
+          </div>
           <div id="synthesis-weekly" class="synthesis-check" style="display:none">
             <input type="checkbox" id="w-synth"> <label for="w-synth">Đây là báo cáo tổng hợp nhóm (gửi lên cấp trên)</label>
           </div>
@@ -386,6 +410,11 @@ a{color:inherit;text-decoration:none}
           <div class="form-row">
             <label>Tình hình nhân sự (ngày công, trực, phép...)</label>
             <textarea id="m-hr" placeholder="Tổng hợp ngày công, lịch trực, nghỉ phép, nghỉ bù..." style="min-height:75px;"></textarea>
+          </div>
+          <div class="form-row">
+            <label>📎 Đính kèm tài liệu (PDF, DOC, JPG — tối đa 2MB/file, 3 file)</label>
+            <input type="file" id="m-files" class="file-input" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" multiple>
+            <div id="m-files-preview" class="file-chips"></div>
           </div>
           <div id="synthesis-monthly" class="synthesis-check" style="display:none">
             <input type="checkbox" id="m-synth"> <label for="m-synth">Đây là báo cáo tổng hợp nhóm (gửi lên cấp trên)</label>
@@ -439,6 +468,11 @@ a{color:inherit;text-decoration:none}
           <div class="form-row">
             <label>Định hướng & Kế hoạch năm tới</label>
             <textarea id="y-plan" placeholder="Mục tiêu và kế hoạch cho năm tiếp theo..."></textarea>
+          </div>
+          <div class="form-row">
+            <label>📎 Đính kèm tài liệu (PDF, DOC, JPG — tối đa 2MB/file, 3 file)</label>
+            <input type="file" id="y-files" class="file-input" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" multiple>
+            <div id="y-files-preview" class="file-chips"></div>
           </div>
           <div id="synthesis-yearly" class="synthesis-check" style="display:none">
             <input type="checkbox" id="y-synth"> <label for="y-synth">Đây là báo cáo tổng hợp nhóm (gửi lên cấp trên)</label>
@@ -502,6 +536,18 @@ a{color:inherit;text-decoration:none}
         <input type="text" id="ov-search" oninput="loadOverview()" placeholder="Nội dung..." style="min-width:140px;">
       </div>
       <div id="overview-list"></div>
+    </div>
+
+    <!-- ===== SECTION: PRINT ===== -->
+    <div id="section-print" class="section">
+      <div class="print-header">
+        <div class="icon">🖨️</div>
+        <div>
+          <h3>In báo cáo</h3>
+          <p id="print-header-desc">Chọn khoảng thời gian và loại báo cáo cần in</p>
+        </div>
+      </div>
+      <div id="print-section-body"></div>
     </div>
 
   </div>
@@ -697,12 +743,19 @@ function renderReport(r, showAuthor=false, canDelete=false, type=null, globalIdx
   const levelBadge = r.targetLevel ? `<span style="font-size:.7rem;color:var(--teal);margin-left:.3rem;">${levelMap[r.targetLevel]||''}</span>` : '';
   const delBtn = canDelete ? `<button class="ri-del" onclick="deleteReport('${rtype}',${globalIdx})" title="Xóa">🗑</button>` : '';
   const cls = r.isSynthesis ? 'report-item synthesis' : 'report-item';
+  // File attachments
+  const filesHtml = (r.files&&r.files.length) ? `<div class="file-chips" style="margin-top:.6rem;">${r.files.map(f=>{
+    const isImg=f.mtype&&f.mtype.startsWith('image/');
+    const icon=f.mtype&&f.mtype.includes('pdf')?'📄':f.mtype&&f.mtype.includes('word')?'📝':'📎';
+    if(isImg) return `<span class="file-chip"><a href="${f.data}" download="${f.name}" title="Tải ${f.name}"><img src="${f.data}" alt="${f.name}"> ${f.name}</a></span>`;
+    return `<span class="file-chip">${icon} <a href="${f.data}" download="${f.name}">${f.name}</a></span>`;
+  }).join('')}</div>` : '';
   return `<div class="${cls}">
     <div class="ri-header">
       <div class="ri-title">${title}${synthBadge}${levelBadge}</div>
       <div class="ri-meta">${authorLine}Nộp: ${r.createdAt||''}</div>
     </div>
-    <div class="ri-body">${body||'<em style="color:var(--muted)">Không có nội dung</em>'}</div>
+    <div class="ri-body">${body||'<em style="color:var(--muted)">Không có nội dung</em>'}${filesHtml}</div>
     ${delBtn}
   </div>`;
 }
@@ -826,6 +879,9 @@ function enterApp(session){
     });
   }
 
+  // Show print button for all users
+  document.getElementById('snav-print').style.display='';
+
   // Section nav visibility
   const roles_with_inbox=['leader','to_truong','lanh_dao'];
   const roles_with_assign=['to_truong','lanh_dao'];
@@ -911,6 +967,7 @@ function switchSection(id,btn){
   if(id==='inbox') loadInbox();
   if(id==='assign') loadAssignPanel();
   if(id==='overview'){loadOverviewStats();loadOverview();}
+  if(id==='print') renderPrintSection();
 }
 
 function switchTab(id,btn){
@@ -923,7 +980,40 @@ function switchTab(id,btn){
 /* =====================================================
    SUBMIT REPORT
 ===================================================== */
-function submitReport(type){
+/* =====================================================
+   FILE ATTACHMENTS
+===================================================== */
+async function readFilesBase64(inputId){
+  const el=document.getElementById(inputId);
+  if(!el||!el.files||!el.files.length) return [];
+  const MAX=2*1024*1024;
+  const result=[];
+  for(const f of Array.from(el.files).slice(0,3)){
+    if(f.size>MAX){ showToast(`⚠️ File "${f.name}" vượt 2MB, bỏ qua!`); continue; }
+    const data=await new Promise(res=>{ const r=new FileReader(); r.onload=e=>res(e.target.result); r.readAsDataURL(f); });
+    result.push({name:f.name, mtype:f.type, data});
+  }
+  return result;
+}
+
+function previewFiles(inputId, previewId){
+  const el=document.getElementById(inputId);
+  const pv=document.getElementById(previewId);
+  if(!pv||!el||!el.files) return;
+  pv.innerHTML=Array.from(el.files).map(f=>{
+    const icon=f.type.startsWith('image/')?'🖼️':f.type.includes('pdf')?'📄':'📝';
+    const size=(f.size/1024).toFixed(0);
+    return `<span class="file-chip">${icon} ${f.name} <span style="color:var(--muted);">(${size}KB)</span></span>`;
+  }).join('');
+}
+
+// Wire up preview on change for all 4 forms
+document.addEventListener('DOMContentLoaded',()=>{
+  [['d-files','d-files-preview'],['w-files','w-files-preview'],['m-files','m-files-preview'],['y-files','y-files-preview']]
+    .forEach(([inp,pv])=>{ const el=document.getElementById(inp); if(el) el.addEventListener('change',()=>previewFiles(inp,pv)); });
+});
+
+async function submitReport(type){
   const session=getSession(); if(!session) return;
   const now=new Date().toLocaleString('vi-VN');
   // Read selected group from the form dropdown
@@ -972,7 +1062,16 @@ function submitReport(type){
       plan:document.getElementById('y-plan').value});
   }
 
+  // Đọc file đính kèm
+  const fileInputMap={daily:'d-files',weekly:'w-files',monthly:'m-files',yearly:'y-files'};
+  data.files = await readFilesBase64(fileInputMap[type]);
+
   const arr=getReports(type); arr.unshift(data); saveReports(type,arr);
+
+  // Reset file input + preview
+  const fi=document.getElementById(fileInputMap[type]);
+  if(fi){ fi.value=''; const pv=document.getElementById(fileInputMap[type]+'-preview'); if(pv) pv.innerHTML=''; }
+
   loadMyReports(type);
   if(['leader','to_truong','lanh_dao'].includes(session.role)) loadInbox();
   if(document.getElementById('section-overview').classList.contains('active')){loadOverview();loadOverviewStats();}
@@ -1140,6 +1239,284 @@ function doChangePw(){
   setUserPw(session.name,nw);
   closePwModal();
   showToast('✅ Đổi mật khẩu thành công!');
+}
+
+/* =====================================================
+   IN BÁO CÁO (PRINT)
+===================================================== */
+function filterReportsByDate(reports, from, to){
+  return reports.filter(r=>{
+    const d=r.date||r.from||r.month||(r.year?String(r.year):null)||(r.ts?new Date(r.ts).toISOString().slice(0,10):null);
+    if(!d) return true;
+    const dateStr=d.slice(0,10);
+    return (!from||dateStr>=from)&&(!to||dateStr<=to);
+  });
+}
+
+function reportToText(r){
+  const rtype=r.type;
+  let lines=[];
+  if(rtype==='daily'){
+    if(r.date) lines.push(`Ngày: ${r.date}`);
+    if(r.group) lines.push(`Nhóm: ${r.group}`);
+    if(r.done) lines.push(`Đã hoàn thành: ${r.done}`);
+    if(r.pending) lines.push(`Chưa xong: ${r.pending}`);
+    if(r.issue) lines.push(`Sự cố: ${r.issue}`);
+    if(r.plan) lines.push(`Kế hoạch mai: ${r.plan}`);
+  } else if(rtype==='weekly'){
+    if(r.from&&r.to) lines.push(`Tuần: ${r.from} → ${r.to}`);
+    if(r.group) lines.push(`Nhóm: ${r.group}`);
+    if(r.done) lines.push(`Kết quả tuần: ${r.done}`);
+    if(r.pending) lines.push(`Tồn đọng: ${r.pending}`);
+    if(r.plan) lines.push(`Tuần tới: ${r.plan}`);
+    if(r.suggest) lines.push(`Kiến nghị: ${r.suggest}`);
+  } else if(rtype==='monthly'){
+    if(r.month) lines.push(`Tháng: ${r.month}`);
+    if(r.group) lines.push(`Nhóm: ${r.group}`);
+    if(r.done) lines.push(`Kết quả tháng: ${r.done}`);
+    if(r.highlight) lines.push(`Nổi bật: ${r.highlight}`);
+    if(r.issue) lines.push(`Khó khăn: ${r.issue}`);
+    if(r.plan) lines.push(`Kế hoạch tới: ${r.plan}`);
+    if(r.hr) lines.push(`Nhân sự: ${r.hr}`);
+  } else if(rtype==='yearly'){
+    if(r.year) lines.push(`Năm: ${r.year}`);
+    if(r.rating) lines.push(`Xếp loại: ${r.rating}`);
+    if(r.overview) lines.push(`Tổng quan: ${r.overview}`);
+    if(r.projects) lines.push(`Dự án: ${r.projects}`);
+    if(r.hr) lines.push(`Nhân sự: ${r.hr}`);
+    if(r.plan) lines.push(`Kế hoạch: ${r.plan}`);
+  }
+  return lines;
+}
+
+function buildPrintWindow(title, subtitle, sections){
+  // sections: [{heading, items:[{reporter, position, lines, files}]}]
+  const typeLabels={daily:'Báo cáo ngày',weekly:'Báo cáo tuần',monthly:'Báo cáo tháng',yearly:'Báo cáo năm'};
+  let body='';
+  for(const sec of sections){
+    if(sec.heading) body+=`<h3 style="color:#4A1D62;border-bottom:2px solid #4A1D62;padding-bottom:4px;margin:1.2rem 0 .6rem;">${sec.heading}</h3>`;
+    if(!sec.items.length){ body+='<p style="color:#999;font-style:italic;">Không có báo cáo.</p>'; continue; }
+    for(const it of sec.items){
+      body+=`<div style="border:1px solid #ccc;border-radius:6px;padding:10px 14px;margin-bottom:.7rem;break-inside:avoid;">`;
+      if(it.reporter) body+=`<div style="font-weight:bold;color:#4A1D62;margin-bottom:.3rem;">${it.reporter}${it.position?' — <span style="font-weight:normal;color:#666;">'+ it.position+'</span>':''}${it.rtype?' <span style="font-size:9pt;color:#888;">['+  (typeLabels[it.rtype]||it.rtype)+']</span>':''}</div>`;
+      if(it.submittedAt) body+=`<div style="font-size:8.5pt;color:#888;margin-bottom:.4rem;">Nộp: ${it.submittedAt}</div>`;
+      for(const ln of it.lines) body+=`<p style="margin:.2rem 0;font-size:9.5pt;">${ln.replace(/\n/g,'<br>')}</p>`;
+      if(it.files&&it.files.length){
+        body+=`<div style="margin-top:.4rem;">📎 Đính kèm: `;
+        body+=it.files.map(f=>f.mtype&&f.mtype.startsWith('image/')?`<img src="${f.data}" style="height:60px;border-radius:3px;margin:.15rem;vertical-align:middle;" alt="${f.name}">`:`<a href="${f.data}" style="font-size:8.5pt;margin-right:.5rem;">${f.name}</a>`).join('');
+        body+=`</div>`;
+      }
+      body+=`</div>`;
+    }
+  }
+  const win=window.open('','_blank');
+  win.document.write(`<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><title>${title}</title>
+  <style>body{font-family:'Times New Roman',serif;font-size:10.5pt;margin:1.5cm;}
+  h2{text-align:center;text-transform:uppercase;margin:.25rem 0;}
+  .sub{text-align:center;font-size:9pt;color:#555;margin-bottom:.8rem;}
+  .no-print{margin-bottom:.8rem;}@media print{.no-print{display:none;}}</style></head><body>
+  <h2>Bệnh viện Phụ Sản Trung Ương — Phòng CNTT</h2>
+  <h2 style="color:#4A1D62;">${title}</h2>
+  <div class="sub">${subtitle}</div>
+  <div class="no-print"><button onclick="window.print()" style="padding:.4rem 1.2rem;cursor:pointer;">🖨️ In</button></div>
+  ${body}
+  <div style="font-size:8pt;color:#888;margin-top:1rem;text-align:right;">In ngày ${new Date().toLocaleDateString('vi-VN')}</div>
+  </body></html>`);
+  win.document.close();
+}
+
+function renderPrintSection(){
+  const session=getSession(); if(!session) return;
+  const today=new Date().toISOString().slice(0,10);
+  const monthStart=today.slice(0,7)+'-01';
+  let html=`
+  <div class="form-card">
+    <h3>📋 In báo cáo của tôi</h3>
+    <div class="form-grid-2">
+      <div class="form-row"><label>Từ ngày</label><input type="date" id="pm-from" value="${monthStart}"></div>
+      <div class="form-row"><label>Đến ngày</label><input type="date" id="pm-to" value="${today}"></div>
+    </div>
+    <div class="form-row"><label>Loại báo cáo</label>
+      <select id="pm-type">
+        <option value="all">Tất cả loại</option>
+        <option value="daily">Báo cáo ngày</option>
+        <option value="weekly">Báo cáo tuần</option>
+        <option value="monthly">Báo cáo tháng</option>
+        <option value="yearly">Báo cáo năm</option>
+      </select>
+    </div>
+    <div class="form-actions"><button class="btn-primary" onclick="printMyReports()">🖨️ Xem & In</button></div>
+  </div>`;
+
+  if(session.role==='leader'){
+    const leadGroups=getLeadGroups(session.id);
+    const members=STAFF.filter(s=>s.id!==session.id&&getEffectiveGroups(s.id).some(g=>leadGroups.includes(g)));
+    html+=`
+  <div class="form-card">
+    <h3>👥 In báo cáo thành viên nhóm</h3>
+    <div class="form-grid-2">
+      <div class="form-row"><label>Từ ngày</label><input type="date" id="pldr-from" value="${monthStart}"></div>
+      <div class="form-row"><label>Đến ngày</label><input type="date" id="pldr-to" value="${today}"></div>
+    </div>
+    <div class="form-row"><label>Thành viên</label>
+      <select id="pldr-member">
+        <option value="">Tất cả thành viên trong nhóm</option>
+        ${members.map(s=>`<option value="${s.id}">${s.name} — ${s.position}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-row"><label>Loại báo cáo</label>
+      <select id="pldr-type">
+        <option value="all">Tất cả loại</option>
+        <option value="daily">Báo cáo ngày</option>
+        <option value="weekly">Báo cáo tuần</option>
+        <option value="monthly">Báo cáo tháng</option>
+        <option value="yearly">Báo cáo năm</option>
+      </select>
+    </div>
+    <div class="form-actions">
+      <button class="btn-primary" onclick="printMemberReports()">🖨️ In báo cáo từng thành viên</button>
+      <button class="btn-outline" onclick="printGroupSummary()">🖨️ In tổng hợp cả nhóm</button>
+    </div>
+  </div>`;
+  }
+
+  if(session.role==='to_truong'||session.role==='lanh_dao'){
+    html+=`
+  <div class="form-card">
+    <h3>📊 In báo cáo tổng hợp theo nhóm</h3>
+    <div class="form-grid-2">
+      <div class="form-row"><label>Từ ngày</label><input type="date" id="padm-from" value="${monthStart}"></div>
+      <div class="form-row"><label>Đến ngày</label><input type="date" id="padm-to" value="${today}"></div>
+    </div>
+    <div class="form-row"><label>Nhóm</label>
+      <select id="padm-group">
+        <option value="">Tất cả nhóm</option>
+        ${GROUPS.map(g=>`<option value="${g.num}">Nhóm ${g.num}: ${g.name}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-row"><label>Loại báo cáo</label>
+      <select id="padm-type">
+        <option value="all">Tất cả loại</option>
+        <option value="daily">Báo cáo ngày</option>
+        <option value="weekly">Báo cáo tuần</option>
+        <option value="monthly">Báo cáo tháng</option>
+        <option value="yearly">Báo cáo năm</option>
+      </select>
+    </div>
+    <div class="form-actions">
+      <button class="btn-primary" onclick="printAdminReport()">🖨️ In báo cáo tổng hợp nhóm</button>
+    </div>
+  </div>`;
+  }
+
+  document.getElementById('print-section-body').innerHTML=html;
+}
+
+function printMyReports(){
+  const session=getSession(); if(!session) return;
+  const from=document.getElementById('pm-from').value;
+  const to=document.getElementById('pm-to').value;
+  const typeFilter=document.getElementById('pm-type').value;
+  const types=typeFilter==='all'?['daily','weekly','monthly','yearly']:[typeFilter];
+  let all=types.flatMap(t=>getReports(t).map(r=>({...r,type:t})));
+  all=all.filter(r=>r.authorId===session.id||r.reporter===session.name);
+  all=filterReportsByDate(all,from,to);
+  all.sort((a,b)=>(a.ts||0)-(b.ts||0));
+  const items=all.map(r=>({reporter:null,rtype:r.type,submittedAt:r.createdAt,lines:reportToText(r),files:r.files||[]}));
+  const fmtDate=d=>d?d.split('-').reverse().join('/'):''
+  buildPrintWindow(
+    `Báo cáo công việc — ${session.name}`,
+    `Từ ${fmtDate(from)} đến ${fmtDate(to)} · ${session.position}`,
+    [{heading:null,items}]
+  );
+}
+
+function printMemberReports(){
+  const session=getSession(); if(!session) return;
+  const from=document.getElementById('pldr-from').value;
+  const to=document.getElementById('pldr-to').value;
+  const memberId=parseInt(document.getElementById('pldr-member').value)||0;
+  const typeFilter=document.getElementById('pldr-type').value;
+  const leadGroups=getLeadGroups(session.id);
+  const types=typeFilter==='all'?['daily','weekly','monthly','yearly']:[typeFilter];
+
+  let members=STAFF.filter(s=>s.id!==session.id&&getEffectiveGroups(s.id).some(g=>leadGroups.includes(g)));
+  if(memberId) members=members.filter(s=>s.id===memberId);
+
+  const sections=members.map(s=>{
+    let all=types.flatMap(t=>getReports(t).map(r=>({...r,type:t})));
+    all=all.filter(r=>r.authorId===s.id||r.reporter===s.name);
+    all=filterReportsByDate(all,from,to);
+    all.sort((a,b)=>(a.ts||0)-(b.ts||0));
+    const items=all.map(r=>({rtype:r.type,submittedAt:r.createdAt,lines:reportToText(r),files:r.files||[]}));
+    return {heading:`${s.name} — ${s.position}`,items};
+  });
+
+  const fmtDate=d=>d?d.split('-').reverse().join('/'):''
+  const groupLabel=leadGroups.map(n=>getGroupName(n)).join(', ');
+  buildPrintWindow(
+    memberId?`Báo cáo — ${members[0]?.name||''}`:  `Báo cáo thành viên nhóm`,
+    `${groupLabel} · Từ ${fmtDate(from)} đến ${fmtDate(to)}`,
+    sections
+  );
+}
+
+function printGroupSummary(){
+  const session=getSession(); if(!session) return;
+  const from=document.getElementById('pldr-from').value;
+  const to=document.getElementById('pldr-to').value;
+  const typeFilter=document.getElementById('pldr-type').value;
+  const leadGroups=getLeadGroups(session.id);
+  const types=typeFilter==='all'?['daily','weekly','monthly','yearly']:[typeFilter];
+  const members=[session,...STAFF.filter(s=>s.id!==session.id&&getEffectiveGroups(s.id).some(g=>leadGroups.includes(g)))];
+
+  let all=types.flatMap(t=>getReports(t).map(r=>({...r,type:t})));
+  all=all.filter(r=>members.some(s=>s.id===r.authorId||s.name===r.reporter));
+  all=filterReportsByDate(all,from,to);
+  all.sort((a,b)=>(a.ts||0)-(b.ts||0));
+  const items=all.map(r=>{
+    const st=STAFF.find(s=>s.id===r.authorId||s.name===r.reporter);
+    return {reporter:st?st.name:r.reporter,position:st?st.position:'',rtype:r.type,submittedAt:r.createdAt,lines:reportToText(r),files:r.files||[]};
+  });
+
+  const fmtDate=d=>d?d.split('-').reverse().join('/'):''
+  const groupLabel=leadGroups.map(n=>getGroupName(n)).join(', ');
+  buildPrintWindow(
+    `Báo cáo tổng hợp nhóm`,
+    `${groupLabel} · Từ ${fmtDate(from)} đến ${fmtDate(to)} · Nhóm trưởng: ${session.name}`,
+    [{heading:`Tổng hợp ${items.length} báo cáo`,items}]
+  );
+}
+
+function printAdminReport(){
+  const session=getSession(); if(!session) return;
+  const from=document.getElementById('padm-from').value;
+  const to=document.getElementById('padm-to').value;
+  const groupFilter=parseInt(document.getElementById('padm-group').value)||0;
+  const typeFilter=document.getElementById('padm-type').value;
+  const types=typeFilter==='all'?['daily','weekly','monthly','yearly']:[typeFilter];
+
+  const groupsToPrint=groupFilter?GROUPS.filter(g=>g.num===groupFilter):GROUPS;
+  const sections=groupsToPrint.map(g=>{
+    const members=STAFF.filter(s=>getEffectiveGroups(s.id).includes(g.num));
+    let all=types.flatMap(t=>getReports(t).map(r=>({...r,type:t})));
+    all=all.filter(r=>members.some(s=>s.id===r.authorId||s.name===r.reporter));
+    all=filterReportsByDate(all,from,to);
+    all.sort((a,b)=>(a.ts||0)-(b.ts||0));
+    const leader=STAFF.find(s=>s.id===g.leaderId);
+    const items=all.map(r=>{
+      const st=STAFF.find(s=>s.id===r.authorId||s.name===r.reporter);
+      return {reporter:st?st.name:r.reporter,position:st?st.position:'',rtype:r.type,submittedAt:r.createdAt,lines:reportToText(r),files:r.files||[]};
+    });
+    return {heading:`Nhóm ${g.num}: ${g.name} (Nhóm trưởng: ${leader?leader.name:'—'})`,items};
+  });
+
+  const fmtDate=d=>d?d.split('-').reverse().join('/'):''
+  buildPrintWindow(
+    groupFilter?`Báo cáo ${getGroupName(groupFilter)}`:`Báo cáo tổng hợp toàn phòng`,
+    `Từ ${fmtDate(from)} đến ${fmtDate(to)}`,
+    sections
+  );
 }
 
 /* =====================================================
