@@ -404,11 +404,12 @@ function persistSchedule(){ saveLS(LS.schedule, schedule); syncScheduleToCloud()
 function persistRegs(){ saveLS(LS.regs, regs); syncRegsToCloud(); }
 function persistStaff(){ saveLS(LS.staff, staffList); }
 
+const MIN_DATE = new Date(2026, 5, 1); // Tháng 6/2026 — không cho điều hướng về trước
 let user = null;
-let curDate = new Date();
-let curWeekStart = weekStart(new Date());
-let curYear = new Date().getFullYear();
-let curMon = new Date().getMonth();
+let curDate = new Date(2026, 5, 1);
+let curWeekStart = weekStart(new Date(2026, 5, 1));
+let curYear = 2026;
+let curMon = 5; // tháng 6 (0-indexed)
 let calSelKey = null;
 let editingStaffId = null, deletingStaffId = null;
 
@@ -567,7 +568,7 @@ function renderDay(c){
   c.innerHTML = legendHTML() + `<div class="nrow"><button class="nav-btn" onclick="chDay(-1)">◀ Trước</button><span class="lbl" id="dl"></span><button class="nav-btn" onclick="chDay(1)">Sau ▶</button></div><div id="day-c"></div>`;
   paintDay();
 }
-function chDay(d){ curDate=new Date(curDate); curDate.setDate(curDate.getDate()+d); paintDay(); }
+function chDay(d){ curDate=new Date(curDate); curDate.setDate(curDate.getDate()+d); if(curDate<MIN_DATE) curDate=new Date(MIN_DATE); paintDay(); }
 function paintDay(){
   const y=curDate.getFullYear(),m=curDate.getMonth(),d=curDate.getDate();
   const key=dk(y,m,d); const s=schedule[key]||{morning:[],night:[]}; const lv=regs.filter(r=>r.date===key&&r.type==='leave');
@@ -587,7 +588,7 @@ function renderWeek(c){
   c.innerHTML = legendHTML() + `<div class="nrow"><button class="nav-btn" onclick="chWeek(-1)">◀ Tuần trước</button><span class="lbl" id="wl"></span><button class="nav-btn" onclick="chWeek(1)">Tuần sau ▶</button></div><div class="stats-row s3"><div class="scard"><div class="sn" style="color:var(--morning);" id="wms">0</div><div class="sl">Lượt ca sáng</div></div><div class="scard"><div class="sn" style="color:var(--night);" id="wns">0</div><div class="sl">Lượt ca đêm</div></div><div class="scard"><div class="sn" style="color:var(--leave);" id="wlv">0</div><div class="sl">Lượt nghỉ</div></div></div><div class="tbl-wrap"><div class="wgrid" style="min-width:520px;" id="wg"></div></div><div id="wd" style="margin-top:1.2rem;"></div>`;
   paintWeek();
 }
-function chWeek(d){ curWeekStart=new Date(curWeekStart); curWeekStart.setDate(curWeekStart.getDate()+d*7); paintWeek(); }
+function chWeek(d){ curWeekStart=new Date(curWeekStart); curWeekStart.setDate(curWeekStart.getDate()+d*7); if(curWeekStart<MIN_DATE) curWeekStart=weekStart(MIN_DATE); paintWeek(); }
 function paintWeek(){
   const ws=new Date(curWeekStart); const we=new Date(ws); we.setDate(ws.getDate()+6);
   document.getElementById('wl').textContent = `Tuần ${getWeekNum(ws.getFullYear(),ws.getMonth(),ws.getDate())} — ${ws.getDate()}/${ws.getMonth()+1} đến ${we.getDate()}/${we.getMonth()+1}/${we.getFullYear()}`;
@@ -612,7 +613,7 @@ function renderMonth(c){
   c.innerHTML = legendHTML() + `<div class="nrow"><button class="nav-btn" onclick="chMon(-1)">◀ Trước</button><span class="lbl" id="ml"></span><button class="nav-btn" onclick="chMon(1)">Sau ▶</button></div><div class="cal-grid" id="cdn"></div><div class="cal-grid" style="margin-top:.25rem;" id="cells"></div><div id="dpanel" class="hide"><div id="dc"></div></div>`;
   paintMonth();
 }
-function chMon(d){ curMon+=d; if(curMon>11){curMon=0;curYear++;} if(curMon<0){curMon=11;curYear--;} calSelKey=null; paintMonth(); }
+function chMon(d){ curMon+=d; if(curMon>11){curMon=0;curYear++;} if(curMon<0){curMon=11;curYear--;} if(curYear<2026||(curYear===2026&&curMon<5)){curYear=2026;curMon=5;} calSelKey=null; paintMonth(); }
 function paintMonth(){
   document.getElementById('ml').textContent = MONS[curMon]+' '+curYear;
   const dn = document.getElementById('cdn'); dn.innerHTML='';
