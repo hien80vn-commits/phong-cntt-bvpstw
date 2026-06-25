@@ -368,65 +368,20 @@ const LS = {
   regs: 'cntt_duty_regs',
 };
 
-/* ===== CLOUD SYNC ===== */
-const SYNC_URL = 'https://script.google.com/macros/s/AKfycbxemNUYMIC9E8PlLbGL1P8xMsgES-THAIA-r8EDRnQ0rBENYCSYAPvg70L09FW7Opg8Qw/exec';
+/* ===== CLOUD SYNC (Firebase) ===== */
+const FB_URL = ''; // Dán Firebase Database URL vào đây
 
-function cloudGet(key){ return fetch(SYNC_URL+'?key='+encodeURIComponent(key)).then(r=>r.text()).catch(()=>'null'); }
-function cloudSet(key,val){ if(!SYNC_URL) return; fetch(SYNC_URL+'?action=write&key='+encodeURIComponent(key)+'&value='+encodeURIComponent(val)).catch(()=>{}); }
+function fbGet(path){ return fetch(FB_URL+'/'+path+'.json').then(r=>r.text()).catch(()=>'null'); }
+function fbSet(path,val){ if(!FB_URL) return; fetch(FB_URL+'/'+path+'.json',{method:'PUT',headers:{'Content-Type':'application/json'},body:val}).catch(()=>{}); }
 
-// Sync 1 ngày (~80 chars) + cập nhật manifest tháng
-async function syncDayToCloud(dateKey){
-  if(!SYNC_URL) return;
-  const dayData = schedule[dateKey]||{morning:[],night:[]};
-  cloudSet('cntt_sch_'+dateKey, JSON.stringify(dayData));
-  const m = dateKey.slice(0,7);
-  const mk = 'cntt_manifest_'+m;
-  try{
-    const v = await cloudGet(mk);
-    const manifest = (v&&v!=='null') ? JSON.parse(v) : [];
-    if(!manifest.includes(dateKey)){
-      manifest.push(dateKey); manifest.sort();
-      cloudSet(mk, JSON.stringify(manifest));
-    }
-  }catch(e){}
-}
+function syncScheduleToCloud(){ fbSet('schedule', JSON.stringify(schedule)); }
+function syncRegsToCloud(){ fbSet('regs', JSON.stringify(regs)); }
 
-// Sync nhiều ngày đã xóa (gộp manifest theo tháng)
-async function syncClearedDays(dateKeys){
-  if(!SYNC_URL||!dateKeys.length) return;
-  dateKeys.forEach(d=>cloudSet('cntt_sch_'+d, JSON.stringify({morning:[],night:[]})));
-  const byMonth = {};
-  dateKeys.forEach(d=>{ const m=d.slice(0,7); (byMonth[m]=byMonth[m]||[]).push(d); });
-  for(const [m,dates] of Object.entries(byMonth)){
-    try{
-      const v = await cloudGet('cntt_manifest_'+m);
-      const manifest = (v&&v!=='null') ? JSON.parse(v) : [];
-      dates.forEach(d=>{ if(!manifest.includes(d)) manifest.push(d); });
-      manifest.sort();
-      cloudSet('cntt_manifest_'+m, JSON.stringify(manifest));
-    }catch(e){}
-  }
-}
-
-function syncRegsToCloud(){ if(!SYNC_URL) return; cloudSet(LS.regs, JSON.stringify(regs)); }
-
-// Load trang: đọc manifest 3 tháng → load từng ngày song song
 async function syncFromCloud(){
-  if(!SYNC_URL) return;
-  const now = new Date();
-  const allDates = [];
-  for(let d=-1; d<=1; d++){
-    const dt = new Date(now.getFullYear(), now.getMonth()+d, 1);
-    const m = dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');
-    const v = await cloudGet('cntt_manifest_'+m);
-    if(v&&v!=='null'){ try{ allDates.push(...JSON.parse(v)); }catch(e){} }
-  }
-  if(allDates.length>0){
-    const results = await Promise.all(allDates.map(d=>cloudGet('cntt_sch_'+d).then(v=>({d,v})).catch(()=>null)));
-    results.forEach(r=>{ if(r&&r.v&&r.v!=='null'){ try{ schedule[r.d]=JSON.parse(r.v); }catch(e){} } });
-    localStorage.setItem(LS.schedule, JSON.stringify(schedule));
-  }
-  const rv = await cloudGet(LS.regs);
+  if(!FB_URL) return;
+  const sv = await fbGet('schedule');
+  if(sv&&sv!=='null'){ try{ Object.assign(schedule,JSON.parse(sv)); localStorage.setItem(LS.schedule,JSON.stringify(schedule)); }catch(e){} }
+  const rv = await fbGet('regs');
   if(rv&&rv!=='null'){ try{ regs=JSON.parse(rv); localStorage.setItem(LS.regs,rv); }catch(e){} }
 }
 
@@ -445,7 +400,7 @@ let nextStaffId = Math.max(...staffList.map(s=>s.id), 0) + 1;
 
 let schedule = loadLS(LS.schedule, {});
 let regs = loadLS(LS.regs, []);
-function persistSchedule(){ saveLS(LS.schedule, schedule); }
+function persistSchedule(){ saveLS(LS.schedule, schedule); syncScheduleToCloud(); }
 function persistRegs(){ saveLS(LS.regs, regs); syncRegsToCloud(); }
 function persistStaff(){ saveLS(LS.staff, staffList); }
 
@@ -933,13 +888,13 @@ function renderAChips(){
 }
 function saveAssign(){
   const dv = document.getElementById('asgn-dt'); if(!dv||!dv.value){ alert('Chọn ngày!'); return; }
-  schedule[dv.value] = {morning:[...aSelM], night:[...aSelN]}; persistSchedule(); syncDayToCloud(dv.value);
+  schedule[dv.value] = {morning:[...aSelM], night:[...aSelN]}; persistSchedule();
   document.getElementById('ares').innerHTML = `<span style="color:var(--leave);">Đã lưu: ${aSelM.size} ca sáng, ${aSelN.size} ca đêm ngày ${dv.value}</span>`;
 }
 function reAutoDay2(){
   const dv = document.getElementById('asgn-dt'); if(!dv||!dv.value){ alert('Chọn ngày!'); return; }
   delete schedule[dv.value];
-  const p = dv.value.split('-'); autoAssignDay(dv.value, new Date(+p[0],+p[1]-1,+p[2])); persistSchedule(); syncDayToCloud(dv.value);
+  const p = dv.value.split('-'); autoAssignDay(dv.value, new Date(+p[0],+p[1]-1,+p[2])); persistSchedule();
   initAChips();
   document.getElementById('ares').innerHTML = `<span style="color:var(--leave);">Đã tự động phân công lại ngày ${dv.value}</span>`;
 }
@@ -976,12 +931,12 @@ function paintMAChips(key, dt){
 }
 function reAutoModal(){
   const p = maDate.split('-'); delete schedule[maDate];
-  autoAssignDay(maDate, new Date(+p[0],+p[1]-1,+p[2])); persistSchedule(); syncDayToCloud(maDate);
+  autoAssignDay(maDate, new Date(+p[0],+p[1]-1,+p[2])); persistSchedule();
   const s = schedule[maDate]||{morning:[],night:[]}; maSelM=new Set(s.morning); maSelN=new Set(s.night);
   paintMAChips(maDate, new Date(+p[0],+p[1]-1,+p[2]));
 }
 function saveModalAssign(){
-  schedule[maDate] = {morning:[...maSelM], night:[...maSelN]}; persistSchedule(); syncDayToCloud(maDate);
+  schedule[maDate] = {morning:[...maSelM], night:[...maSelN]}; persistSchedule();
   closeModal('modal-assign');
   const activeTab = document.querySelector('.tab-btn.active');
   if(activeTab) showTab(activeTab.id.replace('tb-',''));
@@ -1026,7 +981,6 @@ function clearDaysRange(sd, ed, label){
     cur.setDate(cur.getDate()+1);
   }
   persistSchedule();
-  syncClearedDays(clearedKeys);
   showTab('assign');
   alert(`✅ Đã xóa lịch trực ${label} (${clearedKeys.length} ngày) thành công!`);
 }
@@ -1081,15 +1035,7 @@ function clearAllSchedule(){
   }
   localStorage.removeItem(LS.regs);
   persistSchedule();
-  // Reset manifest 3 tháng trên cloud để thiết bị khác không load dữ liệu cũ
-  if(SYNC_URL){
-    const now2 = new Date();
-    for(let d=-1; d<=1; d++){
-      const dt = new Date(now2.getFullYear(), now2.getMonth()+d, 1);
-      const m = dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');
-      cloudSet('cntt_manifest_'+m, '[]');
-    }
-  }
+  syncScheduleToCloud();
   showTab('assign');
   alert('✅ Đã xóa toàn bộ lịch trực thành công!');
 }

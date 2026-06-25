@@ -587,24 +587,21 @@ const DEFAULT_PW = 'cntt2026';
    HELPERS
 ===================================================== */
 /* =====================================================
-   CLOUD SYNC
+   CLOUD SYNC (Firebase)
 ===================================================== */
-const SYNC_URL = 'https://script.google.com/macros/s/AKfycbxemNUYMIC9E8PlLbGL1P8xMsgES-THAIA-r8EDRnQ0rBENYCSYAPvg70L09FW7Opg8Qw/exec';
-const SYNC_KEYS_RPT = ['cntt_rp_daily','cntt_rp_weekly','cntt_rp_monthly','cntt_rp_yearly','cntt_staff_groups'];
+const FB_URL = ''; // Dán Firebase Database URL vào đây
 
-function syncToCloud(key, jsonStr){
-  if(!SYNC_URL) return;
-  fetch(SYNC_URL + '?action=write&key=' + encodeURIComponent(key) + '&value=' + encodeURIComponent(jsonStr)).catch(()=>{});
-}
-async function syncFromCloud(keys){
-  if(!SYNC_URL) return;
-  for(const key of keys){
-    try{
-      const r = await fetch(SYNC_URL + '?key=' + encodeURIComponent(key));
-      const v = await r.text();
-      if(v && v !== 'null') localStorage.setItem(key, v);
-    }catch(e){}
+function fbGet(path){ return fetch(FB_URL+'/'+path+'.json').then(r=>r.text()).catch(()=>'null'); }
+function fbSet(path,val){ if(!FB_URL) return; fetch(FB_URL+'/'+path+'.json',{method:'PUT',headers:{'Content-Type':'application/json'},body:val}).catch(()=>{}); }
+
+async function syncFromCloud(){
+  if(!FB_URL) return;
+  for(const t of ['daily','weekly','monthly','yearly']){
+    const v = await fbGet('rp_'+t);
+    if(v&&v!=='null'){ try{ localStorage.setItem('cntt_rp_'+t,v); }catch(e){} }
   }
+  const gv = await fbGet('staff_groups');
+  if(gv&&gv!=='null'){ try{ localStorage.setItem('cntt_staff_groups',gv); }catch(e){} }
 }
 
 function getPwKey(n){ return 'cntt_pw_'+n; }
@@ -618,7 +615,7 @@ function getReports(type){ try{return JSON.parse(localStorage.getItem('cntt_rp_'
 function saveReports(type,arr){
   const s=JSON.stringify(arr);
   localStorage.setItem('cntt_rp_'+type, s);
-  syncToCloud('cntt_rp_'+type, s);
+  fbSet('rp_'+type, s);
 }
 function getAllReports(){ return ['daily','weekly','monthly','yearly'].flatMap(t=>getReports(t).map(r=>({...r,type:r.type||t}))); }
 
@@ -626,7 +623,7 @@ function getGroupOverrides(){ try{return JSON.parse(localStorage.getItem('cntt_s
 function saveGroupOverrides(obj){
   const s=JSON.stringify(obj);
   localStorage.setItem('cntt_staff_groups', s);
-  syncToCloud('cntt_staff_groups', s);
+  fbSet('staff_groups', s);
 }
 
 // Returns array of group numbers the staff member belongs to
@@ -730,7 +727,7 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   if(SYNC_URL){
     const st=document.getElementById('sync-toast-rpt');
     if(st) st.style.display='block';
-    await syncFromCloud(SYNC_KEYS_RPT);
+    await syncFromCloud();
     if(st) st.style.display='none';
   }
   enterApp(session);
