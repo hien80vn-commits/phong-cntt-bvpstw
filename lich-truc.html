@@ -249,6 +249,7 @@ button { font-family: var(--font); }
 <!-- Không cần màn hình đăng nhập — dùng session từ trang chủ -->
 
 <!-- MAIN APP -->
+<div id="sync-toast" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:var(--purple);color:#fff;text-align:center;padding:.6rem;font-size:.85rem;font-weight:600;">⏳ Đang đồng bộ dữ liệu...</div>
 <div id="main-wrap" class="hide">
   <div class="wrap">
     <div class="tabs" id="tabs"></div>
@@ -367,8 +368,31 @@ const LS = {
   regs: 'cntt_duty_regs',
 };
 
+/* ===== CLOUD SYNC ===== */
+const SYNC_URL = ''; // Dán URL Google Apps Script vào đây sau khi deploy
+const SYNC_KEYS_LICH = [LS.schedule, LS.regs];
+
+function syncToCloud(key, jsonStr){
+  if(!SYNC_URL) return;
+  fetch(SYNC_URL, {method:'POST', mode:'no-cors', body: JSON.stringify({key, value: jsonStr})}).catch(()=>{});
+}
+async function syncFromCloud(keys){
+  if(!SYNC_URL) return;
+  for(const key of keys){
+    try{
+      const r = await fetch(SYNC_URL + '?key=' + encodeURIComponent(key));
+      const v = await r.text();
+      if(v && v !== 'null') localStorage.setItem(key, v);
+    }catch(e){}
+  }
+}
+
 function loadLS(key, fallback){ try{ const v = JSON.parse(localStorage.getItem(key)); return v===null||v===undefined ? fallback : v; }catch(e){ return fallback; } }
-function saveLS(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
+function saveLS(key, val){
+  const s = JSON.stringify(val);
+  localStorage.setItem(key, s);
+  if(SYNC_KEYS_LICH.includes(key)) syncToCloud(key, s);
+}
 
 let staffList = loadLS(LS.staff, null);
 if(!staffList){
@@ -1023,12 +1047,20 @@ function clearAllSchedule(){
 
 /* ===== INIT ===== */
 populateSel();
-initSchedule();
-(function(){
+(async function(){
   const sess = getSession();
   if(!sess){ window.location.href='index.html'; return; }
   const s = staffById(sess.id);
   if(!s){ window.location.href='index.html'; return; }
+  if(SYNC_URL){
+    const toast = document.getElementById('sync-toast');
+    if(toast) toast.style.display='block';
+    await syncFromCloud(SYNC_KEYS_LICH);
+    schedule = loadLS(LS.schedule, {});
+    regs = loadLS(LS.regs, []);
+    if(toast) toast.style.display='none';
+  }
+  initSchedule();
   enterUser(s);
 })();
 </script>

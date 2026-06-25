@@ -201,6 +201,7 @@ a{color:inherit;text-decoration:none}
 </nav>
 
 <!-- Đăng nhập tập trung qua trang chủ index.html -->
+<div id="sync-toast-rpt" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:var(--purple);color:#fff;text-align:center;padding:.6rem;font-size:.85rem;font-weight:600;">⏳ Đang đồng bộ dữ liệu...</div>
 
 <!-- APP -->
 <div id="app-screen">
@@ -585,6 +586,27 @@ const DEFAULT_PW = 'cntt2026';
 /* =====================================================
    HELPERS
 ===================================================== */
+/* =====================================================
+   CLOUD SYNC
+===================================================== */
+const SYNC_URL = ''; // Dán URL Google Apps Script vào đây sau khi deploy
+const SYNC_KEYS_RPT = ['cntt_rp_daily','cntt_rp_weekly','cntt_rp_monthly','cntt_rp_yearly','cntt_staff_groups'];
+
+function syncToCloud(key, jsonStr){
+  if(!SYNC_URL) return;
+  fetch(SYNC_URL, {method:'POST', mode:'no-cors', body: JSON.stringify({key, value: jsonStr})}).catch(()=>{});
+}
+async function syncFromCloud(keys){
+  if(!SYNC_URL) return;
+  for(const key of keys){
+    try{
+      const r = await fetch(SYNC_URL + '?key=' + encodeURIComponent(key));
+      const v = await r.text();
+      if(v && v !== 'null') localStorage.setItem(key, v);
+    }catch(e){}
+  }
+}
+
 function getPwKey(n){ return 'cntt_pw_'+n; }
 function getUserPw(n){ return localStorage.getItem(getPwKey(n))||DEFAULT_PW; }
 function setUserPw(n,p){ localStorage.setItem(getPwKey(n),p); }
@@ -593,11 +615,19 @@ function setSession(s){ sessionStorage.setItem('cntt_session',JSON.stringify(s))
 function clearSession(){ sessionStorage.removeItem('cntt_session'); }
 
 function getReports(type){ try{return JSON.parse(localStorage.getItem('cntt_rp_'+type))||[];}catch(e){return[];} }
-function saveReports(type,arr){ localStorage.setItem('cntt_rp_'+type,JSON.stringify(arr)); }
+function saveReports(type,arr){
+  const s=JSON.stringify(arr);
+  localStorage.setItem('cntt_rp_'+type, s);
+  syncToCloud('cntt_rp_'+type, s);
+}
 function getAllReports(){ return ['daily','weekly','monthly','yearly'].flatMap(t=>getReports(t).map(r=>({...r,type:r.type||t}))); }
 
 function getGroupOverrides(){ try{return JSON.parse(localStorage.getItem('cntt_staff_groups'))||{};}catch(e){return{};} }
-function saveGroupOverrides(obj){ localStorage.setItem('cntt_staff_groups',JSON.stringify(obj)); }
+function saveGroupOverrides(obj){
+  const s=JSON.stringify(obj);
+  localStorage.setItem('cntt_staff_groups', s);
+  syncToCloud('cntt_staff_groups', s);
+}
 
 // Returns array of group numbers the staff member belongs to
 function getEffectiveGroups(staffId){
@@ -683,7 +713,7 @@ function renderReport(r, showAuthor=false, canDelete=false, type=null, globalIdx
 /* =====================================================
    INIT
 ===================================================== */
-document.addEventListener('DOMContentLoaded',()=>{
+document.addEventListener('DOMContentLoaded', async ()=>{
   const ysel=document.getElementById('y-year');
   for(let y=2026;y>=2011;y--){const o=document.createElement('option');o.value=o.textContent=y;ysel.appendChild(o);}
 
@@ -695,8 +725,15 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('wb-date').textContent=new Date().toLocaleDateString('vi-VN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 
   const session=getSession();
-  if(session){ enterApp(session); }
-  else { window.location.href='index.html'; }
+  if(!session){ window.location.href='index.html'; return; }
+
+  if(SYNC_URL){
+    const st=document.getElementById('sync-toast-rpt');
+    if(st) st.style.display='block';
+    await syncFromCloud(SYNC_KEYS_RPT);
+    if(st) st.style.display='none';
+  }
+  enterApp(session);
 });
 
 function getMonday(){
