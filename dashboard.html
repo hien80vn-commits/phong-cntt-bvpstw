@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard – Phòng CNTT BVPSTW</title>
+<style>
+:root{
+  --purple:#6B2D8B;--purple-d:#4A1570;--purple-l:#F3E5F5;
+  --teal:#00897B;--teal-l:#E0F2F1;
+  --orange:#E65100;--orange-l:#FFF3E0;
+  --red:#C62828;--red-l:#FFEBEE;
+  --green:#2E7D32;--green-l:#E8F5E9;
+  --blue:#1565C0;--blue-l:#E3F2FD;
+  --yellow:#F57F17;--yellow-l:#FFFDE7;
+  --text:#1a1a2e;--muted:#888;
+  --border:#E8E0EF;--bg:#F7F3FA;
+  --shadow:0 2px 12px rgba(107,45,139,.10);
+  --radius:14px;
+  --font:'Segoe UI','Helvetica Neue',Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* TOPBAR */
+.topbar{background:#fff;border-bottom:2px solid var(--border);padding:.65rem 1.5rem;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.brand{display:flex;align-items:center;gap:.75rem;}
+.brand-logo{width:40px;height:40px;background:linear-gradient(135deg,var(--purple-d),var(--purple));border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1rem;font-weight:800;}
+.brand-name{font-size:.82rem;font-weight:800;color:var(--purple-d);line-height:1.3;}
+.brand-sub{font-size:.67rem;color:var(--muted);}
+.topbar-right{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;}
+.tbtn{padding:.35rem .8rem;border:2px solid var(--border);border-radius:8px;background:#fff;font-family:var(--font);font-size:.75rem;font-weight:600;cursor:pointer;text-decoration:none;color:var(--text);white-space:nowrap;}
+.tbtn:hover{border-color:var(--purple);color:var(--purple);}
+.tbtn.red{background:var(--purple);color:#fff;border-color:var(--purple);}
+#live-clock{font-size:.82rem;font-weight:700;color:var(--purple-d);background:var(--purple-l);padding:.3rem .75rem;border-radius:8px;letter-spacing:.02em;}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,#3A0D6E 0%,var(--purple) 55%,#9C27B0 100%);color:#fff;padding:1.4rem 1.5rem 2.2rem;}
+.hero-inner{max-width:1200px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;}
+.hero-greeting{font-size:1.3rem;font-weight:800;margin-bottom:.2rem;}
+.hero-sub{font-size:.82rem;opacity:.85;}
+.hero-date-box{background:rgba(255,255,255,.13);border-radius:12px;padding:.75rem 1.25rem;text-align:center;min-width:140px;}
+.hero-day{font-size:1.1rem;font-weight:800;}
+.hero-datestr{font-size:.78rem;opacity:.9;margin-top:.1rem;}
+.hero-week{font-size:.68rem;opacity:.7;margin-top:.1rem;}
+
+/* MAIN */
+.main{max-width:1200px;margin:-1.25rem auto 0;padding:0 1.5rem 2.5rem;position:relative;}
+.refresh-bar{display:flex;justify-content:space-between;align-items:center;padding:.6rem 0 .9rem;font-size:.74rem;color:var(--muted);}
+.refresh-btn{padding:.3rem .75rem;border:2px solid var(--border);border-radius:7px;background:#fff;font-family:var(--font);font-size:.74rem;cursor:pointer;font-weight:600;}
+.refresh-btn:hover{border-color:var(--purple);color:var(--purple);}
+.sec-label{font-size:.7rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:1.1rem 0 .65rem;display:flex;align-items:center;gap:.4rem;}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.9rem;margin-bottom:.5rem;}
+.kpi{background:#fff;border-radius:var(--radius);padding:1.1rem 1.1rem .9rem;box-shadow:var(--shadow);border-top:4px solid var(--purple);display:flex;flex-direction:column;gap:.25rem;}
+.kpi.g{border-top-color:var(--green);} .kpi.r{border-top-color:var(--red);}
+.kpi.o{border-top-color:var(--orange);} .kpi.b{border-top-color:var(--blue);}
+.kpi.t{border-top-color:var(--teal);} .kpi.y{border-top-color:var(--yellow);}
+.kpi-icon{font-size:1.3rem;}
+.kpi-num{font-size:1.9rem;font-weight:800;color:var(--purple);line-height:1;}
+.kpi.g .kpi-num{color:var(--green);} .kpi.r .kpi-num{color:var(--red);}
+.kpi.o .kpi-num{color:var(--orange);} .kpi.b .kpi-num{color:var(--blue);}
+.kpi.t .kpi-num{color:var(--teal);} .kpi.y .kpi-num{color:var(--yellow);}
+.kpi-label{font-size:.72rem;color:var(--muted);font-weight:600;}
+.kpi-sub{font-size:.68rem;color:var(--muted);}
+
+/* GRID LAYOUTS */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-bottom:1.2rem;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.2rem;margin-bottom:1.2rem;}
+.grid1{display:grid;grid-template-columns:1fr;gap:1.2rem;margin-bottom:1.2rem;}
+@media(max-width:900px){.grid3{grid-template-columns:1fr 1fr;}}
+@media(max-width:620px){.grid2,.grid3{grid-template-columns:1fr;}}
+
+/* CARD */
+.card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+.card-hdr{padding:.8rem 1.1rem;display:flex;justify-content:space-between;align-items:center;border-bottom:1.5px solid var(--border);}
+.card-hdr h3{font-size:.85rem;font-weight:800;color:var(--purple-d);}
+.cbadge{font-size:.67rem;padding:.18rem .55rem;border-radius:999px;font-weight:700;white-space:nowrap;}
+.card-body{padding:.9rem 1.1rem;}
+
+/* ALERTS */
+.alert{display:flex;align-items:flex-start;gap:.55rem;padding:.55rem .7rem;border-radius:8px;margin-bottom:.45rem;font-size:.78rem;line-height:1.5;}
+.alert:last-child{margin-bottom:0;}
+.alert.red{background:var(--red-l);border-left:3px solid var(--red);}
+.alert.orange{background:var(--orange-l);border-left:3px solid var(--orange);}
+.alert.green{background:var(--green-l);border-left:3px solid var(--green);}
+.alert.blue{background:var(--blue-l);border-left:3px solid var(--blue);}
+.alert.yellow{background:var(--yellow-l);border-left:3px solid var(--yellow);}
+
+/* TASK PROGRESS */
+.tgrow{padding:.5rem 0;border-bottom:1px solid var(--border);}
+.tgrow:last-child{border-bottom:none;}
+.tgrow-hdr{display:flex;justify-content:space-between;align-items:center;font-size:.76rem;font-weight:700;margin-bottom:.3rem;}
+.tgrow-bar{height:7px;border-radius:999px;background:#e0e0e0;overflow:hidden;}
+.tgrow-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#43A047,#66BB6A);transition:width .6s;}
+.tgrow-fill.warn{background:linear-gradient(90deg,var(--orange),#FFA726);}
+.tgrow-fill.over{background:linear-gradient(90deg,var(--red),#EF5350);}
+.tgrow-sub{font-size:.67rem;color:var(--muted);display:flex;gap:.5rem;margin-top:.2rem;}
+
+/* DUTY */
+.duty-row{display:flex;align-items:flex-start;gap:.65rem;padding:.55rem 0;border-bottom:1px solid var(--border);}
+.duty-row:last-child{border-bottom:none;}
+.duty-ca{width:82px;flex-shrink:0;text-align:center;}
+.duty-tag{display:block;font-size:.68rem;font-weight:700;color:#fff;padding:.18rem .4rem;border-radius:5px;margin-bottom:.1rem;}
+.sang .duty-tag{background:var(--teal);}
+.chieu .duty-tag{background:var(--orange);}
+.dem .duty-tag{background:var(--purple);}
+.duty-time{font-size:.62rem;color:var(--muted);}
+.duty-names{flex:1;font-size:.75rem;color:var(--text);line-height:1.65;}
+
+/* REPORT STATUS GRID */
+.rpt-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:.4rem;margin-bottom:.75rem;}
+.rpt-cell{text-align:center;padding:.4rem .2rem;border-radius:7px;font-size:.68rem;font-weight:700;}
+.rpt-cell.ok{background:var(--green-l);color:var(--green);}
+.rpt-cell.miss{background:var(--red-l);color:var(--red);}
+.rpt-entry{padding:.4rem 0;border-bottom:1px solid var(--border);font-size:.75rem;}
+.rpt-entry:last-child{border-bottom:none;}
+.rpt-name{font-weight:700;color:var(--text);}
+.rpt-note{color:var(--muted);font-size:.7rem;margin-top:.1rem;}
+.rpt-warn{color:var(--orange);font-size:.7rem;font-weight:600;}
+.rpt-sos{color:var(--red);font-size:.7rem;font-weight:700;}
+
+/* LEAVE */
+.leave-stat-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;margin-bottom:.75rem;}
+.lstat{text-align:center;padding:.5rem .4rem;border-radius:8px;}
+.lstat-n{font-size:1.4rem;font-weight:800;line-height:1;}
+.lstat-l{font-size:.68rem;color:var(--muted);margin-top:.15rem;}
+.leave-row{display:flex;align-items:center;gap:.4rem;padding:.35rem 0;border-bottom:1px solid var(--border);font-size:.75rem;}
+.leave-row:last-child{border-bottom:none;}
+.ltag{font-size:.65rem;font-weight:700;padding:.12rem .45rem;border-radius:999px;white-space:nowrap;}
+.ltag.phep{background:var(--blue-l);color:var(--blue);}
+.ltag.om{background:var(--red-l);color:var(--red);}
+.ltag.bu{background:var(--teal-l);color:var(--teal);}
+
+/* OVERDUE TABLE */
+.mtable{width:100%;border-collapse:collapse;font-size:.74rem;}
+.mtable th{background:var(--purple-l);color:var(--purple-d);font-weight:700;padding:.4rem .65rem;text-align:left;}
+.mtable td{padding:.45rem .65rem;border-bottom:1px solid var(--border);vertical-align:top;}
+.mtable tr:last-child td{border-bottom:none;}
+.mtable tr:hover td{background:#faf8fd;}
+.pbar-wrap{height:5px;border-radius:999px;background:#e0e0e0;width:70px;display:inline-block;}
+.pbar-fill{height:100%;border-radius:999px;}
+
+/* EMPTY */
+.empty{text-align:center;color:var(--muted);padding:1.25rem;font-size:.82rem;}
+
+/* ACCESS DENIED */
+#access-denied{display:none;text-align:center;padding:4rem 2rem;}
+#access-denied h2{color:var(--red);margin-bottom:1rem;}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<nav class="topbar">
+  <div class="brand">
+    <div class="brand-logo">IT</div>
+    <div>
+      <div class="brand-name">Dashboard Tổng quan – Phòng CNTT</div>
+      <div class="brand-sub">Bệnh viện Phụ Sản Trung Ương</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <span id="live-clock">--:--:--</span>
+    <a href="report.html" class="tbtn">📊 Báo cáo</a>
+    <a href="lich-truc.html" class="tbtn">📅 Lịch trực</a>
+    <a href="index.html" class="tbtn">← Trang chủ</a>
+    <button class="tbtn red" id="btn-logout" onclick="logout()" style="display:none">Đăng xuất</button>
+  </div>
+</nav>
+
+<!-- ACCESS DENIED -->
+<div id="access-denied">
+  <div style="font-size:3rem;margin-bottom:1rem">🔒</div>
+  <h2>Không có quyền truy cập</h2>
+  <p style="color:var(--muted);margin-bottom:1.5rem">Dashboard chỉ dành cho Lãnh đạo phòng và Tổ trưởng.</p>
+  <a href="index.html" class="tbtn" style="display:inline-block;">← Về trang chủ</a>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dash-main" style="display:none">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-inner">
+      <div>
+        <div class="hero-greeting" id="hero-greeting">📊 Dashboard Phòng CNTT</div>
+        <div class="hero-sub" id="hero-sub">Bệnh viện Phụ Sản Trung Ương</div>
+      </div>
+      <div class="hero-date-box">
+        <div class="hero-day" id="h-day"></div>
+        <div class="hero-datestr" id="h-date"></div>
+        <div class="hero-week" id="h-week"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <div class="refresh-bar">
+      <span id="last-upd">⏳ Đang tải dữ liệu...</span>
+      <button class="refresh-btn" onclick="loadAll()">🔄 Làm mới</button>
+    </div>
+
+    <!-- KPIs -->
+    <div class="sec-label">📌 Tổng quan nhanh</div>
+    <div class="kpi-grid" id="kpi-grid"></div>
+
+    <!-- ALERTS -->
+    <div class="sec-label">🚨 Cần xử lý ngay</div>
+    <div class="grid1">
+      <div class="card">
+        <div class="card-hdr"><h3>⚡ Cảnh báo & Hành động cần làm hôm nay</h3><span id="alert-count" class="cbadge"></span></div>
+        <div class="card-body" id="alerts-body"></div>
+      </div>
+    </div>
+
+    <!-- TASK PROGRESS + DUTY -->
+    <div class="sec-label">🎯 Tiến độ giao việc & 👮 Lịch trực hôm nay</div>
+    <div class="grid2">
+      <div class="card">
+        <div class="card-hdr"><h3>🎯 Tiến độ giao việc theo nhóm</h3><span id="task-badge" class="cbadge" style="background:var(--purple-l);color:var(--purple-d)"></span></div>
+        <div class="card-body" id="task-body"></div>
+      </div>
+      <div class="card">
+        <div class="card-hdr"><h3>👮 Lịch trực hôm nay</h3><span id="duty-badge" class="cbadge" style="background:var(--teal-l);color:var(--teal)"></span></div>
+        <div class="card-body" id="duty-body"></div>
+      </div>
+    </div>
+
+    <!-- REPORTS + LEAVE -->
+    <div class="sec-label">📝 Báo cáo cuối ngày & 🗓️ Nghỉ phép tháng này</div>
+    <div class="grid2">
+      <div class="card">
+        <div class="card-hdr"><h3>📥 Tình hình báo cáo cuối ngày</h3><span id="rpt-badge" class="cbadge" style="background:var(--blue-l);color:var(--blue)"></span></div>
+        <div class="card-body" id="rpt-body"></div>
+      </div>
+      <div class="card">
+        <div class="card-hdr"><h3>🗓️ Nghỉ phép / Bù / Ốm tháng này</h3><span id="leave-badge" class="cbadge" style="background:var(--orange-l);color:var(--orange)"></span></div>
+        <div class="card-body" id="leave-body"></div>
+      </div>
+    </div>
+
+    <!-- OVERDUE TABLE -->
+    <div class="sec-label">⚠️ Đầu việc trễ hạn & sắp hết hạn</div>
+    <div class="grid1">
+      <div class="card">
+        <div class="card-hdr"><h3>📌 Chi tiết đầu việc cần chú ý</h3><span id="over-badge" class="cbadge" style="background:var(--red-l);color:var(--red)"></span></div>
+        <div class="card-body" id="over-body"></div>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /dash-main -->
+
+<script>
+/* ===== CONFIG ===== */
+const FB_URL='https://cntt-bvpstw-default-rtdb.asia-southeast1.firebasedatabase.app';
+function fbGet(p){return fetch(FB_URL+'/'+p+'.json').then(r=>r.text()).catch(()=>'null');}
+
+/* ===== SHARED DATA ===== */
+const STAFF=[
+  {id:1,  name:'Nguyễn Văn Cường',     role:'staff',     groups:[]},
+  {id:2,  name:'Vương Hoàng Linh',     role:'lanh_dao',  groups:[]},
+  {id:3,  name:'Nguyễn Thị Thu Hiền',  role:'to_truong', groups:[]},
+  {id:4,  name:'Phan Quang Huy',        role:'leader',    groups:[10]},
+  {id:5,  name:'Nguyễn Quỳnh Ngọc',   role:'lanh_dao',  groups:[]},
+  {id:6,  name:'Nguyễn Ngọc Anh',      role:'staff',     groups:[]},
+  {id:7,  name:'Lê Thị Việt Hương',    role:'leader',    groups:[9]},
+  {id:8,  name:'Hoàng Thị Ngọc Yến',  role:'leader',    groups:[4]},
+  {id:9,  name:'Đàm Văn Thành',        role:'leader',    groups:[5]},
+  {id:10, name:'Phan Thanh Hiếu',      role:'staff',     groups:[]},
+  {id:11, name:'Bạch Lê Thắng',        role:'leader',    groups:[3]},
+  {id:12, name:'Trần Hoàng Dương',     role:'staff',     groups:[]},
+  {id:13, name:'Đoàn Quốc Trung',      role:'staff',     groups:[]},
+  {id:14, name:'Nguyễn Thanh Tùng',    role:'staff',     groups:[]},
+  {id:15, name:'Vũ Trung Kiên',         role:'leader',    groups:[2]},
+  {id:16, name:'Nguyễn Hữu Quân',      role:'staff',     groups:[]},
+  {id:17, name:'Phan Tiến Dũng',        role:'leader',    groups:[6]},
+  {id:18, name:'Nguyễn Đức Thịnh',     role:'staff',     groups:[]},
+  {id:19, name:'Nguyễn Thị Ngọc Anh', role:'leader',    groups:[7]},
+  {id:20, name:'Hoàng Hải Anh',         role:'leader',    groups:[1]},
+  {id:21, name:'Phạm Ngọc Linh',        role:'staff',     groups:[]},
+  {id:22, name:'Nguyễn Đăng Tùng',     role:'staff',     groups:[]},
+  {id:23, name:'Bùi Thị Hồng Hạnh',   role:'staff',     groups:[]},
+  {id:24, name:'Nguyễn Tuấn Linh',     role:'staff',     groups:[]},
+  {id:25, name:'Lê Thị Thanh Thanh',   role:'leader',    groups:[8]},
+  {id:26, name:'Quách Trường Giang',   role:'staff',     groups:[]},
+  {id:27, name:'Nguyễn Quỳnh Anh',     role:'staff',     groups:[]},
+  {id:28, name:'Cao Thị Thuý',          role:'staff',     groups:[]},
+  {id:29, name:'Hoàng Long',            role:'staff',     groups:[]},
+  {id:30, name:'Nguyễn Hoàng Hiệp',   role:'staff',     groups:[]},
+  {id:31, name:'Nguyễn Văn Công',      role:'staff',     groups:[]},
+  {id:32, name:'Bùi Thị Kim Oanh',    role:'staff',     groups:[]},
+];
+const GROUPS=[
+  {num:1,  name:'Quản lý Kho – Sửa chữa TTB CNTT',   leaderId:20},
+  {num:2,  name:'Mua sắm, đấu thầu',                  leaderId:15},
+  {num:3,  name:'Hỗ trợ các khoa phòng chức năng',    leaderId:11},
+  {num:4,  name:'Hỗ trợ Khối Dịch vụ theo yêu cầu',  leaderId:8},
+  {num:5,  name:'Hỗ trợ Khối Ngoại trú',              leaderId:9},
+  {num:6,  name:'Hỗ trợ Khối Trung tâm',              leaderId:17},
+  {num:7,  name:'Hỗ trợ Khối Đẻ – Mổ – Sơ sinh',     leaderId:19},
+  {num:8,  name:'Hỗ trợ Khối sản',                    leaderId:25},
+  {num:9,  name:'Hỗ trợ Khối phụ',                    leaderId:7},
+  {num:10, name:'Hỗ trợ Khối xét nghiệm',             leaderId:4},
+];
+const DAYS_VI=['Chủ Nhật','Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy'];
+const MONTHS_VI=['tháng 1','tháng 2','tháng 3','tháng 4','tháng 5','tháng 6','tháng 7','tháng 8','tháng 9','tháng 10','tháng 11','tháng 12'];
+
+/* ===== HELPERS ===== */
+function getSession(){ try{return JSON.parse(sessionStorage.getItem('cntt_session'))||null;}catch(e){return null;} }
+function logout(){ sessionStorage.removeItem('cntt_session'); location.href='index.html'; }
+
+function todayISO(){
+  const d=new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function isToday(createdAt){
+  if(!createdAt) return false;
+  const d=new Date();
+  const dd=String(d.getDate()).padStart(2,'0'), mm=String(d.getMonth()+1).padStart(2,'0');
+  return createdAt.startsWith(`${dd}/${mm}/${d.getFullYear()}`);
+}
+function daysLeft(deadline){
+  return Math.ceil((new Date(deadline)-new Date(todayISO()))/86400000);
+}
+function staffName(id){ const s=STAFF.find(x=>x.id===id); return s?s.name:'?'; }
+function groupName(n){ const g=GROUPS.find(x=>x.num===n); return g?g.name:''; }
+function leaderOfGroup(n){ const g=GROUPS.find(x=>x.num===n); return g?staffName(g.leaderId):'?'; }
+function truncate(s,n){return s&&s.length>n?s.slice(0,n)+'…':s||'';}
+
+/* ===== LOAD ALL ===== */
+async function loadAll(){
+  document.getElementById('last-upd').textContent='⏳ Đang cập nhật dữ liệu...';
+  try{
+    const [rawTasks, rawNotifs, rawDaily, rawWeekly, rawMonthly] = await Promise.all([
+      fbGet('tasks').then(v=>{try{return JSON.parse(v)||[];}catch(e){return [];}}),
+      fbGet('notifs').then(v=>{try{const o=JSON.parse(v)||{};return Object.values(o);}catch(e){return [];}}),
+      fbGet('rp_daily').then(v=>{try{return JSON.parse(v)||[];}catch(e){return [];}}),
+      fbGet('rp_weekly').then(v=>{try{return JSON.parse(v)||[];}catch(e){return [];}}),
+      fbGet('rp_monthly').then(v=>{try{return JSON.parse(v)||[];}catch(e){return [];}}),
+    ]);
+    const schedule = loadTodaySchedule();
+    renderKPIs(rawTasks, rawNotifs, rawDaily);
+    renderAlerts(rawTasks, rawNotifs, rawDaily);
+    renderTaskProgress(rawTasks);
+    renderDuty(schedule, rawNotifs);
+    renderReports(rawDaily);
+    renderLeave(rawNotifs);
+    renderOverdue(rawTasks);
+    document.getElementById('last-upd').textContent='✅ Cập nhật lúc '+new Date().toLocaleTimeString('vi-VN');
+  }catch(e){
+    document.getElementById('last-upd').textContent='❌ Lỗi tải dữ liệu: '+e.message;
+  }
+}
+
+function loadTodaySchedule(){
+  const d=new Date();
+  const key=`cntt_schedule_${d.getFullYear()}_${d.getMonth()}_${d.getDate()}`;
+  try{return JSON.parse(localStorage.getItem(key))||{};}catch(e){return {};}
+}
+
+/* ===== KPIs ===== */
+function renderKPIs(tasks, notifs, daily){
+  const today=todayISO();
+  const total=tasks.length;
+  const done=tasks.filter(t=>t.status==='Hoàn thành'||t.status==='Đã duyệt').length;
+  const overdue=tasks.filter(t=>{
+    if(t.status==='Hoàn thành'||t.status==='Đã duyệt') return false;
+    return daysLeft(t.deadline)<0;
+  }).length;
+  const warn=tasks.filter(t=>{
+    if(t.status==='Hoàn thành'||t.status==='Đã duyệt') return false;
+    const d=daysLeft(t.deadline); return d>=0&&d<=3;
+  }).length;
+  const pendApprove=tasks.filter(t=>t.status==='Hoàn thành').length;
+  const todayRpts=daily.filter(r=>r.date===today||isToday(r.createdAt)).length;
+  const leaveToday=notifs.filter(n=>(n.type==='leave'||n.type==='sick')&&n.date===today).length;
+  const pct=total>0?Math.round(done/total*100):0;
+
+  document.getElementById('kpi-grid').innerHTML=`
+    <div class="kpi"><div class="kpi-icon">🎯</div><div class="kpi-num">${total}</div><div class="kpi-label">Tổng đầu việc</div><div class="kpi-sub">${done} hoàn thành · ${total-done} đang chạy</div></div>
+    <div class="kpi g"><div class="kpi-icon">✅</div><div class="kpi-num">${done}</div><div class="kpi-label">Đã hoàn thành</div><div class="kpi-sub">${pct}% tổng số việc</div></div>
+    <div class="kpi r"><div class="kpi-icon">⏰</div><div class="kpi-num">${overdue}</div><div class="kpi-label">Trễ deadline</div><div class="kpi-sub">Cần xử lý ngay</div></div>
+    <div class="kpi o"><div class="kpi-icon">⚡</div><div class="kpi-num">${warn}</div><div class="kpi-label">Sắp hết hạn</div><div class="kpi-sub">Trong vòng 3 ngày</div></div>
+    <div class="kpi y"><div class="kpi-icon">⏳</div><div class="kpi-num">${pendApprove}</div><div class="kpi-label">Chờ duyệt</div><div class="kpi-sub">Nhân viên báo xong</div></div>
+    <div class="kpi b"><div class="kpi-icon">📝</div><div class="kpi-num">${todayRpts}</div><div class="kpi-label">Báo cáo hôm nay</div><div class="kpi-sub">Từ ${todayRpts} nhóm nộp</div></div>
+    <div class="kpi t"><div class="kpi-icon">🗓️</div><div class="kpi-num">${leaveToday}</div><div class="kpi-label">Nghỉ hôm nay</div><div class="kpi-sub">Đăng ký phép/ốm</div></div>
+  `;
+}
+
+/* ===== ALERTS ===== */
+function renderAlerts(tasks, notifs, daily){
+  const today=todayISO();
+  const alerts=[];
+
+  // Overdue
+  const overdueList=tasks.filter(t=>t.status!=='Hoàn thành'&&t.status!=='Đã duyệt'&&daysLeft(t.deadline)<0);
+  if(overdueList.length){
+    const names=overdueList.slice(0,2).map(t=>`"${truncate(t.title,25)}" (${t.assignedToName})`).join(', ');
+    alerts.push({cls:'red',icon:'🔴',html:`<strong>${overdueList.length} đầu việc TRỄ deadline</strong> — ${names}${overdueList.length>2?` và ${overdueList.length-2} việc khác`:''}`});
+  }
+
+  // Due today
+  const dueToday=tasks.filter(t=>t.deadline===today&&t.status!=='Hoàn thành'&&t.status!=='Đã duyệt');
+  if(dueToday.length){
+    alerts.push({cls:'orange',icon:'📅',html:`<strong>${dueToday.length} đầu việc đến hạn HÔM NAY</strong> chưa hoàn thành: ${dueToday.slice(0,2).map(t=>truncate(t.title,20)).join(', ')}`});
+  }
+
+  // Warning ≤3 days
+  const warnList=tasks.filter(t=>{
+    if(t.status==='Hoàn thành'||t.status==='Đã duyệt') return false;
+    const d=daysLeft(t.deadline); return d>0&&d<=3;
+  });
+  if(warnList.length){
+    alerts.push({cls:'yellow',icon:'🟡',html:`<strong>${warnList.length} đầu việc sắp hết hạn</strong> (≤3 ngày): ${warnList.slice(0,2).map(t=>`"${truncate(t.title,20)}" còn ${daysLeft(t.deadline)}n`).join(', ')}`});
+  }
+
+  // Awaiting approval
+  const approvable=tasks.filter(t=>t.status==='Hoàn thành');
+  if(approvable.length){
+    alerts.push({cls:'blue',icon:'⏳',html:`<strong>${approvable.length} đầu việc chờ bạn duyệt</strong>: ${approvable.slice(0,2).map(t=>`"${truncate(t.title,22)}" – ${t.assignedToName}`).join(', ')}`});
+  }
+
+  // Groups needing support
+  const sos=daily.filter(r=>(r.date===today||isToday(r.createdAt))&&r.support&&r.support.trim()!==''&&r.support!=='Không');
+  if(sos.length){
+    alerts.push({cls:'red',icon:'🆘',html:`<strong>${sos.length} nhóm cần hỗ trợ hôm nay</strong>: ${sos.map(r=>r.reporter||'?').join(', ')}`});
+  }
+
+  // Groups not yet reported today
+  const todayGrps=new Set(daily.filter(r=>r.date===today||isToday(r.createdAt)).map(r=>r.authorGroup));
+  const missing=GROUPS.filter(g=>!todayGrps.has(g.num));
+  if(missing.length&&missing.length<10){
+    alerts.push({cls:'orange',icon:'📭',html:`<strong>${missing.length} nhóm chưa nộp báo cáo hôm nay</strong>: ${missing.slice(0,4).map(g=>`Nhóm ${g.num}`).join(', ')}${missing.length>4?`...`:''}`});
+  }
+
+  // Leave today
+  const leaveToday=notifs.filter(n=>(n.type==='leave'||n.type==='sick')&&n.date===today);
+  if(leaveToday.length){
+    alerts.push({cls:'orange',icon:'🏥',html:`<strong>${leaveToday.length} người nghỉ hôm nay</strong>: ${leaveToday.map(n=>n.fromName).join(', ')}`});
+  }
+
+  if(!alerts.length){
+    alerts.push({cls:'green',icon:'✅',html:'<strong>Không có cảnh báo nào!</strong> Tất cả đang hoạt động bình thường.'});
+  }
+
+  document.getElementById('alert-count').textContent=alerts.length+' cảnh báo';
+  document.getElementById('alert-count').style.cssText=`background:${alerts.some(a=>a.cls==='red')?'var(--red-l)':'var(--orange-l)'};color:${alerts.some(a=>a.cls==='red')?'var(--red)':'var(--orange)'}`;
+  document.getElementById('alerts-body').innerHTML=alerts.map(a=>`<div class="alert ${a.cls}">${a.icon} <span>${a.html}</span></div>`).join('');
+}
+
+/* ===== TASK PROGRESS ===== */
+function renderTaskProgress(tasks){
+  document.getElementById('task-badge').textContent=tasks.length+' đầu việc';
+  if(!tasks.length){
+    document.getElementById('task-body').innerHTML='<div class="empty">Chưa có đầu việc nào được tạo.<br>Vào <a href="report.html" style="color:var(--purple)">Cổng báo cáo → Giao việc</a> để tạo.</div>';
+    return;
+  }
+  // Count by group of assignee
+  const byG={};
+  GROUPS.forEach(g=>{byG[g.num]={name:truncate(g.name,32),total:0,done:0,over:0,warn:0};});
+  tasks.forEach(t=>{
+    const s=STAFF.find(x=>x.id===t.assignedToId);
+    const grps=s&&s.groups&&s.groups.length?s.groups:[0];
+    grps.forEach(gn=>{
+      if(!byG[gn]) return;
+      byG[gn].total++;
+      if(t.status==='Hoàn thành'||t.status==='Đã duyệt') byG[gn].done++;
+      else if(daysLeft(t.deadline)<0) byG[gn].over++;
+      else if(daysLeft(t.deadline)<=3) byG[gn].warn++;
+    });
+  });
+  const rows=Object.values(byG).filter(g=>g.total>0).sort((a,b)=>b.total-a.total);
+  if(!rows.length){
+    document.getElementById('task-body').innerHTML='<div class="empty">Chưa phân công việc cho nhóm nào.</div>';
+    return;
+  }
+  document.getElementById('task-body').innerHTML=rows.map(g=>{
+    const pct=g.total?Math.round(g.done/g.total*100):0;
+    const fillCls=g.over>0?'over':g.warn>0?'warn':'';
+    return `<div class="tgrow">
+      <div class="tgrow-hdr"><span>${g.name}</span><span style="color:var(--muted);font-size:.68rem">${g.done}/${g.total} · ${pct}%</span></div>
+      <div class="tgrow-bar"><div class="tgrow-fill ${fillCls}" style="width:${pct}%"></div></div>
+      <div class="tgrow-sub">
+        <span>✅ ${g.done} xong</span>
+        ${g.over?`<span style="color:var(--red)">⏰ ${g.over} trễ</span>`:''}
+        ${g.warn?`<span style="color:var(--orange)">⚡ ${g.warn} sắp hết</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ===== DUTY SCHEDULE ===== */
+function renderDuty(schedule, notifs){
+  const d=new Date();
+  document.getElementById('duty-badge').textContent=`${DAYS_VI[d.getDay()]}, ${d.getDate()}/${d.getMonth()+1}`;
+
+  // From lich-truc.html localStorage
+  const byType={morning:[],night:[]};
+  Object.entries(schedule).forEach(([uid,type])=>{
+    const s=STAFF.find(x=>String(x.id)===String(uid));
+    const name=s?s.name:uid;
+    if(type==='morning'||type==='Trực sáng') byType.morning.push(name);
+    else if(type==='night'||type==='Trực đêm') byType.night.push(name);
+  });
+
+  // Supplement from Firebase notifs (lich-truc registrations)
+  const todayISO_val=todayISO();
+  notifs.filter(n=>n.date===todayISO_val&&(n.type==='morning'||n.type==='night')).forEach(n=>{
+    if(n.type==='morning'&&!byType.morning.includes(n.fromName)) byType.morning.push(n.fromName);
+    if(n.type==='night'&&!byType.night.includes(n.fromName)) byType.night.push(n.fromName);
+  });
+
+  if(!byType.morning.length&&!byType.night.length){
+    document.getElementById('duty-body').innerHTML=`<div class="empty">Không có dữ liệu lịch trực hôm nay.<br><small><a href="lich-truc.html" style="color:var(--purple)">Mở Lịch trực</a> để xem hoặc đăng ký trực.</small></div>`;
+    return;
+  }
+  let html='';
+  if(byType.morning.length) html+=`<div class="duty-row sang"><div class="duty-ca"><span class="duty-tag">Ca sáng</span><div class="duty-time">5h30–7h30</div></div><div class="duty-names">${byType.morning.join('<br>')}</div></div>`;
+  if(byType.night.length) html+=`<div class="duty-row dem"><div class="duty-ca"><span class="duty-tag">Trực đêm</span><div class="duty-time">22h–6h</div></div><div class="duty-names">${byType.night.join('<br>')}</div></div>`;
+  document.getElementById('duty-body').innerHTML=html;
+}
+
+/* ===== DAILY REPORTS ===== */
+function renderReports(daily){
+  const today=todayISO();
+  const todayRpts=daily.filter(r=>r.date===today||isToday(r.createdAt));
+  const reportedGrps=new Set(todayRpts.map(r=>r.authorGroup));
+  document.getElementById('rpt-badge').textContent=`${todayRpts.length}/10 nhóm`;
+
+  const gridHTML=GROUPS.map(g=>`
+    <div class="rpt-cell ${reportedGrps.has(g.num)?'ok':'miss'}">N${g.num}<br>${reportedGrps.has(g.num)?'✅':'❌'}</div>
+  `).join('');
+
+  const entriesHTML=todayRpts.length
+    ? todayRpts.slice(0,4).map(r=>`<div class="rpt-entry">
+        <div class="rpt-name">${r.reporter||'?'} · Nhóm ${r.authorGroup||'?'}</div>
+        ${r.done?`<div class="rpt-note">📌 ${truncate(r.done,90)}</div>`:''}
+        ${r.undone?`<div class="rpt-warn">⚠ Chưa xong: ${truncate(r.undone,70)}</div>`:''}
+        ${r.support&&r.support!=='Không'?`<div class="rpt-sos">🆘 ${truncate(r.support,70)}</div>`:''}
+      </div>`).join('')
+    : '<div class="empty" style="padding:.6rem">Chưa có báo cáo nào hôm nay.</div>';
+
+  document.getElementById('rpt-body').innerHTML=`<div class="rpt-grid">${gridHTML}</div>${entriesHTML}`;
+}
+
+/* ===== LEAVE ===== */
+function renderLeave(notifs){
+  const d=new Date();
+  const monthPfx=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  const thisMonth=notifs.filter(n=>n.date&&n.date.startsWith(monthPfx)&&(n.type==='leave'||n.type==='sick'));
+  document.getElementById('leave-badge').textContent=thisMonth.length+' lượt';
+
+  const phep=thisMonth.filter(n=>n.type==='leave').length;
+  const om=thisMonth.filter(n=>n.type==='sick').length;
+
+  // By person
+  const byP={};
+  thisMonth.forEach(n=>{
+    if(!byP[n.fromName]) byP[n.fromName]={phep:0,om:0};
+    if(n.type==='leave') byP[n.fromName].phep++;
+    else byP[n.fromName].om++;
+  });
+  const rows=Object.entries(byP).sort((a,b)=>(b[1].phep+b[1].om)-(a[1].phep+a[1].om));
+
+  document.getElementById('leave-body').innerHTML=`
+    <div class="leave-stat-row">
+      <div class="lstat" style="background:var(--blue-l)"><div class="lstat-n" style="color:var(--blue)">${phep}</div><div class="lstat-l">Nghỉ phép</div></div>
+      <div class="lstat" style="background:var(--red-l)"><div class="lstat-n" style="color:var(--red)">${om}</div><div class="lstat-l">Nghỉ ốm</div></div>
+      <div class="lstat" style="background:var(--purple-l)"><div class="lstat-n" style="color:var(--purple)">${thisMonth.length}</div><div class="lstat-l">Tổng lượt</div></div>
+    </div>
+    ${rows.length
+      ? rows.slice(0,7).map(([name,c])=>`<div class="leave-row">
+          <span style="flex:1">${name}</span>
+          ${c.phep?`<span class="ltag phep">Phép ×${c.phep}</span>`:''}
+          ${c.om?`<span class="ltag om">Ốm ×${c.om}</span>`:''}
+        </div>`).join('')
+      : '<div class="empty" style="padding:.5rem">Chưa có đăng ký nghỉ tháng này.</div>'
+    }
+  `;
+}
+
+/* ===== OVERDUE TABLE ===== */
+function renderOverdue(tasks){
+  const today=todayISO();
+  const concern=tasks.filter(t=>{
+    if(t.status==='Hoàn thành'||t.status==='Đã duyệt') return false;
+    return daysLeft(t.deadline)<=3;
+  }).sort((a,b)=>new Date(a.deadline)-new Date(b.deadline));
+
+  document.getElementById('over-badge').textContent=concern.length+' việc cần chú ý';
+
+  if(!concern.length){
+    document.getElementById('over-body').innerHTML='<div class="empty">✅ Không có đầu việc nào trễ hoặc sắp hết hạn!</div>';
+    return;
+  }
+  const rows=concern.map(t=>{
+    const dl=daysLeft(t.deadline);
+    const dlTxt=dl<0?`Trễ ${-dl} ngày`:dl===0?'Hôm nay!':dl===1?'Ngày mai':`Còn ${dl} ngày`;
+    const dlCls=dl<0?'color:var(--red);font-weight:700':dl===0?'color:var(--orange);font-weight:700':'color:var(--muted)';
+    const pct=t.progress||0;
+    const barClr=dl<0?'var(--red)':dl===0?'var(--orange)':'var(--yellow)';
+    const stBg={
+      'Chưa bắt đầu':'background:#f3f4f6;color:#6b7280',
+      'Đang thực hiện':'background:var(--blue-l);color:var(--blue)',
+    }[t.status]||'background:var(--green-l);color:var(--green)';
+    return `<tr>
+      <td><strong>${t.title}</strong>${t.desc?`<br><span style="color:var(--muted);font-size:.68rem">${truncate(t.desc,55)}</span>`:''}</td>
+      <td>${t.assignedToName}<br><span style="color:var(--muted);font-size:.68rem">Giao bởi: ${t.assignedByName}</span></td>
+      <td style="${dlCls}">${t.deadline}<br>${dlTxt}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:.4rem;">
+          <div class="pbar-wrap"><div class="pbar-fill" style="width:${pct}%;height:100%;background:${barClr};border-radius:999px;"></div></div>
+          <span style="font-size:.68rem;color:var(--muted)">${pct}%</span>
+        </div>
+      </td>
+      <td><span style="font-size:.69rem;padding:.12rem .5rem;border-radius:999px;font-weight:700;${stBg}">${t.status}</span></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('over-body').innerHTML=`<table class="mtable"><thead><tr><th>Tiêu đề công việc</th><th>Người thực hiện</th><th>Deadline</th><th>Tiến độ</th><th>Trạng thái</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+/* ===== CLOCK & DATE ===== */
+function updateClock(){
+  document.getElementById('live-clock').textContent=new Date().toLocaleTimeString('vi-VN');
+}
+function renderHeroDate(){
+  const d=new Date();
+  document.getElementById('h-day').textContent=DAYS_VI[d.getDay()];
+  document.getElementById('h-date').textContent=`${d.getDate()} ${MONTHS_VI[d.getMonth()]} ${d.getFullYear()}`;
+  const startY=new Date(d.getFullYear(),0,1);
+  const wk=Math.ceil(((d-startY)/86400000+startY.getDay()+1)/7);
+  document.getElementById('h-week').textContent=`Tuần ${wk} · ${d.getFullYear()}`;
+}
+
+/* ===== INIT ===== */
+document.addEventListener('DOMContentLoaded',()=>{
+  const s=getSession();
+  if(!s||!['lanh_dao','to_truong'].includes(s.role)){
+    document.getElementById('access-denied').style.display='block';
+    return;
+  }
+  document.getElementById('dash-main').style.display='block';
+  document.getElementById('btn-logout').style.display='block';
+  document.getElementById('hero-greeting').textContent=`📊 Xin chào, ${s.name}!`;
+  document.getElementById('hero-sub').textContent=`${s.position||''} – Phòng CNTT BVPSTW`;
+  renderHeroDate();
+  updateClock();
+  setInterval(updateClock,1000);
+  loadAll();
+  setInterval(loadAll,120000); // auto refresh mỗi 2 phút
+});
+</script>
+</body>
+</html>
