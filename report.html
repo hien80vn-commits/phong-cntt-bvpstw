@@ -299,6 +299,7 @@ a{color:inherit;text-decoration:none}
       <a href="index.html" class="btn-back">← Trang chủ</a>
       <span id="user-info" style="display:none"></span>
       <button class="btn-sm" id="btn-change-pw" onclick="openChangePw()" style="display:none">🔑 Đổi mật khẩu</button>
+      <button class="btn-sm" id="btn-reset-pw" onclick="openResetPwModal()" style="display:none;border-color:#E53935;color:#C62828;">🔒 Reset MK</button>
       <button class="btn-sm" id="btn-notif" onclick="openNotifPanel()" style="display:none;position:relative;padding:.35rem .7rem;font-size:1rem;">🔔<span id="notif-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:#E53935;color:#fff;font-size:.6rem;font-weight:800;border-radius:999px;min-width:16px;height:16px;line-height:16px;text-align:center;padding:0 3px;"></span></button>
       <button class="btn-sm" id="btn-logout" onclick="logout()" style="display:none;background:var(--purple);color:#fff;border-color:var(--purple);">Đăng xuất</button>
     </div>
@@ -797,6 +798,24 @@ a{color:inherit;text-decoration:none}
   </div>
 </div>
 
+<!-- Reset password modal (admin only) -->
+<div class="modal-overlay" id="reset-pw-modal" onclick="if(event.target===this)closeResetPwModal()">
+  <div class="modal" style="max-width:560px;width:95%;">
+    <div class="modal-head" style="background:linear-gradient(135deg,#C62828,#E53935);position:relative;">
+      <button onclick="closeResetPwModal()" style="position:absolute;top:.75rem;right:.75rem;background:rgba(255,255,255,.2);border:none;color:#fff;width:28px;height:28px;border-radius:50%;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+      <h3>🔒 Reset mật khẩu thành viên</h3>
+      <p>Mật khẩu mặc định sau reset: <strong>cntt2026</strong></p>
+    </div>
+    <div class="modal-body" style="padding:1.2rem 1.5rem;max-height:70vh;overflow-y:auto;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;gap:.75rem;flex-wrap:wrap;">
+        <input id="reset-pw-search" type="text" placeholder="🔍 Tìm tên nhân viên..." oninput="renderResetPwList()" style="flex:1;padding:.5rem .9rem;border:2px solid var(--border);border-radius:8px;font-size:.88rem;font-family:var(--font);outline:none;min-width:160px;">
+        <button onclick="resetAllPw()" style="padding:.5rem 1.1rem;background:#C62828;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:.85rem;cursor:pointer;white-space:nowrap;">⚠️ Reset tất cả</button>
+      </div>
+      <div id="reset-pw-list"></div>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -875,11 +894,29 @@ async function syncFromCloud(){
   const tv = await fbGet('tasks');
   if(tv&&tv!=='null'){ try{ localStorage.setItem('cntt_tasks',tv); }catch(e){} }
   await syncTaskNotifsFromCloud();
+  await syncPwFromCloud();
+}
+
+async function syncPwFromCloud(){
+  const v = await fbGet('passwords');
+  if(!v||v==='null') return;
+  try{
+    const obj = JSON.parse(v);
+    STAFF.forEach(s=>{
+      if(obj[s.id]!=null) localStorage.setItem(getPwKey(s.name), obj[s.id]);
+      else localStorage.removeItem(getPwKey(s.name)); // bị reset → dùng DEFAULT_PW
+    });
+  }catch(e){}
 }
 
 function getPwKey(n){ return 'cntt_pw_'+n; }
 function getUserPw(n){ return localStorage.getItem(getPwKey(n))||DEFAULT_PW; }
-function setUserPw(n,p){ localStorage.setItem(getPwKey(n),p); }
+function setUserPw(n,p){
+  localStorage.setItem(getPwKey(n),p);
+  // Sync lên Firebase theo staff ID
+  const s=STAFF.find(x=>x.name===n);
+  if(s) fbSet('passwords/'+s.id, p===DEFAULT_PW ? 'null' : JSON.stringify(p));
+}
 function getSession(){ try{return JSON.parse(sessionStorage.getItem('cntt_session'))||null;}catch(e){return null;} }
 function setSession(s){ sessionStorage.setItem('cntt_session',JSON.stringify(s)); }
 function clearSession(){ sessionStorage.removeItem('cntt_session'); }
@@ -1075,6 +1112,7 @@ function enterApp(session){
   document.getElementById('user-info').style.display='block';
   document.getElementById('btn-logout').style.display='block';
   document.getElementById('btn-change-pw').style.display='block';
+  document.getElementById('btn-reset-pw').style.display=(session.role==='lanh_dao'||session.role==='to_truong')?'':'none';
 
   // Welcome bar
   document.getElementById('wb-name').textContent='Xin chào, '+session.name+'!';
@@ -1509,6 +1547,62 @@ function doChangePw(){
   setUserPw(session.name,nw);
   closePwModal();
   showToast('✅ Đổi mật khẩu thành công!');
+}
+
+/* =====================================================
+   RESET PASSWORD (ADMIN)
+===================================================== */
+function openResetPwModal(){
+  document.getElementById('reset-pw-search').value='';
+  renderResetPwList();
+  document.getElementById('reset-pw-modal').classList.add('open');
+}
+function closeResetPwModal(){ document.getElementById('reset-pw-modal').classList.remove('open'); }
+
+function renderResetPwList(){
+  const q=(document.getElementById('reset-pw-search').value||'').toLowerCase();
+  const list=STAFF.filter(s=>!q||s.name.toLowerCase().includes(q));
+  const me=getSession();
+  let html='';
+  list.forEach(s=>{
+    const hasCustom=!!localStorage.getItem(getPwKey(s.name));
+    const isSelf=me&&me.name===s.name;
+    html+=`<div style="display:flex;align-items:center;justify-content:space-between;padding:.6rem .5rem;border-bottom:1px solid var(--border);gap:.5rem;">
+      <div>
+        <div style="font-weight:700;font-size:.9rem;">${s.name}</div>
+        <div style="font-size:.75rem;color:var(--muted);">${s.position} ${hasCustom?'<span style="color:#E65100;">• Đã đổi MK</span>':'<span style="color:#2E7D32;">• Đang dùng MK mặc định</span>'}</div>
+      </div>
+      <button onclick="resetOnePw('${s.name}'${isSelf?',true':''})"
+        style="padding:.38rem .9rem;background:${hasCustom?'#C62828':'#aaa'};color:#fff;border:none;border-radius:7px;font-size:.8rem;font-weight:700;cursor:pointer;white-space:nowrap;${hasCustom?'':'opacity:.55;cursor:default;'}"
+        ${hasCustom?'':'disabled'}>
+        ${hasCustom?'Reset':'Mặc định'}
+      </button>
+    </div>`;
+  });
+  if(!html) html='<div style="text-align:center;color:var(--muted);padding:1.5rem;">Không tìm thấy nhân viên</div>';
+  document.getElementById('reset-pw-list').innerHTML=html;
+}
+
+function resetOnePw(name, isSelf){
+  if(!confirm(`Reset mật khẩu của "${name}" về mặc định (cntt2026)?`)) return;
+  localStorage.removeItem(getPwKey(name));
+  // Xóa trên Firebase → khi đăng nhập sẽ dùng DEFAULT_PW
+  const s=STAFF.find(x=>x.name===name);
+  if(s) fbSet('passwords/'+s.id, 'null');
+  showToast(`✅ Đã reset mật khẩu "${name}" về cntt2026`);
+  renderResetPwList();
+  // Nếu reset chính mình → đăng xuất
+  if(isSelf){ setTimeout(()=>{ logout(); }, 1500); }
+}
+
+function resetAllPw(){
+  if(!confirm('Reset mật khẩu TẤT CẢ thành viên về mặc định (cntt2026)?\nHành động này không thể hoàn tác!')) return;
+  STAFF.forEach(s=>{
+    localStorage.removeItem(getPwKey(s.name));
+    fbSet('passwords/'+s.id, 'null');
+  });
+  showToast('✅ Đã reset mật khẩu tất cả thành viên về cntt2026');
+  renderResetPwList();
 }
 
 /* =====================================================
