@@ -421,10 +421,11 @@ function persistStaff(){ saveLS(LS.staff, staffList); }
 
 const MIN_DATE = new Date(2026, 5, 1); // Tháng 6/2026 — không cho điều hướng về trước
 let user = null;
-let curDate = new Date(2026, 5, 1);
-let curWeekStart = weekStart(new Date(2026, 5, 1));
-let curYear = 2026;
-let curMon = 5; // tháng 6 (0-indexed)
+const _today = new Date();
+let curDate = new Date(_today);
+let curWeekStart = weekStart(new Date(_today));
+let curYear = _today.getFullYear();
+let curMon = _today.getMonth();
 let calSelKey = null;
 let editingStaffId = null, deletingStaffId = null;
 
