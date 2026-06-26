@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lịch Trực – Phòng Công nghệ thông tin BVPSTW</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --purple:   #6B2D8B;
+  --purple-d: #4A1D62;
+  --purple-l: #9B59C0;
+  --pink:     #D63384;
+  --bg:       #F8F4FC;
+  --card:     #FFFFFF;
+  --text:     #1A1A2E;
+  --muted:    #6B7280;
+  --border:   #E5E0ED;
+  --shadow:   0 4px 24px rgba(107,45,139,.12);
+  --radius:   14px;
+  --font:     'Be Vietnam Pro', sans-serif;
+  --morning:  #1565C0;
+  --morning-bg: #E3F2FD;
+  --night:    #C62828;
+  --night-bg: #FFEBEE;
+  --leave-bg: #E8F5E9;
+  --leave:    #2E7D32;
+}
+html { scroll-behavior: smooth; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.6; }
+a { color: inherit; text-decoration: none; }
+ul { list-style: none; }
+button { font-family: var(--font); }
+
+/* NAVBAR (đồng bộ index.html) */
+.nav { position: sticky; top: 0; z-index: 999; background: rgba(255,255,255,.96); backdrop-filter: blur(12px); border-bottom: 2px solid var(--purple); box-shadow: 0 2px 16px rgba(107,45,139,.1); }
+.nav-inner { max-width: 1280px; margin: auto; display: flex; align-items: center; justify-content: space-between; padding: .75rem 1.5rem; gap: 1rem; flex-wrap: wrap; }
+.nav-brand { display: flex; align-items: center; gap: .75rem; }
+.nav-logo { width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, var(--purple), var(--pink)); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: 1.2rem; flex-shrink: 0; }
+.nav-title { line-height: 1.2; }
+.nav-title strong { display: block; font-size: .95rem; color: var(--purple); }
+.nav-title span { font-size: .75rem; color: var(--muted); }
+.nav-links { display: flex; gap: .25rem; flex-wrap: wrap; align-items: center; }
+.nav-links a { padding: .45rem .9rem; border-radius: 8px; font-size: .85rem; font-weight: 500; color: var(--text); transition: background .2s, color .2s; }
+.nav-links a:hover, .nav-links a.active { background: var(--purple); color: #fff; }
+.nav-user { display: none; align-items: center; gap: 8px; }
+.nav-user.show { display: flex; }
+.nav-ubadge { background: rgba(107,45,139,.1); color: var(--purple-d); font-size: .78rem; font-weight: 600; padding: .35rem .8rem; border-radius: 999px; }
+.nav-logout { background: var(--pink); color: #fff; border: none; padding: .4rem .9rem; border-radius: 8px; font-size: .78rem; font-weight: 600; cursor: pointer; }
+
+/* HERO */
+.page-hero { background: linear-gradient(135deg, var(--purple-d) 0%, var(--purple) 50%, var(--purple-l) 100%); color: #fff; padding: 2.5rem 1.5rem; text-align: center; }
+.page-hero h1 { font-size: clamp(1.4rem, 3vw, 2rem); font-weight: 800; margin-bottom: .4rem; }
+.page-hero p { font-size: .92rem; opacity: .9; max-width: 600px; margin: 0 auto; }
+
+.wrap { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
+.hide { display: none !important; }
+
+/* LOGIN */
+#login-screen { display: flex; align-items: center; justify-content: center; min-height: 60vh; padding: 2rem 1.5rem; }
+.login-box { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 2rem; width: 100%; max-width: 380px; border-top: 4px solid var(--purple); }
+.login-box h2 { font-size: 1.15rem; font-weight: 700; color: var(--purple-d); text-align: center; margin-bottom: .3rem; }
+.login-box .sub { font-size: .8rem; color: var(--muted); text-align: center; margin-bottom: 1.4rem; }
+.fg { margin-bottom: 1rem; }
+.fg label { font-size: .8rem; font-weight: 600; color: var(--purple-d); display: block; margin-bottom: .4rem; }
+.fg input, .fg select { width: 100%; padding: .6rem .9rem; border: 2px solid var(--border); border-radius: 10px; font-family: var(--font); font-size: .88rem; background: var(--bg); outline: none; color: var(--text); }
+.fg input:focus, .fg select:focus { border-color: var(--purple); background: #fff; }
+.login-err { font-size: .78rem; color: #c62828; margin-bottom: .8rem; display: none; }
+.login-hint { font-size: .72rem; color: var(--muted); text-align: center; margin-top: 1rem; }
+
+/* BUTTONS */
+.btn { padding: .55rem 1.1rem; border-radius: 10px; border: 2px solid var(--border); font-size: .82rem; font-weight: 600; cursor: pointer; background: #fff; color: var(--text); transition: .2s; }
+.btn-primary { background: linear-gradient(135deg,var(--purple),var(--pink)); color: #fff; border: none; width: 100%; }
+.btn-primary:hover { opacity: .9; }
+.btn-outline { background: #fff; color: var(--purple); border: 2px solid var(--purple); }
+.btn-outline:hover { background: var(--purple); color: #fff; }
+.btn-sm { padding: .3rem .7rem; font-size: .74rem; }
+.btn-danger { background: #C62828; color: #fff; border: none; }
+.btn-blue { background: var(--morning); color: #fff; border: none; }
+
+/* TABS */
+.tabs { display: flex; gap: .4rem; flex-wrap: wrap; border-bottom: 2px solid var(--border); margin-bottom: 1.5rem; padding-bottom: 0; }
+.tab-btn { padding: .65rem 1rem; font-size: .85rem; font-weight: 600; color: var(--muted); background: none; border: none; border-bottom: 3px solid transparent; cursor: pointer; }
+.tab-btn.active { color: var(--purple); border-bottom-color: var(--purple); }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* LEGEND */
+.legend { display: flex; gap: 1.2rem; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; }
+.legend .li { display: flex; align-items: center; gap: .4rem; font-size: .8rem; color: var(--muted); }
+.legend .dot { width: 12px; height: 12px; border-radius: 3px; }
+
+/* NAV ROW (đổi ngày/tuần/tháng) */
+.nrow { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: .5rem; }
+.nrow .lbl { font-size: 1rem; font-weight: 700; color: var(--purple-d); }
+.nav-btn { background: var(--bg); border: 2px solid var(--border); border-radius: 8px; padding: .4rem 1rem; cursor: pointer; font-size: .82rem; font-weight: 600; color: var(--text); }
+.nav-btn:hover { border-color: var(--purple); }
+
+/* DAY CARD */
+.day-card { border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; margin-bottom: 1rem; box-shadow: var(--shadow); }
+.day-card-hdr { padding: .8rem 1.1rem; font-size: .9rem; font-weight: 700; display: flex; align-items: center; justify-content: space-between; background: var(--bg); color: var(--purple-d); }
+.day-card-hdr.today { background: linear-gradient(135deg,var(--purple-d),var(--purple)); color: #fff; }
+.sblock { padding: .85rem 1.1rem; border-top: 1px solid var(--border); }
+.sblock.morning { background: var(--morning-bg); }
+.sblock.night { background: var(--night-bg); }
+.stitle { font-size: .76rem; font-weight: 700; margin-bottom: .5rem; }
+.stitle.m { color: var(--morning); }
+.stitle.n { color: var(--night); }
+.chips { display: flex; flex-wrap: wrap; gap: .35rem; }
+.chip { font-size: .78rem; padding: .25rem .7rem; border-radius: 999px; color: #fff; }
+.chip.m { background: var(--morning); }
+.chip.n { background: var(--night); }
+.chip.l { background: var(--leave); }
+.empty-txt { font-size: .8rem; color: var(--muted); }
+.leave-line { font-size: .76rem; color: var(--muted); margin-top: .5rem; padding-top: .5rem; border-top: 1px solid rgba(0,0,0,.06); }
+
+/* WEEK GRID */
+.wgrid { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); gap: .3rem; }
+.wcol { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.whdr { padding: .4rem .2rem; text-align: center; background: var(--bg); border-bottom: 1px solid var(--border); }
+.whdr.today { background: var(--purple); color: #fff; }
+.wdn { font-size: .68rem; color: var(--muted); font-weight: 600; }
+.whdr.today .wdn { color: rgba(255,255,255,.8); }
+.wnum { font-size: .85rem; font-weight: 700; color: var(--purple-d); }
+.whdr.today .wnum { color: #fff; }
+.wsb { padding: .3rem .25rem; }
+.wsb.m { background: var(--morning-bg); }
+.wsb.n { background: var(--night-bg); }
+.wsl { font-size: .6rem; font-weight: 700; margin-bottom: .15rem; }
+.wsl.m { color: var(--morning); }
+.wsl.n { color: var(--night); }
+.wn { font-size: .6rem; padding: .1rem .25rem; border-radius: 3px; margin-bottom: .15rem; display: block; line-height: 1.4; color: #fff; }
+.wn.m { background: var(--morning); }
+.wn.n { background: var(--night); }
+
+/* MONTH CALENDAR */
+.cal-grid { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); gap: .25rem; }
+.cdname { text-align: center; font-size: .7rem; color: var(--muted); font-weight: 600; padding: .3rem 0; }
+.ccell { border: 1px solid var(--border); border-radius: 8px; padding: .3rem .25rem; min-height: 64px; background: #fff; cursor: pointer; }
+.ccell:hover { border-color: var(--purple); }
+.ccell.today { border-color: var(--pink); border-width: 2px; }
+.ccell.sel { border-color: var(--purple); background: var(--bg); }
+.ccnum { font-size: .76rem; font-weight: 700; margin-bottom: .15rem; }
+.ccp { font-size: .6rem; padding: .05rem .2rem; border-radius: 2px; margin-bottom: .1rem; display: block; line-height: 1.4; }
+.ccp.m { background: var(--morning-bg); color: var(--morning); }
+.ccp.n { background: var(--night-bg); color: var(--night); }
+.ccp.ok { background: var(--leave-bg); color: var(--leave); }
+.ccp.warn { background: #FFCDD2; color: #B71C1C; }
+.dpanel { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin-top: 1rem; box-shadow: var(--shadow); }
+
+/* STATS */
+.stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: .6rem; margin-bottom: 1.2rem; }
+.stats-row.s3 { grid-template-columns: repeat(3,1fr); }
+.scard { background: var(--bg); border-radius: 10px; padding: .8rem .6rem; text-align: center; }
+.scard .sn { font-size: 1.3rem; font-weight: 800; color: var(--purple); display: block; }
+.scard .sl { font-size: .68rem; color: var(--muted); margin-top: .1rem; }
+
+/* TABLE */
+.tbl-wrap { overflow-x: auto; }
+.tbl { width: 100%; border-collapse: collapse; font-size: .8rem; }
+.tbl th { text-align: left; padding: .5rem .6rem; color: var(--muted); font-weight: 600; border-bottom: 2px solid var(--border); background: var(--bg); white-space: nowrap; }
+.tbl td { padding: .5rem .6rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.tbl tr:hover td { background: var(--bg); }
+.avatar { width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: .68rem; font-weight: 700; color: #fff; background: linear-gradient(135deg,var(--purple-d),var(--purple-l)); flex-shrink: 0; }
+.badge { display: inline-block; font-size: .68rem; padding: .15rem .55rem; border-radius: 999px; font-weight: 600; }
+.b-nam { background: var(--morning-bg); color: var(--morning); }
+.b-nu { background: #FCE4EC; color: #AD1457; }
+.b-active { background: var(--leave-bg); color: var(--leave); }
+.b-inactive { background: #FFEBEE; color: #C62828; }
+.b-admin { background: #FFF3CD; color: #92600A; }
+
+/* TOOLBAR */
+.toolbar { display: flex; align-items: center; justify-content: space-between; gap: .6rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.search-box { flex: 1; min-width: 160px; padding: .55rem .9rem; border: 2px solid var(--border); border-radius: 999px; font-size: .82rem; font-family: var(--font); outline: none; background: #fff; }
+.search-box:focus { border-color: var(--purple); }
+.fselect { padding: .5rem .7rem; border: 2px solid var(--border); border-radius: 8px; font-size: .78rem; font-family: var(--font); background: #fff; color: var(--text); }
+
+/* ALERTS */
+.alert { padding: .65rem .9rem; border-radius: 10px; font-size: .8rem; margin-bottom: 1rem; }
+.alert-info { background: var(--morning-bg); color: var(--morning); }
+.alert-warn { background: #FFF3CD; color: #92600A; }
+
+/* ASSIGN CHIPS */
+.achip { font-size: .78rem; padding: .3rem .7rem; border-radius: 999px; border: 2px solid var(--border); background: #fff; cursor: pointer; margin: 0 .25rem .35rem 0; display: inline-block; color: var(--text); }
+.achip.sel-m { background: var(--morning); color: #fff; border-color: var(--morning); }
+.achip.sel-n { background: var(--night); color: #fff; border-color: var(--night); }
+.achip.disabled { opacity: .35; cursor: default; }
+
+/* MODAL */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 1rem; opacity: 0; pointer-events: none; transition: opacity .25s; }
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal { background: #fff; border-radius: var(--radius); max-width: 480px; width: 100%; max-height: 88vh; overflow-y: auto; box-shadow: 0 10px 50px rgba(0,0,0,.3); }
+.modal-hdr { background: linear-gradient(135deg,var(--purple-d),var(--purple)); color: #fff; padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between; }
+.modal-hdr h3 { font-size: 1rem; font-weight: 700; }
+.modal-close { background: rgba(255,255,255,.2); border: none; color: #fff; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 1rem; }
+.modal-body { padding: 1.1rem 1.25rem; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; margin-bottom: .7rem; }
+.fg.full { grid-column: 1/-1; }
+.modal-footer { display: flex; gap: .6rem; justify-content: flex-end; padding: .9rem 1.25rem; border-top: 1px solid var(--border); }
+.detail-row { display: flex; justify-content: space-between; padding: .5rem 0; border-bottom: 1px solid var(--border); font-size: .82rem; }
+.detail-row:last-child { border-bottom: none; }
+.detail-row .lbl2 { color: var(--muted); }
+.detail-row .val2 { font-weight: 600; text-align: right; }
+
+/* FOOTER */
+.footer { background: var(--purple-d); color: rgba(255,255,255,.75); text-align: center; padding: 1.8rem 1.5rem; margin-top: 2rem; }
+.footer p { font-size: .8rem; margin-bottom: .2rem; }
+
+@media (max-width: 768px) {
+  .nav-links { display: none; }
+  .form-grid { grid-template-columns: 1fr; }
+  .stats-row { grid-template-columns: repeat(2,1fr); }
+}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-brand">
+      <div class="nav-logo">IT</div>
+      <div class="nav-title">
+        <strong>Phòng Công nghệ thông tin</strong>
+        <span>Bệnh viện Phụ Sản Trung Ương</span>
+      </div>
+    </div>
+    <div class="nav-links">
+      <a href="index.html">Trang chủ</a>
+      <a href="index.html#staff">Nhân sự</a>
+      <a href="lich-truc.html" class="active">🗓️ Lịch trực</a>
+      <a href="report.html" style="background:var(--pink);color:#fff;">📋 Cổng báo cáo</a>
+      <div class="nav-user" id="nav-user">
+        <span class="nav-ubadge" id="nav-ubadge"></span>
+        <button class="nav-logout" onclick="doLogout()">Đăng xuất</button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <h1>🗓️ Hệ thống Lịch Trực Phòng CNTT</h1>
+  <p>Sắp xếp lịch trực vận hành 24/7 — Ca sáng 5h30–7h30 (5 người) · Ca đêm 16h30–5h30 (2 người) — mỗi người tối đa 1 ca sáng + 1 ca đêm / tuần.</p>
+</div>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <h2>Đăng nhập hệ thống lịch trực</h2>
+    <p class="sub">Sử dụng tài khoản nhân sự Phòng CNTT</p>
+    <div class="fg"><label>Chọn họ tên</label><select id="sel-u"><option value="">-- Chọn tên --</option></select></div>
+    <div class="fg"><label>Mã PIN &nbsp;(Quản trị: 0000 · Nhân viên: 1234)</label><input type="password" id="inp-pin" maxlength="4" placeholder="Nhập PIN"></div>
+    <div class="login-err" id="lerr">PIN không đúng, vui lòng thử lại.</div>
+    <button class="btn btn-primary" onclick="doLogin()">Đăng nhập</button>
+    <p class="login-hint">PIN mặc định theo vai trò. Có thể đề nghị Tổ trưởng công tác đổi PIN riêng nếu cần.</p>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="main-wrap" class="hide">
+  <div class="wrap">
+    <div class="tabs" id="tabs"></div>
+    <div id="panel-host"></div>
+  </div>
+</div>
+
+<footer class="footer">
+  <p>🏥 Phòng Công nghệ thông tin — Bệnh viện Phụ Sản Trung Ương</p>
+  <p>Số 1 Triệu Quốc Đạt, Phường Cửa Nam, Hà Nội &nbsp;|&nbsp; 024.3939.3353 &nbsp;|&nbsp; cntt@bvpstw.vn</p>
+</footer>
+
+<!-- STAFF FORM MODAL -->
+<div class="modal-overlay" id="modal-staff">
+  <div class="modal">
+    <div class="modal-hdr"><h3 id="sf-title">Thêm nhân viên</h3><button class="modal-close" onclick="closeModal('modal-staff')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="fg full"><label>Họ và tên *</label><input id="sf-name" type="text" placeholder="Nguyễn Văn A"></div>
+        <div class="fg"><label>Giới tính *</label><select id="sf-gender"><option>Nam</option><option>Nữ</option></select></div>
+        <div class="fg"><label>Ngày sinh</label><input id="sf-dob" type="date"></div>
+        <div class="fg"><label>Chức danh / Ngạch *</label><input id="sf-title2" type="text" placeholder="Kỹ sư, Chuyên viên..."></div>
+        <div class="fg"><label>Chức vụ</label><input id="sf-position" type="text" placeholder="Trưởng nhóm, Trưởng phòng..."></div>
+        <div class="fg"><label>Năm vào viện *</label><input id="sf-year" type="number" min="1990" max="2030" placeholder="2020"></div>
+        <div class="fg"><label>Loại hợp đồng</label><select id="sf-contract"><option value="VC">Viên chức</option><option value="HĐ">Hợp đồng</option></select></div>
+        <div class="fg full"><label>Trạng thái trực</label><select id="sf-status"><option>Đang trực</option><option>Tạm nghỉ trực (lãnh đạo/dài hạn)</option><option>Nghỉ việc</option></select></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal('modal-staff')">Hủy</button><button class="btn btn-primary" style="width:auto;" onclick="saveStaff()">Lưu</button></div>
+  </div>
+</div>
+
+<!-- CONFIRM DELETE -->
+<div class="modal-overlay" id="modal-del">
+  <div class="modal" style="max-width:360px;">
+    <div class="modal-hdr"><h3>Xác nhận xóa</h3><button class="modal-close" onclick="closeModal('modal-del')">✕</button></div>
+    <div class="modal-body"><p id="del-msg" style="font-size:.85rem;color:var(--muted);"></p></div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal('modal-del')">Hủy</button><button class="btn btn-danger" onclick="confirmDeleteStaff()">Xóa</button></div>
+  </div>
+</div>
+
+<!-- STAFF DETAIL -->
+<div class="modal-overlay" id="modal-detail">
+  <div class="modal">
+    <div class="modal-hdr"><h3 id="dt-name">—</h3><button class="modal-close" onclick="closeModal('modal-detail')">✕</button></div>
+    <div class="modal-body" id="dt-body"></div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal('modal-detail')">Đóng</button><button class="btn btn-blue" id="dt-edit-btn">Sửa thông tin</button></div>
+  </div>
+</div>
+
+<!-- QUICK ASSIGN -->
+<div class="modal-overlay" id="modal-assign">
+  <div class="modal">
+    <div class="modal-hdr"><h3 id="ma-title">Phân công ca trực</h3><button class="modal-close" onclick="closeModal('modal-assign')">✕</button></div>
+    <div class="modal-body">
+      <div class="alert alert-info" id="ma-info"></div>
+      <p style="font-size:.78rem;font-weight:700;color:var(--purple-d);margin-bottom:.4rem;">Ca sáng — chọn đúng 5 người</p>
+      <div id="ma-chips-m"></div>
+      <p style="font-size:.78rem;font-weight:700;color:var(--purple-d);margin:.8rem 0 .4rem;">Ca đêm — chọn đúng 2 người</p>
+      <div id="ma-chips-n"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-assign')">Hủy</button>
+      <button class="btn btn-outline" onclick="reAutoModal()">Tự động</button>
+      <button class="btn btn-primary" style="width:auto;" onclick="saveModalAssign()">Lưu</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =====================================================
+   DỮ LIỆU NHÂN SỰ THẬT — đồng bộ từ index.html (STAFF)
+   Khi cập nhật nhân sự trên index.html, hãy cập nhật tương ứng ở đây
+   hoặc dùng tab "Nhân sự" (Admin) để thêm/sửa/xóa — dữ liệu được lưu
+   riêng trong localStorage của trang lịch trực.
+===================================================== */
+const BASE_STAFF = [
+  {id:1, name:'Nguyễn Văn Cường',     position:'',                   title:'Kỹ sư',         degree:'Thạc sĩ',  gender:'Nam', contract:'VC', year:2011},
+  {id:2, name:'Vương Hoàng Linh',     position:'Trưởng phòng',       title:'Kế toán viên',  degree:'Đại học',  gender:'Nam', contract:'VC', year:2011},
+  {id:3, name:'Nguyễn Thị Thu Hiền',  position:'Tổ trưởng công tác', title:'Kỹ sư',         degree:'Đại học',  gender:'Nữ',  contract:'VC', year:2011},
+  {id:4, name:'Phan Quang Huy',       position:'Trưởng nhóm',        title:'Kỹ sư',         degree:'Thạc sĩ',  gender:'Nam', contract:'VC', year:2010},
+  {id:5, name:'Nguyễn Quỳnh Ngọc',    position:'Phó Trưởng phòng',   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2011},
+  {id:6, name:'Nguyễn Ngọc Anh',      position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2011},
+  {id:7, name:'Lê Thị Việt Hương',    position:'Trưởng nhóm',        title:'Chuyên viên',   degree:'Thạc sĩ',  gender:'Nữ',  contract:'VC', year:2011},
+  {id:8, name:'Hoàng Thị Ngọc Yến',   position:'Trưởng nhóm',        title:'Kỹ sư',         degree:'Đại học',  gender:'Nữ',  contract:'VC', year:2011},
+  {id:9, name:'Đàm Văn Thành',        position:'Trưởng nhóm',        title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2012},
+  {id:10,name:'Phan Thanh Hiếu',      position:'',                   title:'Kỹ thuật viên', degree:'Cao đẳng', gender:'Nam', contract:'VC', year:2012},
+  {id:11,name:'Bạch Lê Thắng',        position:'Trưởng nhóm',        title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2012},
+  {id:12,name:'Trần Hoàng Dương',     position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2013},
+  {id:13,name:'Đoàn Quốc Trung',      position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2014},
+  {id:14,name:'Nguyễn Thanh Tùng',    position:'',                   title:'Kế toán viên',  degree:'Đại học',  gender:'Nam', contract:'VC', year:2014},
+  {id:15,name:'Vũ Trung Kiên',        position:'Trưởng nhóm',        title:'Chuyên viên',   degree:'Đại học',  gender:'Nam', contract:'VC', year:2016},
+  {id:16,name:'Nguyễn Hữu Quân',      position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2017},
+  {id:17,name:'Phan Tiến Dũng',       position:'Trưởng nhóm',        title:'Kỹ sư',         degree:'Thạc sĩ',  gender:'Nam', contract:'VC', year:2017},
+  {id:18,name:'Nguyễn Đức Thịnh',     position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2017},
+  {id:19,name:'Nguyễn Thị Ngọc Anh',  position:'Trưởng nhóm',        title:'Chuyên viên',   degree:'Đại học',  gender:'Nữ',  contract:'VC', year:2017},
+  {id:20,name:'Hoàng Hải Anh',        position:'Trưởng nhóm',        title:'Chuyên viên',   degree:'Đại học',  gender:'Nữ',  contract:'VC', year:2018},
+  {id:21,name:'Phạm Ngọc Linh',       position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nữ',  contract:'VC', year:2018},
+  {id:22,name:'Nguyễn Đăng Tùng',     position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'HĐ', year:2018},
+  {id:23,name:'Bùi Thị Hồng Hạnh',    position:'',                   title:'Chuyên viên',   degree:'Đại học',  gender:'Nữ',  contract:'VC', year:2018},
+  {id:24,name:'Nguyễn Tuấn Linh',     position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'HĐ', year:2018},
+  {id:25,name:'Lê Thị Thanh Thanh',   position:'Trưởng nhóm',        title:'Chuyên viên',   degree:'Đại học',  gender:'Nữ',  contract:'VC', year:2018},
+  {id:26,name:'Quách Trường Giang',   position:'',                   title:'Chuyên viên',   degree:'Đại học',  gender:'Nam', contract:'VC', year:2022},
+  {id:27,name:'Nguyễn Quỳnh Anh',     position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nữ',  contract:'HĐ', year:2022},
+  {id:28,name:'Cao Thị Thuý',         position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nữ',  contract:'HĐ', year:2024},
+  {id:29,name:'Hoàng Long',           position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'HĐ', year:2024},
+  {id:30,name:'Nguyễn Hoàng Hiệp',    position:'',                   title:'Kỹ thuật viên', degree:'Đại học',  gender:'Nam', contract:'VC', year:null},
+  {id:31,name:'Nguyễn Văn Công',      position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:null},
+  {id:32,name:'Bùi Thị Kim Oanh',     position:'',                   title:'Chuyên viên',   degree:'Đại học',  gender:'Nữ',  contract:'HĐ', year:2025},
+];
+const ADMIN_POSITIONS = ['Trưởng phòng','Phó Trưởng phòng','Tổ trưởng công tác'];
+
+const LS = {
+  staff: 'cntt_duty_staff',
+  schedule: 'cntt_duty_schedule',
+  regs: 'cntt_duty_regs',
+};
+
+function loadLS(key, fallback){ try{ const v = JSON.parse(localStorage.getItem(key)); return v===null||v===undefined ? fallback : v; }catch(e){ return fallback; } }
+function saveLS(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
+
+let staffList = loadLS(LS.staff, null);
+if(!staffList){
+  staffList = BASE_STAFF.map(s=>({
+    id:s.id, name:s.name, gender:s.gender, dob:'', title:s.title, position:s.position,
+    year:s.year, contract:s.contract, status:'Đang trực'
+  }));
+  saveLS(LS.staff, staffList);
+}
+let nextStaffId = Math.max(...staffList.map(s=>s.id), 0) + 1;
+
+let schedule = loadLS(LS.schedule, {});
+let regs = loadLS(LS.regs, []);
+function persistSchedule(){ saveLS(LS.schedule, schedule); }
+function persistRegs(){ saveLS(LS.regs, regs); }
+function persistStaff(){ saveLS(LS.staff, staffList); }
+
+let user = null;
+let curDate = new Date();
+let curWeekStart = weekStart(new Date());
+let curYear = new Date().getFullYear();
+let curMon = new Date().getMonth();
+let calSelKey = null;
+let editingStaffId = null, deletingStaffId = null;
+
+const MONS=["Tháng 1","Tháng 2","Tháng 3","Tháng 4","Tháng 5","Tháng 6","Tháng 7","Tháng 8","Tháng 9","Tháng 10","Tháng 11","Tháng 12"];
+const DOW_S=["CN","T2","T3","T4","T5","T6","T7"];
+const DOW_F=["Chủ nhật","Thứ Hai","Thứ Ba","Thứ Tư","Thứ Năm","Thứ Sáu","Thứ Bảy"];
+
+function pad(n){return String(n).padStart(2,'0');}
+function dk(y,m,d){return `${y}-${pad(m+1)}-${pad(d)}`;}
+function todayDK(){const t=new Date();return dk(t.getFullYear(),t.getMonth(),t.getDate());}
+function weekStart(date){const d=new Date(date);const day=d.getDay();d.setDate(d.getDate()-(day===0?6:day-1));d.setHours(0,0,0,0);return d;}
+function getWeekNum(y,m,d){const dt=new Date(y,m,d);const j=new Date(y,0,1);return Math.ceil(((dt-j)/86400000+j.getDay()+1)/7);}
+function activeStaff(){return staffList.filter(s=>s.status==='Đang trực');}
+function staffById(id){return staffList.find(s=>s.id===id);}
+function nameById(id){const s=staffById(id);return s?s.name:'?';}
+function initials(name){const p=name.trim().split(' ');return p.length>=2?(p[p.length-2][0]+p[p.length-1][0]).toUpperCase():name[0].toUpperCase();}
+function calcAge(dob){if(!dob)return null;const b=new Date(dob);const n=new Date();let a=n.getFullYear()-b.getFullYear();if(n.getMonth()<b.getMonth()||(n.getMonth()===b.getMonth()&&n.getDate()<b.getDate()))a--;return a;}
+function calcTN(y){return y?(new Date().getFullYear()-y)+' năm':'—';}
+function fmtDob(dob){if(!dob)return'Chưa cập nhật';const p=dob.split('-');return p[2]+'/'+p[1]+'/'+p[0];}
+function isAdminPosition(pos){return ADMIN_POSITIONS.includes(pos);}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+
+/* ===== LỊCH TRỰC: thuật toán phân công ===== */
+function weekShifts(staffId, baseDate){
+  const ws = weekStart(baseDate);
+  let mc=0, nc=0;
+  for(let i=0;i<7;i++){
+    const dd=new Date(ws); dd.setDate(ws.getDate()+i);
+    const key=dk(dd.getFullYear(),dd.getMonth(),dd.getDate());
+    const s=schedule[key]||{morning:[],night:[]};
+    if(s.morning.includes(staffId)) mc++;
+    if(s.night.includes(staffId)) nc++;
+  }
+  return {morning:mc, night:nc};
+}
+function autoAssignDay(key, baseDt){
+  const active = activeStaff().map(s=>s.id);
+  const lv = regs.filter(r=>r.date===key&&r.type==='leave').map(r=>r.staffId);
+  const wM = regs.filter(r=>r.date===key&&r.type==='morning').map(r=>r.staffId);
+  const wN = regs.filter(r=>r.date===key&&r.type==='night').map(r=>r.staffId);
+  let morning=[], night=[];
+  const canM=(id)=>!lv.includes(id)&&!morning.includes(id)&&weekShifts(id,baseDt).morning<1;
+  const canN=(id)=>!lv.includes(id)&&!morning.includes(id)&&!night.includes(id)&&weekShifts(id,baseDt).night<1;
+  for(const id of wM){ if(morning.length<5 && active.includes(id) && canM(id)) morning.push(id); }
+  const pool = active.filter(i=>!lv.includes(i)&&!morning.includes(i)).sort((a,b)=>weekShifts(a,baseDt).morning-weekShifts(b,baseDt).morning);
+  for(const id of pool){ if(morning.length>=5) break; if(canM(id)) morning.push(id); }
+  for(const id of wN){ if(night.length<2 && active.includes(id) && canN(id)) night.push(id); }
+  const pool2 = active.filter(i=>!lv.includes(i)&&!morning.includes(i)&&!night.includes(i)).sort((a,b)=>weekShifts(a,baseDt).night-weekShifts(b,baseDt).night);
+  for(const id of pool2){ if(night.length>=2) break; if(canN(id)) night.push(id); }
+  schedule[key] = {morning, night};
+}
+function autoRange(sd, ed){
+  const cur = new Date(sd);
+  while(cur<=ed){
+    const key = dk(cur.getFullYear(),cur.getMonth(),cur.getDate());
+    if(!schedule[key]) autoAssignDay(key, new Date(cur));
+    cur.setDate(cur.getDate()+1);
+  }
+  persistSchedule();
+}
+function initSchedule(){
+  const now = new Date();
+  const s = new Date(now.getFullYear(), now.getMonth()-1, 1);
+  const e = new Date(now.getFullYear(), now.getMonth()+2, 0);
+  autoRange(s, e);
+}
+
+/* ===== LOGIN ===== */
+function populateSel(){
+  const sel = document.getElementById('sel-u');
+  sel.innerHTML = '<option value="">-- Chọn tên --</option>';
+  [...staffList].sort((a,b)=>a.name.localeCompare(b.name)).forEach(s=>{
+    const o = document.createElement('option');
+    o.value = s.id;
+    o.textContent = (isAdminPosition(s.position)?'[Quản trị] ':'') + s.name;
+    sel.appendChild(o);
+  });
+}
+function doLogin(){
+  const uid = document.getElementById('sel-u').value;
+  const pin = document.getElementById('inp-pin').value;
+  if(!uid){ alert('Vui lòng chọn tên!'); return; }
+  const s = staffById(+uid); if(!s) return;
+  const isAdmin = isAdminPosition(s.position);
+  if(pin !== (isAdmin ? '0000' : '1234')){ document.getElementById('lerr').style.display='block'; return; }
+  document.getElementById('lerr').style.display='none';
+  user = {id:s.id, name:s.name, isAdmin};
+  document.getElementById('login-screen').classList.add('hide');
+  document.getElementById('main-wrap').classList.remove('hide');
+  document.getElementById('nav-user').classList.add('show');
+  document.getElementById('nav-ubadge').textContent = (isAdmin?'⭐ ':'') + user.name;
+  buildTabs();
+  showTab('day');
+}
+function doLogout(){
+  user = null;
+  document.getElementById('main-wrap').classList.add('hide');
+  document.getElementById('nav-user').classList.remove('show');
+  document.getElementById('login-screen').classList.remove('hide');
+  document.getElementById('inp-pin').value = '';
+  populateSel();
+}
+
+/* ===== TABS ===== */
+function buildTabs(){
+  const nav = document.getElementById('tabs'); nav.innerHTML = '';
+  const tabs = [
+    {id:'day', label:'Theo ngày'}, {id:'week', label:'Theo tuần'}, {id:'month', label:'Theo tháng'},
+    {id:'mine', label:'Lịch của tôi'}, {id:'reg', label:'Đăng ký'},
+  ];
+  if(user.isAdmin) tabs.push({id:'staff', label:'👥 Nhân sự'}, {id:'assign', label:'⚙️ Phân công'}, {id:'overview', label:'📊 Tổng quan'});
+  tabs.forEach(t=>{
+    const b = document.createElement('button');
+    b.className='tab-btn'; b.textContent=t.label; b.id='tb-'+t.id;
+    b.onclick=()=>showTab(t.id);
+    nav.appendChild(b);
+  });
+}
+function showTab(id){
+  document.querySelectorAll('.tab-btn').forEach(e=>e.classList.remove('active'));
+  const tb = document.getElementById('tb-'+id); if(tb) tb.classList.add('active');
+  const host = document.getElementById('panel-host'); host.innerHTML = '';
+  ({
+    day:()=>renderDay(host), week:()=>renderWeek(host), month:()=>renderMonth(host),
+    mine:()=>renderMine(host), reg:()=>renderReg(host),
+    staff:()=>renderStaffDir(host), assign:()=>renderAssign(host), overview:()=>renderOverview(host)
+  }[id]||function(){})();
+}
+
+/* ===== SHARED HTML ===== */
+function legendHTML(){return `<div class="legend"><div class="li"><div class="dot" style="background:var(--morning);"></div>Ca sáng 5h30–7h30 (5 người)</div><div class="li"><div class="dot" style="background:var(--night);"></div>Ca đêm 16h30–5h30 (2 người)</div></div>`;}
+function chipsHTML(ids, cls){ return ids.length ? ids.map(id=>`<span class="chip ${cls}">${nameById(id)}</span>`).join('') : '<span class="empty-txt">Chưa phân công đủ</span>'; }
+function dayBlockHTML(key, s, lv, isT, prefix){
+  const p=key.split('-'); const dt=new Date(+p[0],+p[1]-1,+p[2]);
+  const label=(prefix?prefix+': ':'')+DOW_F[dt.getDay()]+', '+p[2]+'/'+p[1]+'/'+p[0]+(isT?' — Hôm nay':'');
+  const editBtn = user.isAdmin ? `<button class="btn btn-sm btn-blue" onclick="openQuickAssign('${key}')">Sửa</button>` : '';
+  return `<div class="day-card">
+    <div class="day-card-hdr${isT?' today':''}"><span>${label}</span><div style="display:flex;align-items:center;gap:.5rem;"><span style="font-size:.7rem;opacity:.75;">Tuần ${getWeekNum(+p[0],+p[1]-1,+p[2])}</span>${editBtn}</div></div>
+    <div class="sblock morning"><div class="stitle m">CA SÁNG 5h30–7h30 (${s.morning.length}/5)</div><div class="chips">${chipsHTML(s.morning,'m')}</div></div>
+    <div class="sblock night"><div class="stitle n">CA ĐÊM 16h30–5h30 (${s.night.length}/2)</div><div class="chips">${chipsHTML(s.night,'n')}</div>${lv.length?`<div class="leave-line">Nghỉ: ${lv.map(r=>nameById(r.staffId)).join(', ')}</div>`:''}</div>
+  </div>`;
+}
+
+/* ===== THEO NGÀY ===== */
+function renderDay(c){
+  c.innerHTML = legendHTML() + `<div class="nrow"><button class="nav-btn" onclick="chDay(-1)">◀ Trước</button><span class="lbl" id="dl"></span><button class="nav-btn" onclick="chDay(1)">Sau ▶</button></div><div id="day-c"></div>`;
+  paintDay();
+}
+function chDay(d){ curDate=new Date(curDate); curDate.setDate(curDate.getDate()+d); paintDay(); }
+function paintDay(){
+  const y=curDate.getFullYear(),m=curDate.getMonth(),d=curDate.getDate();
+  const key=dk(y,m,d); const s=schedule[key]||{morning:[],night:[]}; const lv=regs.filter(r=>r.date===key&&r.type==='leave');
+  document.getElementById('dl').textContent = `${DOW_F[curDate.getDay()]}, ${d}/${m+1}/${y}`;
+  let html = dayBlockHTML(key, s, lv, key===todayDK());
+  [-1,1].forEach(off=>{
+    const dd=new Date(curDate); dd.setDate(dd.getDate()+off);
+    const pk=dk(dd.getFullYear(),dd.getMonth(),dd.getDate());
+    const ps=schedule[pk]||{morning:[],night:[]}; const pl=regs.filter(r=>r.date===pk&&r.type==='leave');
+    html += `<div style="opacity:.6;">${dayBlockHTML(pk, ps, pl, false, off<0?'Ngày trước':'Ngày sau')}</div>`;
+  });
+  document.getElementById('day-c').innerHTML = html;
+}
+
+/* ===== THEO TUẦN ===== */
+function renderWeek(c){
+  c.innerHTML = legendHTML() + `<div class="nrow"><button class="nav-btn" onclick="chWeek(-1)">◀ Tuần trước</button><span class="lbl" id="wl"></span><button class="nav-btn" onclick="chWeek(1)">Tuần sau ▶</button></div><div class="stats-row s3"><div class="scard"><div class="sn" style="color:var(--morning);" id="wms">0</div><div class="sl">Lượt ca sáng</div></div><div class="scard"><div class="sn" style="color:var(--night);" id="wns">0</div><div class="sl">Lượt ca đêm</div></div><div class="scard"><div class="sn" style="color:var(--leave);" id="wlv">0</div><div class="sl">Lượt nghỉ</div></div></div><div class="tbl-wrap"><div class="wgrid" style="min-width:520px;" id="wg"></div></div><div id="wd" style="margin-top:1.2rem;"></div>`;
+  paintWeek();
+}
+function chWeek(d){ curWeekStart=new Date(curWeekStart); curWeekStart.setDate(curWeekStart.getDate()+d*7); paintWeek(); }
+function paintWeek(){
+  const ws=new Date(curWeekStart); const we=new Date(ws); we.setDate(ws.getDate()+6);
+  document.getElementById('wl').textContent = `Tuần ${getWeekNum(ws.getFullYear(),ws.getMonth(),ws.getDate())} — ${ws.getDate()}/${ws.getMonth()+1} đến ${we.getDate()}/${we.getMonth()+1}/${we.getFullYear()}`;
+  let tM=0,tN=0,tL=0,gh='',dh='';
+  for(let i=0;i<7;i++){
+    const dd=new Date(ws); dd.setDate(ws.getDate()+i);
+    const y=dd.getFullYear(),m=dd.getMonth(),d=dd.getDate();
+    const key=dk(y,m,d); const s=schedule[key]||{morning:[],night:[]}; const lv=regs.filter(r=>r.date===key&&r.type==='leave');
+    const isT=key===todayDK(); tM+=s.morning.length; tN+=s.night.length; tL+=lv.length;
+    gh += `<div class="wcol"><div class="whdr${isT?' today':''}"><div class="wdn">${DOW_S[dd.getDay()]}</div><div class="wnum">${d}/${m+1}</div></div>
+      <div class="wsb m"><div class="wsl m">SÁNG</div>${s.morning.map(id=>`<span class="wn m">${nameById(id)}</span>`).join('')||'<span class="wn" style="background:transparent;color:var(--muted);">—</span>'}</div>
+      <div class="wsb n"><div class="wsl n">ĐÊM</div>${s.night.map(id=>`<span class="wn n">${nameById(id)}</span>`).join('')||'<span class="wn" style="background:transparent;color:var(--muted);">—</span>'}</div>
+    </div>`;
+    dh += `<div style="margin-bottom:.7rem;">${dayBlockHTML(key, s, lv, isT)}</div>`;
+  }
+  document.getElementById('wg').innerHTML = gh; document.getElementById('wd').innerHTML = dh;
+  document.getElementById('wms').textContent = tM; document.getElementById('wns').textContent = tN; document.getElementById('wlv').textContent = tL;
+}
+
+/* ===== THEO THÁNG ===== */
+function renderMonth(c){
+  c.innerHTML = legendHTML() + `<div class="nrow"><button class="nav-btn" onclick="chMon(-1)">◀ Trước</button><span class="lbl" id="ml"></span><button class="nav-btn" onclick="chMon(1)">Sau ▶</button></div><div class="cal-grid" id="cdn"></div><div class="cal-grid" style="margin-top:.25rem;" id="cells"></div><div id="dpanel" class="hide"><div id="dc"></div></div>`;
+  paintMonth();
+}
+function chMon(d){ curMon+=d; if(curMon>11){curMon=0;curYear++;} if(curMon<0){curMon=11;curYear--;} calSelKey=null; paintMonth(); }
+function paintMonth(){
+  document.getElementById('ml').textContent = MONS[curMon]+' '+curYear;
+  const dn = document.getElementById('cdn'); dn.innerHTML='';
+  ['T2','T3','T4','T5','T6','T7','CN'].forEach(n=>{ const d=document.createElement('div'); d.className='cdname'; d.textContent=n; dn.appendChild(d); });
+  const cells = document.getElementById('cells'); cells.innerHTML='';
+  const fd = new Date(curYear,curMon,1).getDay(); const off = fd===0?6:fd-1;
+  const dim = new Date(curYear,curMon+1,0).getDate();
+  for(let i=0;i<off;i++){ const d=document.createElement('div'); d.style.minHeight='64px'; cells.appendChild(d); }
+  const today = todayDK();
+  for(let d=1;d<=dim;d++){
+    const key=dk(curYear,curMon,d); const s=schedule[key]||{morning:[],night:[]};
+    const myM=s.morning.includes(user.id), myN=s.night.includes(user.id);
+    const myL=regs.some(r=>r.date===key&&r.staffId===user.id&&r.type==='leave');
+    const mOk=s.morning.length>=5, nOk=s.night.length>=2;
+    const cell=document.createElement('div');
+    cell.className = 'ccell'+(key===today?' today':'')+(calSelKey===key?' sel':'');
+    let h = `<div class="ccnum">${d}</div>`;
+    if(myM) h+=`<span class="ccp m">Ca sáng</span>`; if(myN) h+=`<span class="ccp n">Ca đêm</span>`; if(myL) h+=`<span class="ccp ok">Nghỉ</span>`;
+    h += `<span class="ccp ${mOk?'ok':'warn'}">${s.morning.length}/5s</span>`;
+    h += `<span class="ccp ${nOk?'ok':'warn'}" style="${nOk?'background:#FCE4EC;color:#AD1457;':''}">${s.night.length}/2đ</span>`;
+    cell.innerHTML = h;
+    cell.onclick = ()=>{ calSelKey=key; paintMonth(); showCalDetail(key,d); };
+    cells.appendChild(cell);
+  }
+  if(calSelKey) document.getElementById('dpanel').classList.remove('hide');
+}
+function showCalDetail(key,d){
+  const s = schedule[key]||{morning:[],night:[]}; const lv = regs.filter(r=>r.date===key&&r.type==='leave');
+  const p = key.split('-'); const dt = new Date(+p[0],+p[1]-1,d);
+  document.getElementById('dc').innerHTML = `
+    <p style="font-weight:700;font-size:.9rem;color:var(--purple-d);margin-bottom:.7rem;">${DOW_F[dt.getDay()]}, ${d}/${curMon+1}/${curYear}${key===todayDK()?' — Hôm nay':''}</p>
+    <div class="sblock morning" style="border-radius:8px;margin-bottom:.5rem;border-top:none;"><div class="stitle m">CA SÁNG (${s.morning.length}/5)</div><div class="chips">${chipsHTML(s.morning,'m')}</div></div>
+    <div class="sblock night" style="border-radius:8px;border-top:none;"><div class="stitle n">CA ĐÊM (${s.night.length}/2)</div><div class="chips">${chipsHTML(s.night,'n')}</div>${lv.length?`<div class="leave-line">Nghỉ: ${lv.map(r=>nameById(r.staffId)).join(', ')}</div>`:''}</div>
+    ${user.isAdmin?`<button class="btn btn-sm btn-blue" style="margin-top:.7rem;" onclick="openQuickAssign('${key}')">Phân công lại ngày này</button>`:''}
+  `;
+  document.getElementById('dpanel').classList.remove('hide');
+}
+
+/* ===== LỊCH CỦA TÔI ===== */
+function renderMine(c){
+  const dim = new Date(curYear,curMon+1,0).getDate();
+  let mc=0,nc=0,lc=0,html='';
+  for(let d=1;d<=dim;d++){
+    const key=dk(curYear,curMon,d); const s=schedule[key]||{morning:[],night:[]};
+    const isM=s.morning.includes(user.id), isN=s.night.includes(user.id), isL=regs.some(r=>r.date===key&&r.staffId===user.id&&r.type==='leave');
+    if(isM)mc++; if(isN)nc++; if(isL)lc++;
+    if(isM||isN||isL){
+      const dt=new Date(curYear,curMon,d); const wc=weekShifts(user.id,dt);
+      html += `<div style="display:flex;align-items:center;justify-content:space-between;padding:.55rem 0;border-bottom:1px solid var(--border);font-size:.85rem;">
+        <span>${DOW_S[dt.getDay()]} ${d}/${curMon+1} <span style="font-size:.72rem;color:var(--muted);">(tuần: ${wc.morning} sáng / ${wc.night} đêm)</span></span>
+        <div class="chips">${isM?'<span class="chip m">Ca sáng</span>':''}${isN?'<span class="chip n">Ca đêm</span>':''}${isL?'<span class="chip l">Nghỉ</span>':''}</div>
+      </div>`;
+    }
+  }
+  const sv = staffById(user.id);
+  c.innerHTML = `<div class="alert alert-info"><b>${user.name}</b> — ${sv?sv.title:''}${sv&&sv.position?' · '+sv.position:''} &nbsp;|&nbsp; Vào viện: ${sv?(sv.year||'—'):''} &nbsp;|&nbsp; Thâm niên: ${sv?calcTN(sv.year):''}</div>
+  <div class="stats-row s3"><div class="scard"><div class="sn" style="color:var(--morning);">${mc}</div><div class="sl">Ca sáng ${MONS[curMon]}</div></div><div class="scard"><div class="sn" style="color:var(--night);">${nc}</div><div class="sl">Ca đêm</div></div><div class="scard"><div class="sn" style="color:var(--leave);">${lc}</div><div class="sl">Nghỉ</div></div></div>
+  ${html||'<p class="empty-txt">Không có ca trực nào tháng này.</p>'}`;
+}
+
+/* ===== ĐĂNG KÝ ===== */
+function renderReg(c){
+  const td = new Date().toISOString().split('T')[0];
+  c.innerHTML = `<p style="font-weight:700;color:var(--purple-d);margin-bottom:.8rem;">Đăng ký ca trực / nghỉ phép</p>
+  <div class="alert alert-info">Hệ thống ưu tiên nguyện vọng khi phân công tự động. Đăng ký nghỉ sẽ tự xóa bạn khỏi ca trực ngày đó.</div>
+  <div class="fg"><label>Chọn ngày</label><input type="date" id="rdate" value="${td}"></div>
+  <div class="fg"><label>Loại đăng ký</label><select id="rtype"><option value="morning">Muốn trực sáng (5h30–7h30)</option><option value="night">Muốn trực đêm (16h30–5h30)</option><option value="leave">Nghỉ phép / ốm</option></select></div>
+  <div class="fg"><label>Ghi chú</label><input type="text" id="rnote" placeholder="Lý do, ghi chú..."></div>
+  <button class="btn btn-primary" style="width:auto;" onclick="submitReg()">Gửi đăng ký</button>
+  <div class="dpanel" style="margin-top:1.2rem;"><p style="font-weight:700;font-size:.85rem;color:var(--purple-d);margin-bottom:.6rem;">Đăng ký của tôi</p><div id="myregs"></div></div>`;
+  paintRegs();
+}
+function submitReg(){
+  const date=document.getElementById('rdate').value, type=document.getElementById('rtype').value, note=document.getElementById('rnote').value;
+  if(!date){ alert('Chọn ngày!'); return; }
+  if(regs.find(r=>r.staffId===user.id&&r.date===date&&r.type===type)){ alert('Bạn đã đăng ký rồi!'); return; }
+  regs.push({staffId:user.id, date, type, note}); persistRegs();
+  if(type==='leave'){ const s=schedule[date]; if(s){ s.morning=s.morning.filter(i=>i!==user.id); s.night=s.night.filter(i=>i!==user.id); persistSchedule(); } }
+  document.getElementById('rnote').value=''; paintRegs(); alert('Đã gửi đăng ký!');
+}
+function paintRegs(){
+  const el = document.getElementById('myregs'); if(!el) return;
+  const mine = regs.filter(r=>r.staffId===user.id);
+  const tl = {morning:'Ca sáng', night:'Ca đêm', leave:'Nghỉ phép'};
+  el.innerHTML = mine.length ? mine.map(r=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:.5rem 0;border-bottom:1px solid var(--border);font-size:.8rem;">
+    <span><b>${r.date}</b> &nbsp;<span class="chip ${r.type==='leave'?'l':r.type==='morning'?'m':'n'}">${tl[r.type]}</span>${r.note?` <span style="color:var(--muted);">${r.note}</span>`:''}</span>
+    <button class="btn btn-sm" onclick="delReg('${r.date}','${r.type}')">Xóa</button>
+  </div>`).join('') : '<p class="empty-txt">Chưa có đăng ký nào.</p>';
+}
+function delReg(date,type){ regs = regs.filter(r=>!(r.staffId===user.id&&r.date===date&&r.type===type)); persistRegs(); paintRegs(); }
+
+/* ===== NHÂN SỰ (ADMIN) ===== */
+function renderStaffDir(c){
+  c.innerHTML = `<div class="stats-row" id="st-stats"></div>
+  <div class="toolbar">
+    <input class="search-box" id="st-search" placeholder="🔍 Tìm tên, chức danh..." oninput="paintStaffTable()">
+    <div style="display:flex;gap:.4rem;flex-wrap:wrap;">
+      <select class="fselect" id="st-fgender" onchange="paintStaffTable()"><option value="">Tất cả giới tính</option><option>Nam</option><option>Nữ</option></select>
+      <select class="fselect" id="st-fstatus" onchange="paintStaffTable()"><option value="">Tất cả trạng thái</option><option>Đang trực</option><option>Tạm nghỉ trực (lãnh đạo/dài hạn)</option><option>Nghỉ việc</option></select>
+      <button class="btn btn-primary" style="width:auto;" onclick="openAddStaff()">+ Thêm nhân viên</button>
+    </div>
+  </div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>#</th><th>Họ tên</th><th>GT</th><th>Ngày sinh</th><th>Chức danh / Ngạch</th><th>Vào viện</th><th>Thâm niên</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody id="st-tbody"></tbody></table></div>
+  <div id="st-empty" style="text-align:center;padding:2rem;color:var(--muted);display:none;">Không tìm thấy nhân viên nào.</div>`;
+  paintStaffTable();
+}
+function paintStaffTable(){
+  const q=(document.getElementById('st-search').value||'').toLowerCase();
+  const fg=document.getElementById('st-fgender').value, fs=document.getElementById('st-fstatus').value;
+  let list = staffList.filter(s=>{
+    const mq = s.name.toLowerCase().includes(q) || s.title.toLowerCase().includes(q) || (s.position||'').toLowerCase().includes(q);
+    return mq && (!fg||s.gender===fg) && (!fs||s.status===fs);
+  });
+  const total=staffList.length, nam=staffList.filter(s=>s.gender==='Nam').length, nu=staffList.filter(s=>s.gender==='Nữ').length, active=activeStaff().length;
+  document.getElementById('st-stats').innerHTML = `<div class="scard"><div class="sn">${total}</div><div class="sl">Tổng nhân sự</div></div><div class="scard"><div class="sn" style="color:var(--morning);">${nam}</div><div class="sl">Nam</div></div><div class="scard"><div class="sn" style="color:#AD1457;">${nu}</div><div class="sl">Nữ</div></div><div class="scard"><div class="sn" style="color:var(--leave);">${active}</div><div class="sl">Đang trực</div></div>`;
+  const tbody = document.getElementById('st-tbody'); const empty = document.getElementById('st-empty');
+  if(!list.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  tbody.innerHTML = list.map((s,idx)=>{
+    const isAdm = isAdminPosition(s.position);
+    const statusCls = s.status==='Đang trực'?'b-active':'b-inactive';
+    return `<tr>
+      <td style="color:var(--muted);">${idx+1}</td>
+      <td><div style="display:flex;align-items:center;gap:.5rem;"><div class="avatar">${initials(s.name)}</div><div><div style="font-weight:600;">${s.name}</div>${isAdm?`<span class="badge b-admin">${s.position}</span>`:s.position?`<span style="font-size:.7rem;color:var(--muted);">${s.position}</span>`:''}</div></div></td>
+      <td><span class="badge ${s.gender==='Nam'?'b-nam':'b-nu'}">${s.gender}</span></td>
+      <td>${fmtDob(s.dob)}</td>
+      <td style="font-size:.76rem;">${s.title}</td>
+      <td>${s.year||'—'}</td>
+      <td>${calcTN(s.year)}</td>
+      <td><span class="badge ${statusCls}">${s.status}</span></td>
+      <td><div style="display:flex;gap:.25rem;"><button class="btn btn-sm btn-blue" onclick="openDetailStaff(${s.id})">Xem</button><button class="btn btn-sm" onclick="openEditStaff(${s.id})">Sửa</button><button class="btn btn-sm btn-danger" onclick="openDelStaff(${s.id})">Xóa</button></div></td>
+    </tr>`;
+  }).join('');
+}
+function openAddStaff(){
+  editingStaffId=null;
+  document.getElementById('sf-title').textContent='Thêm nhân viên mới';
+  document.getElementById('sf-name').value=''; document.getElementById('sf-gender').value='Nam'; document.getElementById('sf-dob').value='';
+  document.getElementById('sf-title2').value='Kỹ sư'; document.getElementById('sf-position').value='';
+  document.getElementById('sf-year').value=new Date().getFullYear(); document.getElementById('sf-contract').value='VC'; document.getElementById('sf-status').value='Đang trực';
+  openModal('modal-staff');
+}
+function openEditStaff(id){
+  const s=staffById(id); if(!s) return; editingStaffId=id;
+  document.getElementById('sf-title').textContent='Sửa thông tin nhân viên';
+  document.getElementById('sf-name').value=s.name; document.getElementById('sf-gender').value=s.gender; document.getElementById('sf-dob').value=s.dob||'';
+  document.getElementById('sf-title2').value=s.title; document.getElementById('sf-position').value=s.position||'';
+  document.getElementById('sf-year').value=s.year||''; document.getElementById('sf-contract').value=s.contract||'VC'; document.getElementById('sf-status').value=s.status||'Đang trực';
+  openModal('modal-staff');
+}
+function saveStaff(){
+  const name=document.getElementById('sf-name').value.trim();
+  const gender=document.getElementById('sf-gender').value;
+  const dob=document.getElementById('sf-dob').value;
+  const title=document.getElementById('sf-title2').value.trim();
+  const position=document.getElementById('sf-position').value.trim();
+  const year=parseInt(document.getElementById('sf-year').value)||null;
+  const contract=document.getElementById('sf-contract').value;
+  const status=document.getElementById('sf-status').value;
+  if(!name){ alert('Nhập họ tên!'); return; }
+  if(!title){ alert('Nhập chức danh / ngạch!'); return; }
+  if(editingStaffId){
+    const idx=staffList.findIndex(x=>x.id===editingStaffId);
+    if(idx>=0) staffList[idx]={...staffList[idx], name, gender, dob, title, position, year, contract, status};
+  } else {
+    staffList.push({id:nextStaffId++, name, gender, dob, title, position, year, contract, status});
+  }
+  persistStaff(); closeModal('modal-staff'); paintStaffTable(); populateSel();
+}
+function openDelStaff(id){
+  const s=staffById(id); if(!s) return; deletingStaffId=id;
+  document.getElementById('del-msg').innerHTML = `Bạn có chắc muốn xóa <b>${s.name}</b>? Nhân viên này sẽ bị xóa khỏi danh sách và toàn bộ ca trực đã phân công.`;
+  openModal('modal-del');
+}
+function confirmDeleteStaff(){
+  staffList = staffList.filter(x=>x.id!==deletingStaffId);
+  Object.values(schedule).forEach(s=>{ s.morning=s.morning.filter(i=>i!==deletingStaffId); s.night=s.night.filter(i=>i!==deletingStaffId); });
+  regs = regs.filter(r=>r.staffId!==deletingStaffId);
+  persistStaff(); persistSchedule(); persistRegs();
+  deletingStaffId=null; closeModal('modal-del'); paintStaffTable(); populateSel();
+}
+function openDetailStaff(id){
+  const s=staffById(id); if(!s) return;
+  const dim=new Date(curYear,curMon+1,0).getDate();
+  let mc=0,nc=0;
+  for(let d=1;d<=dim;d++){ const sch=schedule[dk(curYear,curMon,d)]||{morning:[],night:[]}; if(sch.morning.includes(s.id))mc++; if(sch.night.includes(s.id))nc++; }
+  document.getElementById('dt-name').textContent = s.name;
+  document.getElementById('dt-body').innerHTML = `
+    <div class="detail-row"><span class="lbl2">Giới tính</span><span class="val2">${s.gender}</span></div>
+    <div class="detail-row"><span class="lbl2">Ngày sinh</span><span class="val2">${fmtDob(s.dob)}</span></div>
+    <div class="detail-row"><span class="lbl2">Chức danh / Ngạch</span><span class="val2">${s.title}</span></div>
+    <div class="detail-row"><span class="lbl2">Chức vụ</span><span class="val2">${s.position||'Nhân viên'}</span></div>
+    <div class="detail-row"><span class="lbl2">Loại hợp đồng</span><span class="val2">${s.contract==='VC'?'Viên chức':'Hợp đồng'}</span></div>
+    <div class="detail-row"><span class="lbl2">Năm vào viện</span><span class="val2">${s.year||'—'}</span></div>
+    <div class="detail-row"><span class="lbl2">Thâm niên</span><span class="val2">${calcTN(s.year)}</span></div>
+    <div class="detail-row"><span class="lbl2">Trạng thái trực</span><span class="val2">${s.status}</span></div>
+    <div class="detail-row"><span class="lbl2">Ca sáng ${MONS[curMon]}</span><span class="val2" style="color:var(--morning);">${mc} ca</span></div>
+    <div class="detail-row"><span class="lbl2">Ca đêm ${MONS[curMon]}</span><span class="val2" style="color:var(--night);">${nc} ca</span></div>
+  `;
+  document.getElementById('dt-edit-btn').onclick = ()=>{ closeModal('modal-detail'); openEditStaff(id); };
+  openModal('modal-detail');
+}
+
+/* ===== PHÂN CÔNG (ADMIN) ===== */
+let aSelM=new Set(), aSelN=new Set();
+function renderAssign(c){
+  const td=new Date().toISOString().split('T')[0];
+  c.innerHTML = `<p style="font-weight:700;color:var(--purple-d);margin-bottom:.8rem;">Phân công thủ công</p>
+  <div class="alert alert-warn">Thay đổi sẽ ghi đè lịch tự động. Hệ thống vẫn kiểm tra giới hạn 1 ca sáng + 1 ca đêm / người / tuần.</div>
+  <div class="fg"><label>Chọn ngày</label><input type="date" id="asgn-dt" value="${td}" onchange="renderAChips()"></div>
+  <div class="alert alert-info" id="wlinfo" style="margin-top:.6rem;"></div>
+  <p style="font-size:.78rem;font-weight:700;color:var(--purple-d);margin-bottom:.4rem;">Ca sáng — chọn đúng 5 người</p><div id="chips-m"></div>
+  <p style="font-size:.78rem;font-weight:700;color:var(--purple-d);margin:.8rem 0 .4rem;">Ca đêm — chọn đúng 2 người</p><div id="chips-n"></div>
+  <div style="display:flex;gap:.6rem;margin-top:1rem;"><button class="btn btn-primary" style="width:auto;" onclick="saveAssign()">Lưu phân công</button><button class="btn btn-outline" onclick="reAutoDay2()">Tự động lại</button></div>
+  <div id="ares" style="margin-top:.6rem;font-size:.82rem;"></div>`;
+  renderAChips();
+}
+function renderAChips(){
+  const dv = document.getElementById('asgn-dt'); if(!dv||!dv.value) return;
+  const dateVal = dv.value;
+  const s = schedule[dateVal]||{morning:[],night:[]}; aSelM=new Set(s.morning); aSelN=new Set(s.night);
+  const p = dateVal.split('-'); const baseDt = new Date(+p[0],+p[1]-1,+p[2]);
+  document.getElementById('wlinfo').textContent = `Kiểm tra giới hạn 1 ca sáng + 1 ca đêm / tuần cho ngày ${p[2]}/${p[1]}/${p[0]}.`;
+  const cm = document.getElementById('chips-m'), cn = document.getElementById('chips-n'); cm.innerHTML=''; cn.innerHTML='';
+  activeStaff().forEach(st=>{
+    const wc = weekShifts(st.id, baseDt);
+    const lv = regs.some(r=>r.date===dateVal&&r.staffId===st.id&&r.type==='leave');
+    const mDis = lv || (wc.morning>=1 && !aSelM.has(st.id));
+    const nDis = lv || (wc.night>=1 && !aSelN.has(st.id));
+    const mc = document.createElement('span');
+    mc.className = 'achip' + (aSelM.has(st.id)?' sel-m':'') + (mDis?' disabled':'');
+    mc.textContent = st.name + (lv?' (nghỉ)':wc.morning>=1&&!aSelM.has(st.id)?' (đã trực)':'');
+    mc.onclick = ()=>{ if(mDis) return; aSelM.has(st.id)?aSelM.delete(st.id):(aSelM.size<5?aSelM.add(st.id):alert('Tối đa 5 người!')); renderAChips(); };
+    cm.appendChild(mc);
+    const nc = document.createElement('span');
+    nc.className = 'achip' + (aSelN.has(st.id)?' sel-n':'') + (nDis?' disabled':'');
+    nc.textContent = st.name + (lv?' (nghỉ)':wc.night>=1&&!aSelN.has(st.id)?' (đã trực)':'');
+    nc.onclick = ()=>{ if(nDis) return; aSelN.has(st.id)?aSelN.delete(st.id):(aSelN.size<2?aSelN.add(st.id):alert('Tối đa 2 người!')); renderAChips(); };
+    cn.appendChild(nc);
+  });
+}
+function saveAssign(){
+  const dv = document.getElementById('asgn-dt'); if(!dv||!dv.value){ alert('Chọn ngày!'); return; }
+  schedule[dv.value] = {morning:[...aSelM], night:[...aSelN]}; persistSchedule();
+  document.getElementById('ares').innerHTML = `<span style="color:var(--leave);">Đã lưu: ${aSelM.size} ca sáng, ${aSelN.size} ca đêm ngày ${dv.value}</span>`;
+}
+function reAutoDay2(){
+  const dv = document.getElementById('asgn-dt'); if(!dv||!dv.value){ alert('Chọn ngày!'); return; }
+  delete schedule[dv.value];
+  const p = dv.value.split('-'); autoAssignDay(dv.value, new Date(+p[0],+p[1]-1,+p[2])); persistSchedule();
+  renderAChips();
+  document.getElementById('ares').innerHTML = `<span style="color:var(--leave);">Đã tự động phân công lại ngày ${dv.value}</span>`;
+}
+
+/* ===== QUICK ASSIGN MODAL ===== */
+let maSelM=new Set(), maSelN=new Set(), maDate='';
+function openQuickAssign(key){
+  maDate=key; const p=key.split('-'); const dt=new Date(+p[0],+p[1]-1,+p[2]);
+  document.getElementById('ma-title').textContent = `Phân công: ${DOW_F[dt.getDay()]} ${p[2]}/${p[1]}/${p[0]}`;
+  const s = schedule[key]||{morning:[],night:[]};
+  document.getElementById('ma-info').textContent = `Hiện tại: ${s.morning.length}/5 ca sáng, ${s.night.length}/2 ca đêm.`;
+  maSelM = new Set(s.morning); maSelN = new Set(s.night);
+  paintMAChips(key, dt); openModal('modal-assign');
+}
+function paintMAChips(key, dt){
+  const cm = document.getElementById('ma-chips-m'), cn = document.getElementById('ma-chips-n'); cm.innerHTML=''; cn.innerHTML='';
+  activeStaff().forEach(st=>{
+    const wc = weekShifts(st.id, dt);
+    const lv = regs.some(r=>r.date===key&&r.staffId===st.id&&r.type==='leave');
+    const mDis = lv || (wc.morning>=1 && !maSelM.has(st.id));
+    const nDis = lv || (wc.night>=1 && !maSelN.has(st.id));
+    const mc = document.createElement('span');
+    mc.className = 'achip' + (maSelM.has(st.id)?' sel-m':'') + (mDis?' disabled':'');
+    mc.textContent = st.name + (lv?' (nghỉ)':wc.morning>=1&&!maSelM.has(st.id)?' (đã trực)':'');
+    mc.onclick = ()=>{ if(mDis) return; maSelM.has(st.id)?maSelM.delete(st.id):(maSelM.size<5?maSelM.add(st.id):alert('Tối đa 5!')); paintMAChips(key,dt); };
+    cm.appendChild(mc);
+    const nc = document.createElement('span');
+    nc.className = 'achip' + (maSelN.has(st.id)?' sel-n':'') + (nDis?' disabled':'');
+    nc.textContent = st.name + (lv?' (nghỉ)':wc.night>=1&&!maSelN.has(st.id)?' (đã trực)':'');
+    nc.onclick = ()=>{ if(nDis) return; maSelN.has(st.id)?maSelN.delete(st.id):(maSelN.size<2?maSelN.add(st.id):alert('Tối đa 2!')); paintMAChips(key,dt); };
+    cn.appendChild(nc);
+  });
+}
+function reAutoModal(){
+  const p = maDate.split('-'); delete schedule[maDate];
+  autoAssignDay(maDate, new Date(+p[0],+p[1]-1,+p[2])); persistSchedule();
+  const s = schedule[maDate]||{morning:[],night:[]}; maSelM=new Set(s.morning); maSelN=new Set(s.night);
+  paintMAChips(maDate, new Date(+p[0],+p[1]-1,+p[2]));
+}
+function saveModalAssign(){
+  schedule[maDate] = {morning:[...maSelM], night:[...maSelN]}; persistSchedule();
+  closeModal('modal-assign');
+  const activeTab = document.querySelector('.tab-btn.active');
+  if(activeTab) showTab(activeTab.id.replace('tb-',''));
+}
+
+/* ===== TỔNG QUAN (ADMIN) ===== */
+function renderOverview(c){
+  const dim = new Date(curYear,curMon+1,0).getDate();
+  let html=''; let curWk=-1;
+  for(let d=1;d<=dim;d++){
+    const key=dk(curYear,curMon,d); const s=schedule[key]||{morning:[],night:[]}; const lv=regs.filter(r=>r.date===key&&r.type==='leave');
+    const mOk=s.morning.length>=5, nOk=s.night.length>=2;
+    const dt=new Date(curYear,curMon,d); const wn=getWeekNum(curYear,curMon,d);
+    if(wn!==curWk){ curWk=wn; html+=`<div style="font-size:.78rem;font-weight:700;color:var(--muted);padding:.5rem 0 .25rem;border-top:1px solid var(--border);margin-top:.4rem;">Tuần ${wn}</div>`; }
+    html += `<div style="margin-bottom:.6rem;border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+      <div style="padding:.5rem .8rem;background:var(--bg);display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-weight:700;font-size:.82rem;color:var(--purple-d);">${DOW_S[dt.getDay()]} ${d}/${curMon+1}</span>
+        <div style="display:flex;gap:.3rem;align-items:center;">
+          <span class="badge ${mOk?'b-active':'b-inactive'}">${s.morning.length}/5 sáng</span>
+          <span class="badge ${nOk?'b-active':'b-inactive'}">${s.night.length}/2 đêm</span>
+          ${lv.length?`<span class="badge" style="background:#FFF3CD;color:#92600A;">Nghỉ: ${lv.length}</span>`:''}
+          <button class="btn btn-sm btn-blue" onclick="openQuickAssign('${key}')">Sửa</button>
+        </div>
+      </div>
+      <div class="sblock morning" style="border-top:1px solid var(--border);padding:.55rem .8rem;"><div class="stitle m" style="font-size:.68rem;">CA SÁNG</div><div class="chips">${chipsHTML(s.morning,'m')}</div></div>
+      <div class="sblock night" style="padding:.55rem .8rem;"><div class="stitle n" style="font-size:.68rem;">CA ĐÊM</div><div class="chips">${chipsHTML(s.night,'n')}</div></div>
+    </div>`;
+  }
+  c.innerHTML = `<p style="font-weight:700;color:var(--purple-d);margin-bottom:.8rem;">Tổng quan lịch trực — ${MONS[curMon]} ${curYear}</p>
+  <div class="stats-row"><div class="scard"><div class="sn">${dim}</div><div class="sl">Ngày</div></div><div class="scard"><div class="sn" style="color:var(--morning);">${dim*5}</div><div class="sl">Lượt sáng cần</div></div><div class="scard"><div class="sn" style="color:var(--night);">${dim*2}</div><div class="sl">Lượt đêm cần</div></div><div class="scard"><div class="sn" style="color:var(--leave);">${activeStaff().length}</div><div class="sl">NV đang trực</div></div></div>
+  ${html}`;
+}
+
+/* ===== INIT ===== */
+populateSel();
+initSchedule();
+</script>
+</body>
+</html>
