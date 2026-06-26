@@ -2209,7 +2209,7 @@ function getAssignableStaff(){
   if(s.role==='leader'){
     // Find own groups
     const myGroups=GROUPS.filter(g=>g.leaderId===s.id).map(g=>g.num);
-    return STAFF.filter(m=>m.id!==s.id && m.groups && m.groups.some(gn=>myGroups.includes(gn)));
+    return STAFF.filter(m=>m.id!==s.id && getEffectiveGroups(m.id).some(gn=>myGroups.includes(gn)));
   }
   return [];
 }
@@ -2222,7 +2222,7 @@ function initTaskForm(){
   // Group by nhóm
   const grouped={};
   list.forEach(m=>{
-    const gLabel=m.groups&&m.groups.length?m.groups.map(gn=>{const g=GROUPS.find(gg=>gg.num===gn);return g?g.name:'';}).join(', '):'Không có nhóm';
+    const effG=getEffectiveGroups(m.id); const gLabel=effG.length?effG.map(gn=>{const g=GROUPS.find(gg=>gg.num===gn);return g?g.name:'';}).join(', '):'Không có nhóm';
     if(!grouped[gLabel]) grouped[gLabel]=[];
     grouped[gLabel].push(m);
   });
