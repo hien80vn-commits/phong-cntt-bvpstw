@@ -1615,7 +1615,8 @@ function loadInbox(){
   } else if(session.role==='to_truong'){
     arr=arr.filter(r=>r.targetLevel==='to_truong');
   } else if(session.role==='lanh_dao'){
-    arr=arr.filter(r=>r.targetLevel==='lanh_dao');
+    // Lãnh đạo thấy tất cả báo cáo (kể cả báo cáo nhân viên gửi lên nhóm trưởng/tổ trưởng)
+    arr=arr.filter(r=>r.authorId!==session.id);
   } else {
     arr=[];
   }
