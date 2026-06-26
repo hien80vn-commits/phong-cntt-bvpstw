@@ -763,6 +763,18 @@ a{color:inherit;text-decoration:none}
         <button onclick="openPersonalTaskModal()" style="padding:.5rem 1.1rem;background:var(--teal);color:#fff;border:none;border-radius:9px;font-weight:700;font-size:.88rem;cursor:pointer;">+ Thêm việc</button>
       </div>
 
+      <!-- Lịch họp trong tuần -->
+      <div style="background:linear-gradient(135deg,#ede7f6,#f3e5f5);border:1.5px solid var(--purple);border-radius:12px;padding:1rem 1.2rem;margin-bottom:1.25rem;">
+        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem;flex-wrap:wrap;">
+          <span style="font-size:1rem;">📅</span>
+          <span style="font-weight:700;font-size:.88rem;color:var(--purple-d)">Lịch họp trong tuần</span>
+          <span id="meeting-week-label" style="font-size:.75rem;color:var(--muted);margin-left:auto;"></span>
+          <button onclick="openMeetingModal()" style="padding:.3rem .8rem;background:var(--purple);color:#fff;border:none;border-radius:7px;font-size:.78rem;font-weight:700;cursor:pointer;">+ Thêm lịch họp</button>
+        </div>
+        <div id="meeting-week-view" style="display:grid;grid-template-columns:repeat(7,1fr);gap:.4rem;"></div>
+        <div id="meeting-today-banner" style="display:none;margin-top:.75rem;padding:.55rem .9rem;background:#fff;border-left:4px solid var(--purple);border-radius:0 8px 8px 0;font-size:.82rem;"></div>
+      </div>
+
       <!-- Ghi chú nhanh hôm nay -->
       <div style="background:linear-gradient(135deg,#e8f5f3,#f0faf8);border:1.5px solid var(--teal);border-radius:12px;padding:1rem 1.2rem;margin-bottom:1.25rem;">
         <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.6rem;">
@@ -842,6 +854,68 @@ a{color:inherit;text-decoration:none}
       <div style="display:flex;gap:.75rem;justify-content:flex-end;">
         <button onclick="closePersonalTaskModal()" style="padding:.5rem 1.1rem;border:1.5px solid var(--border);background:#fff;border-radius:8px;font-size:.88rem;cursor:pointer;">Hủy</button>
         <button onclick="savePersonalTask()" style="padding:.5rem 1.4rem;background:var(--teal);color:#fff;border:none;border-radius:8px;font-weight:700;font-size:.88rem;cursor:pointer;">💾 Lưu</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal thêm/sửa lịch họp -->
+<div class="modal-overlay" id="meeting-modal" onclick="if(event.target===this)closeMeetingModal()">
+  <div class="modal" style="max-width:480px;width:95%;">
+    <div class="modal-head" style="background:linear-gradient(135deg,var(--purple-d),var(--purple));position:relative;">
+      <button onclick="closeMeetingModal()" style="position:absolute;top:.75rem;right:.75rem;background:rgba(255,255,255,.2);border:none;color:#fff;width:28px;height:28px;border-radius:50%;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+      <h3 id="meeting-modal-title">📅 Thêm lịch họp</h3>
+    </div>
+    <div class="modal-body" style="padding:1.2rem 1.5rem;">
+      <input type="hidden" id="mt-edit-id">
+      <div style="margin-bottom:.9rem;">
+        <label style="font-size:.82rem;font-weight:700;color:var(--purple-d);display:block;margin-bottom:.3rem;">Tên cuộc họp <span style="color:#E53935">*</span></label>
+        <input id="mt-title" type="text" placeholder="VD: Họp giao ban tuần, Họp dự án..." style="width:100%;padding:.55rem .9rem;border:2px solid var(--border);border-radius:8px;font-size:.9rem;font-family:var(--font);box-sizing:border-box;outline:none;">
+      </div>
+      <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:.9rem;">
+        <div style="flex:1;min-width:130px;">
+          <label style="font-size:.82rem;font-weight:700;color:var(--purple-d);display:block;margin-bottom:.3rem;">Ngày họp <span style="color:#E53935">*</span></label>
+          <input id="mt-date" type="date" style="width:100%;padding:.5rem .8rem;border:2px solid var(--border);border-radius:8px;font-size:.88rem;font-family:var(--font);box-sizing:border-box;outline:none;">
+        </div>
+        <div style="flex:1;min-width:100px;">
+          <label style="font-size:.82rem;font-weight:700;color:var(--purple-d);display:block;margin-bottom:.3rem;">Giờ bắt đầu</label>
+          <input id="mt-time" type="time" value="08:00" style="width:100%;padding:.5rem .8rem;border:2px solid var(--border);border-radius:8px;font-size:.88rem;font-family:var(--font);box-sizing:border-box;outline:none;">
+        </div>
+        <div style="flex:1;min-width:100px;">
+          <label style="font-size:.82rem;font-weight:700;color:var(--purple-d);display:block;margin-bottom:.3rem;">Thời lượng</label>
+          <select id="mt-duration" style="width:100%;padding:.5rem .8rem;border:2px solid var(--border);border-radius:8px;font-size:.88rem;font-family:var(--font);box-sizing:border-box;outline:none;">
+            <option value="30">30 phút</option>
+            <option value="60" selected>1 giờ</option>
+            <option value="90">1.5 giờ</option>
+            <option value="120">2 giờ</option>
+            <option value="0">Không xác định</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-bottom:.9rem;">
+        <label style="font-size:.82rem;font-weight:700;color:var(--purple-d);display:block;margin-bottom:.3rem;">Địa điểm / Link</label>
+        <input id="mt-location" type="text" placeholder="VD: Phòng họp A, Zoom link..." style="width:100%;padding:.55rem .9rem;border:2px solid var(--border);border-radius:8px;font-size:.88rem;font-family:var(--font);box-sizing:border-box;outline:none;">
+      </div>
+      <div style="margin-bottom:.9rem;">
+        <label style="font-size:.82rem;font-weight:700;color:var(--purple-d);display:block;margin-bottom:.3rem;">Ghi chú</label>
+        <textarea id="mt-note" rows="2" placeholder="Nội dung họp, cần chuẩn bị..." style="width:100%;padding:.55rem .9rem;border:2px solid var(--border);border-radius:8px;font-size:.88rem;font-family:var(--font);box-sizing:border-box;outline:none;resize:vertical;"></textarea>
+      </div>
+      <div style="margin-bottom:1.1rem;">
+        <label style="font-size:.82rem;font-weight:700;color:var(--purple-d);display:block;margin-bottom:.4rem;">Lặp lại hàng tuần</label>
+        <div style="display:flex;gap:.4rem;flex-wrap:wrap;">
+          <label style="display:flex;align-items:center;gap:.25rem;font-size:.82rem;cursor:pointer;"><input type="checkbox" class="mt-repeat-day" value="2" style="accent-color:var(--purple);">T2</label>
+          <label style="display:flex;align-items:center;gap:.25rem;font-size:.82rem;cursor:pointer;"><input type="checkbox" class="mt-repeat-day" value="3" style="accent-color:var(--purple);">T3</label>
+          <label style="display:flex;align-items:center;gap:.25rem;font-size:.82rem;cursor:pointer;"><input type="checkbox" class="mt-repeat-day" value="4" style="accent-color:var(--purple);">T4</label>
+          <label style="display:flex;align-items:center;gap:.25rem;font-size:.82rem;cursor:pointer;"><input type="checkbox" class="mt-repeat-day" value="5" style="accent-color:var(--purple);">T5</label>
+          <label style="display:flex;align-items:center;gap:.25rem;font-size:.82rem;cursor:pointer;"><input type="checkbox" class="mt-repeat-day" value="6" style="accent-color:var(--purple);">T6</label>
+          <label style="display:flex;align-items:center;gap:.25rem;font-size:.82rem;cursor:pointer;"><input type="checkbox" class="mt-repeat-day" value="7" style="accent-color:var(--purple);">T7</label>
+          <label style="display:flex;align-items:center;gap:.25rem;font-size:.82rem;cursor:pointer;"><input type="checkbox" class="mt-repeat-day" value="0" style="accent-color:var(--purple);">CN</label>
+        </div>
+        <div style="font-size:.75rem;color:var(--muted);margin-top:.3rem;">Nếu chọn lặp lại, lịch họp sẽ tự hiện mỗi tuần vào các ngày đã chọn</div>
+      </div>
+      <div style="display:flex;gap:.75rem;justify-content:flex-end;">
+        <button onclick="closeMeetingModal()" style="padding:.5rem 1.1rem;border:1.5px solid var(--border);background:#fff;border-radius:8px;font-size:.88rem;cursor:pointer;">Hủy</button>
+        <button onclick="saveMeeting()" style="padding:.5rem 1.4rem;background:var(--purple);color:#fff;border:none;border-radius:8px;font-weight:700;font-size:.88rem;cursor:pointer;">💾 Lưu</button>
       </div>
     </div>
   </div>
@@ -989,6 +1063,7 @@ async function syncFromCloud(){
   await syncTaskNotifsFromCloud();
   await syncPwFromCloud();
   await syncPersonalTasksFromCloud();
+  await syncMeetingsFromCloud();
 }
 
 async function syncPwFromCloud(){
@@ -1881,9 +1956,10 @@ function initPersonalSection(){
   document.getElementById('personal-note-date').textContent=`${days[today.getDay()]}, ${today.getDate()}/${today.getMonth()+1}/${today.getFullYear()}`;
   // Load ghi chú
   document.getElementById('personal-daily-note').value=getPersonalNote();
+  renderMeetingWeek();
   renderPersonalTasks();
-  // Kiểm tra nhắc việc
   checkPersonalReminders();
+  checkMeetingReminders();
 }
 
 function checkPersonalReminders(){
@@ -1900,6 +1976,187 @@ function checkPersonalReminders(){
   if(overdue.length) msgs.push(`⚠️ ${overdue.length} việc quá hạn`);
   if(!msgs.length && tasks.length) msgs.push(`📋 Bạn có ${tasks.length} việc cá nhân cần làm`);
   if(msgs.length) showToast(msgs.join(' · '), 5000);
+}
+
+/* =====================================================
+   LỊCH HỌP
+===================================================== */
+function getMtKey(uid){ return 'cntt_meetings_'+uid; }
+
+function getMeetings(){
+  const s=getSession(); if(!s) return [];
+  try{ return JSON.parse(localStorage.getItem(getMtKey(s.id)))||[]; }catch(e){ return []; }
+}
+function saveMeetings(arr){
+  const s=getSession(); if(!s) return;
+  const str=JSON.stringify(arr);
+  localStorage.setItem(getMtKey(s.id), str);
+  fbSet('meetings/'+s.id, str);
+}
+async function syncMeetingsFromCloud(){
+  const s=getSession(); if(!s) return;
+  const v=await fbGet('meetings/'+s.id);
+  if(v&&v!=='null'){ try{ localStorage.setItem(getMtKey(s.id),v); }catch(e){} }
+}
+
+// Trả về danh sách cuộc họp xảy ra trong tuần chứa ngày `refDate`
+function getMeetingsForWeek(refDate){
+  const all=getMeetings();
+  // Tính Thứ 2 và CN của tuần
+  const d=new Date(refDate);
+  const dow=d.getDay(); // 0=CN
+  const mon=new Date(d); mon.setDate(d.getDate()-(dow===0?6:dow-1));
+  const sun=new Date(mon); sun.setDate(mon.getDate()+6);
+  const monStr=mon.toISOString().slice(0,10);
+  const sunStr=sun.toISOString().slice(0,10);
+
+  const result=[];
+  all.forEach(m=>{
+    // Cuộc họp một lần: nếu ngày trong khoảng tuần
+    if(m.date && m.date>=monStr && m.date<=sunStr && (!m.repeatDays||!m.repeatDays.length)){
+      result.push({...m, _date:m.date});
+    }
+    // Cuộc họp lặp: thêm vào từng ngày trong tuần khớp
+    if(m.repeatDays&&m.repeatDays.length){
+      for(let i=0;i<7;i++){
+        const day=new Date(mon); day.setDate(mon.getDate()+i);
+        const dayDow=day.getDay();
+        if(m.repeatDays.map(Number).includes(dayDow)){
+          // Chỉ lặp từ ngày tạo trở đi
+          const dayStr=day.toISOString().slice(0,10);
+          if(!m.date||dayStr>=m.date){
+            result.push({...m, _date:dayStr});
+          }
+        }
+      }
+    }
+  });
+  return result.sort((a,b)=>a._date.localeCompare(b._date)||(a.time||'').localeCompare(b.time||''));
+}
+
+function renderMeetingWeek(){
+  const today=new Date();
+  const todayStr=today.toISOString().slice(0,10);
+  const dow=today.getDay();
+  const mon=new Date(today); mon.setDate(today.getDate()-(dow===0?6:dow-1));
+  const sun=new Date(mon); sun.setDate(mon.getDate()+6);
+  const days=['CN','T2','T3','T4','T5','T6','T7'];
+  const dayNames=['Chủ nhật','Thứ hai','Thứ ba','Thứ tư','Thứ năm','Thứ sáu','Thứ bảy'];
+
+  const wLabel=document.getElementById('meeting-week-label');
+  if(wLabel) wLabel.textContent=`Tuần ${mon.getDate()}/${mon.getMonth()+1} – ${sun.getDate()}/${sun.getMonth()+1}`;
+
+  const meetings=getMeetingsForWeek(todayStr);
+  const container=document.getElementById('meeting-week-view');
+  if(!container) return;
+
+  let html='';
+  for(let i=0;i<7;i++){
+    const day=new Date(mon); day.setDate(mon.getDate()+i);
+    const dStr=day.toISOString().slice(0,10);
+    const isToday=dStr===todayStr;
+    const dayMeetings=meetings.filter(m=>m._date===dStr);
+    html+=`<div style="min-height:72px;border-radius:9px;padding:.4rem .45rem;background:${isToday?'rgba(103,58,183,.12)':'rgba(255,255,255,.6)'};border:1.5px solid ${isToday?'var(--purple)':'rgba(103,58,183,.18)'};">
+      <div style="font-size:.7rem;font-weight:800;color:${isToday?'var(--purple-d)':'var(--muted)'};margin-bottom:.3rem;text-align:center;">${days[day.getDay()]}<br><span style="font-weight:400;">${day.getDate()}/${day.getMonth()+1}</span></div>
+      ${dayMeetings.map(m=>`<div onclick="openMeetingModal('${m.id}')" style="cursor:pointer;background:var(--purple);color:#fff;border-radius:5px;padding:.2rem .35rem;margin-bottom:.2rem;font-size:.68rem;line-height:1.3;overflow:hidden;">
+        <div style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.title}</div>
+        ${m.time?`<div style="opacity:.85;">${m.time}${m.duration&&m.duration>0?' ('+formatDur(m.duration)+')':''}</div>`:''}
+      </div>`).join('')}
+    </div>`;
+  }
+  container.innerHTML=html;
+
+  // Banner nhắc họp hôm nay
+  const todayMeetings=meetings.filter(m=>m._date===todayStr);
+  const banner=document.getElementById('meeting-today-banner');
+  if(banner){
+    if(todayMeetings.length){
+      banner.style.display='';
+      banner.innerHTML=`<strong style="color:var(--purple-d);">🔔 Lịch họp hôm nay (${dayNames[today.getDay()]}):</strong><br>`+
+        todayMeetings.map(m=>`• <strong>${m.title}</strong>${m.time?' lúc '+m.time:''}${m.location?' · '+m.location:''}`).join('<br>');
+    } else {
+      banner.style.display='none';
+    }
+  }
+}
+
+function formatDur(min){
+  if(!min||min<=0) return '';
+  if(min<60) return min+'p';
+  const h=Math.floor(min/60), r=min%60;
+  return h+'h'+(r?r+'p':'');
+}
+
+function openMeetingModal(id){
+  document.getElementById('meeting-modal-title').textContent = id ? '📅 Sửa lịch họp' : '📅 Thêm lịch họp';
+  document.getElementById('mt-edit-id').value=id||'';
+  // Reset checkboxes
+  document.querySelectorAll('.mt-repeat-day').forEach(cb=>cb.checked=false);
+  if(id){
+    const m=getMeetings().find(x=>x.id===id)||{};
+    document.getElementById('mt-title').value=m.title||'';
+    document.getElementById('mt-date').value=m.date||'';
+    document.getElementById('mt-time').value=m.time||'08:00';
+    document.getElementById('mt-duration').value=m.duration!=null?m.duration:60;
+    document.getElementById('mt-location').value=m.location||'';
+    document.getElementById('mt-note').value=m.note||'';
+    (m.repeatDays||[]).forEach(v=>{ const cb=document.querySelector(`.mt-repeat-day[value="${v}"]`); if(cb) cb.checked=true; });
+  } else {
+    document.getElementById('mt-title').value='';
+    document.getElementById('mt-date').value=new Date().toISOString().slice(0,10);
+    document.getElementById('mt-time').value='08:00';
+    document.getElementById('mt-duration').value=60;
+    document.getElementById('mt-location').value='';
+    document.getElementById('mt-note').value='';
+  }
+  document.getElementById('meeting-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('mt-title').focus(),100);
+}
+function closeMeetingModal(){ document.getElementById('meeting-modal').classList.remove('open'); }
+
+function saveMeeting(){
+  const title=(document.getElementById('mt-title').value||'').trim();
+  if(!title){ showToast('⚠️ Vui lòng nhập tên cuộc họp!'); return; }
+  const editId=document.getElementById('mt-edit-id').value;
+  const repeatDays=[...document.querySelectorAll('.mt-repeat-day:checked')].map(cb=>Number(cb.value));
+  const now=new Date().toISOString();
+  const data={
+    title,
+    date:document.getElementById('mt-date').value,
+    time:document.getElementById('mt-time').value,
+    duration:parseInt(document.getElementById('mt-duration').value||'60'),
+    location:document.getElementById('mt-location').value.trim(),
+    note:document.getElementById('mt-note').value.trim(),
+    repeatDays,
+  };
+  const meetings=getMeetings();
+  if(editId){
+    const idx=meetings.findIndex(x=>x.id===editId);
+    if(idx>=0) meetings[idx]={...meetings[idx],...data,updatedAt:now};
+    showToast('✅ Đã cập nhật lịch họp!');
+  } else {
+    meetings.unshift({id:'mt_'+Date.now(),...data,createdAt:now});
+    showToast('✅ Đã thêm lịch họp!');
+  }
+  saveMeetings(meetings);
+  closeMeetingModal();
+  renderMeetingWeek();
+}
+
+function deleteMeeting(id){
+  if(!confirm('Xóa lịch họp này?')) return;
+  saveMeetings(getMeetings().filter(x=>x.id!==id));
+  renderMeetingWeek();
+}
+
+function checkMeetingReminders(){
+  const today=new Date().toISOString().slice(0,10);
+  const meetings=getMeetingsForWeek(today).filter(m=>m._date===today);
+  if(!meetings.length) return;
+  const remindKey='cntt_mt_reminded_'+today;
+  if(localStorage.getItem(remindKey)) return;
+  localStorage.setItem(remindKey,'1');
+  showToast(`📅 Hôm nay có ${meetings.length} cuộc họp: ${meetings.map(m=>m.title).join(', ')}`, 6000);
 }
 
 /* =====================================================
