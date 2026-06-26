@@ -1509,8 +1509,8 @@ async function submitReport(type){
   const isSynthesis=document.getElementById(synthId)?.checked||
     session.role==='to_truong'||false;
 
-  // Lưu tất cả nhóm của nhân viên để gửi đến mọi nhóm trưởng liên quan
-  const authorGroups=session.role==='staff'?getEffectiveGroups(session.id):(selectedGroupNum?[selectedGroupNum]:[]);
+  // Nếu chọn nhóm cụ thể → chỉ gửi nhóm đó; không chọn → gửi tất cả nhóm của nhân viên
+  const authorGroups=selectedGroupNum>0?[selectedGroupNum]:getEffectiveGroups(session.id);
   let data={ts:Date.now(),createdAt:now,reporter:session.name,position:session.position,
     authorId:session.id,authorGroup:selectedGroupNum,authorGroups,targetLevel,isSynthesis,type};
 
