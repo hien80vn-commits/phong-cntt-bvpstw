@@ -1364,6 +1364,15 @@ function enterApp(session){
   window._notifInterval = setInterval(async ()=>{
     await syncTaskNotifsFromCloud();
     updateNotifBell();
+    // Đồng bộ task từ cloud và cập nhật giao diện nếu có thay đổi
+    const prevRaw=localStorage.getItem('cntt_tasks')||'[]';
+    const tv=await fbGet('tasks');
+    if(tv&&tv!=='null'&&tv!==prevRaw){
+      try{ localStorage.setItem('cntt_tasks',tv); }catch(e){}
+      renderTaskAssign();
+      renderMyTasks();
+      renderTaskStatsBar();
+    }
   }, 30000);
 
   // Task nav buttons: all users see "Việc của tôi"; assigners also see "Giao việc"
