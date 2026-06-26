@@ -481,7 +481,9 @@ function autoRange(sd, ed){
   const cur = new Date(sd);
   while(cur<=ed){
     const key = dk(cur.getFullYear(),cur.getMonth(),cur.getDate());
-    if(!schedule[key]) autoAssignDay(key, new Date(cur));
+    const s = schedule[key];
+    // Tự động phân công nếu ngày chưa có lịch, hoặc cả 2 ca đều rỗng
+    if(!s || (!s.morning.length && !s.night.length)) autoAssignDay(key, new Date(cur));
     cur.setDate(cur.getDate()+1);
   }
   persistSchedule();
@@ -1264,7 +1266,7 @@ populateSel();
     await syncNotifsFromCloud();
     if(toast) toast.style.display='none';
   }
-  // initSchedule() tạm tắt — sắp xếp thủ công
+  initSchedule(); // Tự động phân công các ngày chưa có lịch
   enterUser(s);
 })();
 </script>

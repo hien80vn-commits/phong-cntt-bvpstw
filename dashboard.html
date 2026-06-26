@@ -260,6 +260,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 /* ===== CONFIG ===== */
 const FB_URL='https://cntt-bvpstw-default-rtdb.asia-southeast1.firebasedatabase.app';
 function fbGet(p){return fetch(FB_URL+'/'+p+'.json').then(r=>r.text()).catch(()=>'null');}
+function fbSet(p,val){return fetch(FB_URL+'/'+p+'.json',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(val)}).catch(()=>null);}
 
 /* ===== SHARED DATA ===== */
 const STAFF=[
@@ -361,12 +362,46 @@ async function loadAll(){
 
 function loadTodaySchedule(cloudSchedule){
   const key=todayISO();
-  // Ưu tiên dữ liệu từ Firebase cloud, fallback về localStorage
-  if(cloudSchedule&&cloudSchedule[key]) return cloudSchedule[key];
+  // 1. Ưu tiên Firebase cloud
+  const cs=cloudSchedule&&cloudSchedule[key];
+  if(cs&&(cs.morning&&cs.morning.length||cs.night&&cs.night.length)) return cs;
+  // 2. Fallback localStorage
   try{
     const full=JSON.parse(localStorage.getItem('cntt_duty_schedule'))||{};
-    return full[key]||{morning:[],night:[]};
-  }catch(e){return {morning:[],night:[]};}
+    const ls=full[key];
+    if(ls&&(ls.morning&&ls.morning.length||ls.night&&ls.night.length)) return ls;
+  }catch(e){}
+  // 3. Tự sinh lịch xoay vòng và lưu lên Firebase cho ngày hôm nay
+  return autoGenSchedule(key);
+}
+
+function autoGenSchedule(key){
+  // Không kể lãnh đạo phòng (lanh_dao) vào lịch trực
+  const pool=STAFF.filter(s=>s.role!=='lanh_dao');
+  const n=pool.length;
+  // Dùng ngày trong năm làm seed xoay vòng
+  const d=new Date(key);
+  const start=new Date(d.getFullYear(),0,0);
+  const seed=Math.floor((d-start)/86400000);
+  const morning=[],night=[];
+  for(let i=0;i<n;i++){
+    const s=pool[(seed*7+i)%n];
+    if(morning.length<5) morning.push(s.id);
+    else if(night.length<2) night.push(s.id);
+    if(morning.length>=5&&night.length>=2) break;
+  }
+  const result={morning,night};
+  // Lưu lên Firebase để lich-truc.html cũng thấy
+  fbGet('schedule').then(v=>{
+    try{
+      const all=JSON.parse(v)||{};
+      if(!all[key]||(!all[key].morning.length&&!all[key].night.length)){
+        all[key]=result;
+        fbSet('schedule',all);
+      }
+    }catch(e){}
+  });
+  return result;
 }
 
 /* ===== KPIs ===== */
