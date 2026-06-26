@@ -1997,6 +1997,27 @@ async function syncMeetingsFromCloud(){
   const s=getSession(); if(!s) return;
   const v=await fbGet('meetings/'+s.id);
   if(v&&v!=='null'){ try{ localStorage.setItem(getMtKey(s.id),v); }catch(e){} }
+  migrateMeetingRepeatDays();
+}
+
+// Sửa dữ liệu cũ: repeatDays từng dùng 2–7 cho T2–T7, nay đúng là 1–6
+function migrateMeetingRepeatDays(){
+  const s=getSession(); if(!s) return;
+  const migratedKey='cntt_mt_migrated_v2_'+s.id;
+  if(localStorage.getItem(migratedKey)) return;
+  const meetings=getMeetings();
+  let changed=false;
+  meetings.forEach(m=>{
+    if(m.repeatDays&&m.repeatDays.length){
+      // Nếu có giá trị 7 (không hợp lệ với getDay) → dữ liệu cũ, trừ 1 cho T2–T7
+      if(m.repeatDays.some(v=>v>=2&&v<=7)){
+        m.repeatDays=m.repeatDays.map(v=>v===0?0:v-1);
+        changed=true;
+      }
+    }
+  });
+  if(changed) saveMeetings(meetings);
+  localStorage.setItem(migratedKey,'1');
 }
 
 // Trả về danh sách cuộc họp xảy ra trong tuần chứa ngày `refDate`
