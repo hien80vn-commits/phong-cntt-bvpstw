@@ -332,6 +332,7 @@ a{color:inherit;text-decoration:none}
       <button id="snav-print" class="print-btn" onclick="switchSection('print',this)" style="display:none">🖨️ In báo cáo</button>
       <button id="snav-tasks-assign" class="task-btn" onclick="switchSection('tasks-assign',this)" style="display:none">🎯 Giao việc</button>
       <button id="snav-tasks-mine" class="mytask-btn" onclick="switchSection('tasks-mine',this)" style="display:none">📋 Việc của tôi</button>
+      <button id="snav-personal" onclick="switchSection('personal',this)" style="display:none">✏️ Việc cá nhân</button>
     </div>
 
     <!-- ===== SECTION: INBOX ===== -->
@@ -751,6 +752,98 @@ a{color:inherit;text-decoration:none}
       <div id="task-mine-list"></div>
     </div>
 
+    <!-- ===== SECTION: VIỆC CÁ NHÂN ===== -->
+    <div id="section-personal" class="section">
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.25rem;flex-wrap:wrap;">
+        <div class="icon">✏️</div>
+        <div style="flex:1">
+          <h3 style="margin:0;font-size:1.1rem;font-weight:800;color:var(--teal)">Việc cá nhân</h3>
+          <p style="margin:0;font-size:.82rem;color:var(--muted)">Tự giao việc, ghi chú hàng ngày và theo dõi tiến độ</p>
+        </div>
+        <button onclick="openPersonalTaskModal()" style="padding:.5rem 1.1rem;background:var(--teal);color:#fff;border:none;border-radius:9px;font-weight:700;font-size:.88rem;cursor:pointer;">+ Thêm việc</button>
+      </div>
+
+      <!-- Ghi chú nhanh hôm nay -->
+      <div style="background:linear-gradient(135deg,#e8f5f3,#f0faf8);border:1.5px solid var(--teal);border-radius:12px;padding:1rem 1.2rem;margin-bottom:1.25rem;">
+        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.6rem;">
+          <span style="font-size:1rem;">📒</span>
+          <span style="font-weight:700;font-size:.88rem;color:var(--teal)">Ghi chú hôm nay</span>
+          <span id="personal-note-date" style="font-size:.75rem;color:var(--muted);margin-left:auto;"></span>
+        </div>
+        <textarea id="personal-daily-note" rows="3" placeholder="Ghi nhanh những việc cần làm hôm nay, lưu ý, kế hoạch..." oninput="savePersonalNote()" style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:.6rem .9rem;font-family:var(--font);font-size:.88rem;resize:vertical;box-sizing:border-box;background:#fff;outline:none;min-height:70px;"></textarea>
+      </div>
+
+      <!-- Bộ lọc -->
+      <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:1rem;align-items:center;">
+        <select id="pt-filter-status" onchange="renderPersonalTasks()" style="padding:.4rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-size:.84rem;font-family:var(--font);">
+          <option value="">Tất cả</option>
+          <option value="todo">Chưa làm</option>
+          <option value="doing">Đang làm</option>
+          <option value="done">Hoàn thành</option>
+        </select>
+        <select id="pt-filter-priority" onchange="renderPersonalTasks()" style="padding:.4rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-size:.84rem;font-family:var(--font);">
+          <option value="">Mọi ưu tiên</option>
+          <option value="high">🔴 Cao</option>
+          <option value="medium">🟡 Trung bình</option>
+          <option value="low">🟢 Thấp</option>
+        </select>
+        <input type="text" id="pt-search" placeholder="🔍 Tìm việc..." oninput="renderPersonalTasks()" style="padding:.4rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-size:.84rem;font-family:var(--font);min-width:150px;flex:1;">
+        <span id="pt-stats" style="font-size:.78rem;color:var(--muted);white-space:nowrap;"></span>
+      </div>
+
+      <div id="personal-task-list"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal thêm/sửa việc cá nhân -->
+<div class="modal-overlay" id="personal-task-modal" onclick="if(event.target===this)closePersonalTaskModal()">
+  <div class="modal" style="max-width:520px;width:95%;">
+    <div class="modal-head" style="background:linear-gradient(135deg,var(--teal),#26a69a);position:relative;">
+      <button onclick="closePersonalTaskModal()" style="position:absolute;top:.75rem;right:.75rem;background:rgba(255,255,255,.2);border:none;color:#fff;width:28px;height:28px;border-radius:50%;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+      <h3 id="pt-modal-title">✏️ Thêm việc cá nhân</h3>
+    </div>
+    <div class="modal-body" style="padding:1.2rem 1.5rem;">
+      <input type="hidden" id="pt-edit-id">
+      <div style="margin-bottom:.9rem;">
+        <label style="font-size:.82rem;font-weight:700;color:var(--purple-d);display:block;margin-bottom:.3rem;">Tên công việc <span style="color:#E53935">*</span></label>
+        <input id="pt-title" type="text" placeholder="Nhập tên công việc..." style="width:100%;padding:.55rem .9rem;border:2px solid var(--border);border-radius:8px;font-size:.9rem;font-family:var(--font);box-sizing:border-box;outline:none;">
+      </div>
+      <div style="margin-bottom:.9rem;">
+        <label style="font-size:.82rem;font-weight:700;color:var(--purple-d);display:block;margin-bottom:.3rem;">Mô tả / Ghi chú</label>
+        <textarea id="pt-desc" rows="2" placeholder="Chi tiết công việc, ghi chú thêm..." style="width:100%;padding:.55rem .9rem;border:2px solid var(--border);border-radius:8px;font-size:.88rem;font-family:var(--font);box-sizing:border-box;outline:none;resize:vertical;"></textarea>
+      </div>
+      <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:.9rem;">
+        <div style="flex:1;min-width:130px;">
+          <label style="font-size:.82rem;font-weight:700;color:var(--purple-d);display:block;margin-bottom:.3rem;">Deadline</label>
+          <input id="pt-deadline" type="date" style="width:100%;padding:.5rem .8rem;border:2px solid var(--border);border-radius:8px;font-size:.88rem;font-family:var(--font);box-sizing:border-box;outline:none;">
+        </div>
+        <div style="flex:1;min-width:130px;">
+          <label style="font-size:.82rem;font-weight:700;color:var(--purple-d);display:block;margin-bottom:.3rem;">Ưu tiên</label>
+          <select id="pt-priority" style="width:100%;padding:.5rem .8rem;border:2px solid var(--border);border-radius:8px;font-size:.88rem;font-family:var(--font);box-sizing:border-box;outline:none;">
+            <option value="medium">🟡 Trung bình</option>
+            <option value="high">🔴 Cao</option>
+            <option value="low">🟢 Thấp</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-bottom:1.1rem;">
+        <label style="font-size:.82rem;font-weight:700;color:var(--purple-d);display:block;margin-bottom:.3rem;">Nhắc việc hàng ngày</label>
+        <div style="display:flex;align-items:center;gap:.75rem;">
+          <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.88rem;">
+            <input type="checkbox" id="pt-remind" style="width:16px;height:16px;accent-color:var(--teal);">
+            Bật nhắc việc
+          </label>
+          <input type="time" id="pt-remind-time" value="08:00" style="padding:.4rem .7rem;border:1.5px solid var(--border);border-radius:7px;font-size:.85rem;font-family:var(--font);">
+        </div>
+        <div style="font-size:.75rem;color:var(--muted);margin-top:.3rem;">Hiển thị banner nhắc nhở mỗi ngày khi mở ứng dụng</div>
+      </div>
+      <div style="display:flex;gap:.75rem;justify-content:flex-end;">
+        <button onclick="closePersonalTaskModal()" style="padding:.5rem 1.1rem;border:1.5px solid var(--border);background:#fff;border-radius:8px;font-size:.88rem;cursor:pointer;">Hủy</button>
+        <button onclick="savePersonalTask()" style="padding:.5rem 1.4rem;background:var(--teal);color:#fff;border:none;border-radius:8px;font-weight:700;font-size:.88rem;cursor:pointer;">💾 Lưu</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -895,6 +988,7 @@ async function syncFromCloud(){
   if(tv&&tv!=='null'){ try{ localStorage.setItem('cntt_tasks',tv); }catch(e){} }
   await syncTaskNotifsFromCloud();
   await syncPwFromCloud();
+  await syncPersonalTasksFromCloud();
 }
 
 async function syncPwFromCloud(){
@@ -1096,7 +1190,7 @@ function enterApp(session){
   document.getElementById('app-screen').style.display='block';
 
   // Reset section nav & sections to default state (prevents state leak between logins)
-  ['snav-inbox','snav-assign','snav-overview','snav-tasks-assign','snav-tasks-mine'].forEach(id=>document.getElementById(id).style.display='none');
+  ['snav-inbox','snav-assign','snav-overview','snav-tasks-assign','snav-tasks-mine','snav-personal'].forEach(id=>document.getElementById(id).style.display='none');
   document.querySelectorAll('.section-nav button').forEach(b=>b.classList.remove('active'));
   document.getElementById('snav-submit').classList.add('active');
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
@@ -1193,6 +1287,7 @@ function enterApp(session){
   }, 30000);
 
   // Task nav buttons: all users see "Việc của tôi"; assigners also see "Giao việc"
+  document.getElementById('snav-personal').style.display='';
   document.getElementById('snav-tasks-mine').style.display='';
   if(canAssignTask()){
     document.getElementById('snav-tasks-assign').style.display='';
@@ -1267,6 +1362,7 @@ function switchSection(id,btn){
   if(id==='print') renderPrintSection();
   if(id==='tasks-assign'){ initTaskForm(); renderTaskAssign(); renderTaskStatsBar(); }
   if(id==='tasks-mine') renderMyTasks();
+  if(id==='personal') initPersonalSection();
 }
 
 function switchTab(id,btn){
@@ -1603,6 +1699,207 @@ function resetAllPw(){
   });
   showToast('✅ Đã reset mật khẩu tất cả thành viên về cntt2026');
   renderResetPwList();
+}
+
+/* =====================================================
+   VIỆC CÁ NHÂN
+===================================================== */
+function getPtKey(uid){ return 'cntt_pt_'+uid; }
+function getNoteKey(uid){ return 'cntt_pnote_'+uid; }
+
+function getPersonalTasks(){
+  const s=getSession(); if(!s) return [];
+  try{ return JSON.parse(localStorage.getItem(getPtKey(s.id)))||[]; }catch(e){ return []; }
+}
+function savePersonalTasks(arr){
+  const s=getSession(); if(!s) return;
+  const str=JSON.stringify(arr);
+  localStorage.setItem(getPtKey(s.id), str);
+  fbSet('personal_tasks/'+s.id, str);
+}
+async function syncPersonalTasksFromCloud(){
+  const s=getSession(); if(!s) return;
+  const v=await fbGet('personal_tasks/'+s.id);
+  if(v&&v!=='null'){ try{ localStorage.setItem(getPtKey(s.id),v); }catch(e){} }
+  const nv=await fbGet('personal_notes/'+s.id);
+  if(nv&&nv!=='null'){ try{ localStorage.setItem(getNoteKey(s.id),nv); }catch(e){} }
+}
+
+function getPersonalNote(){
+  const s=getSession(); if(!s) return '';
+  const today=new Date().toISOString().slice(0,10);
+  try{
+    const obj=JSON.parse(localStorage.getItem(getNoteKey(s.id)))||{};
+    return obj[today]||'';
+  }catch(e){ return ''; }
+}
+function savePersonalNote(){
+  const s=getSession(); if(!s) return;
+  const today=new Date().toISOString().slice(0,10);
+  let obj={};
+  try{ obj=JSON.parse(localStorage.getItem(getNoteKey(s.id)))||{}; }catch(e){}
+  obj[today]=document.getElementById('personal-daily-note').value;
+  // giữ 90 ngày gần nhất
+  const keys=Object.keys(obj).sort().reverse();
+  if(keys.length>90) keys.slice(90).forEach(k=>delete obj[k]);
+  const str=JSON.stringify(obj);
+  localStorage.setItem(getNoteKey(s.id), str);
+  fbSet('personal_notes/'+s.id, str);
+}
+
+function openPersonalTaskModal(id){
+  const modal=document.getElementById('personal-task-modal');
+  document.getElementById('pt-modal-title').textContent = id ? '✏️ Sửa việc cá nhân' : '✏️ Thêm việc cá nhân';
+  document.getElementById('pt-edit-id').value = id||'';
+  if(id){
+    const t=getPersonalTasks().find(x=>x.id===id)||{};
+    document.getElementById('pt-title').value=t.title||'';
+    document.getElementById('pt-desc').value=t.desc||'';
+    document.getElementById('pt-deadline').value=t.deadline||'';
+    document.getElementById('pt-priority').value=t.priority||'medium';
+    document.getElementById('pt-remind').checked=!!t.remind;
+    document.getElementById('pt-remind-time').value=t.remindTime||'08:00';
+  } else {
+    document.getElementById('pt-title').value='';
+    document.getElementById('pt-desc').value='';
+    const d=new Date(); d.setDate(d.getDate()+1);
+    document.getElementById('pt-deadline').value=d.toISOString().slice(0,10);
+    document.getElementById('pt-priority').value='medium';
+    document.getElementById('pt-remind').checked=false;
+    document.getElementById('pt-remind-time').value='08:00';
+  }
+  modal.classList.add('open');
+  setTimeout(()=>document.getElementById('pt-title').focus(),100);
+}
+function closePersonalTaskModal(){ document.getElementById('personal-task-modal').classList.remove('open'); }
+
+function savePersonalTask(){
+  const title=(document.getElementById('pt-title').value||'').trim();
+  if(!title){ showToast('⚠️ Vui lòng nhập tên công việc!'); return; }
+  const editId=document.getElementById('pt-edit-id').value;
+  const tasks=getPersonalTasks();
+  const now=new Date().toISOString();
+  if(editId){
+    const idx=tasks.findIndex(x=>x.id===editId);
+    if(idx>=0){
+      tasks[idx]={...tasks[idx], title,
+        desc:document.getElementById('pt-desc').value,
+        deadline:document.getElementById('pt-deadline').value,
+        priority:document.getElementById('pt-priority').value,
+        remind:document.getElementById('pt-remind').checked,
+        remindTime:document.getElementById('pt-remind-time').value,
+        updatedAt:now};
+    }
+    showToast('✅ Đã cập nhật công việc!');
+  } else {
+    tasks.unshift({id:'pt_'+Date.now(),title,
+      desc:document.getElementById('pt-desc').value,
+      deadline:document.getElementById('pt-deadline').value,
+      priority:document.getElementById('pt-priority').value,
+      remind:document.getElementById('pt-remind').checked,
+      remindTime:document.getElementById('pt-remind-time').value,
+      status:'todo', createdAt:now, updatedAt:now});
+    showToast('✅ Đã thêm công việc!');
+  }
+  savePersonalTasks(tasks);
+  closePersonalTaskModal();
+  renderPersonalTasks();
+}
+
+function updatePersonalTaskStatus(id, status){
+  const tasks=getPersonalTasks();
+  const t=tasks.find(x=>x.id===id);
+  if(t){ t.status=status; t.updatedAt=new Date().toISOString(); if(status==='done') t.doneAt=new Date().toISOString(); }
+  savePersonalTasks(tasks);
+  renderPersonalTasks();
+}
+
+function deletePersonalTask(id){
+  if(!confirm('Xóa công việc này?')) return;
+  savePersonalTasks(getPersonalTasks().filter(x=>x.id!==id));
+  renderPersonalTasks();
+}
+
+function renderPersonalTasks(){
+  const statusF=document.getElementById('pt-filter-status').value;
+  const priorityF=document.getElementById('pt-filter-priority').value;
+  const q=(document.getElementById('pt-search').value||'').toLowerCase();
+  let tasks=getPersonalTasks();
+  if(statusF) tasks=tasks.filter(t=>t.status===statusF);
+  if(priorityF) tasks=tasks.filter(t=>t.priority===priorityF);
+  if(q) tasks=tasks.filter(t=>(t.title+' '+(t.desc||'')).toLowerCase().includes(q));
+
+  const total=getPersonalTasks().length;
+  const done=getPersonalTasks().filter(t=>t.status==='done').length;
+  document.getElementById('pt-stats').textContent=total?`${done}/${total} hoàn thành`:'';
+
+  const today=new Date().toISOString().slice(0,10);
+  const priMap={high:{label:'🔴 Cao',bg:'#fff3f3',border:'#E53935',c:'#C62828'},medium:{label:'🟡 TB',bg:'#fffde7',border:'#FDD835',c:'#F57F17'},low:{label:'🟢 Thấp',bg:'#f1f8f4',border:'#43A047',c:'#2E7D32'}};
+  const stMap={todo:{label:'Chưa làm',bg:'#f5f5f5',c:'#555'},doing:{label:'Đang làm',bg:'#e3f2fd',c:'#1565C0'},done:{label:'Hoàn thành',bg:'#e8f5e9',c:'#2E7D32'}};
+
+  const c=document.getElementById('personal-task-list');
+  if(!tasks.length){ c.innerHTML='<div style="text-align:center;padding:2.5rem;color:var(--muted);font-size:.9rem;">Không có công việc nào</div>'; return; }
+
+  c.innerHTML=tasks.map(t=>{
+    const pri=priMap[t.priority]||priMap.medium;
+    const st=stMap[t.status]||stMap.todo;
+    const overdue=t.deadline&&t.deadline<today&&t.status!=='done';
+    const dueToday=t.deadline===today&&t.status!=='done';
+    const deadlineColor=overdue?'#E53935':dueToday?'#E65100':'var(--muted)';
+    const deadlineIcon=overdue?'⚠️':dueToday?'🔔':'📅';
+    return `<div style="background:#fff;border:1.5px solid ${overdue?'#E53935':dueToday?'#FF6F00':pri.border};border-radius:12px;padding:.9rem 1.1rem;margin-bottom:.7rem;display:flex;gap:.75rem;align-items:flex-start;${t.status==='done'?'opacity:.65;':''}">
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.3rem;">
+          <span style="font-weight:700;font-size:.92rem;${t.status==='done'?'text-decoration:line-through;color:var(--muted);':''}">${t.title}</span>
+          <span style="font-size:.72rem;padding:.15rem .55rem;border-radius:999px;background:${pri.bg};color:${pri.c};font-weight:700;">${pri.label}</span>
+          <span style="font-size:.72rem;padding:.15rem .55rem;border-radius:999px;background:${st.bg};color:${st.c};font-weight:700;">${st.label}</span>
+          ${t.remind?'<span style="font-size:.72rem;color:var(--teal);">🔔 Nhắc '+t.remindTime+'</span>':''}
+        </div>
+        ${t.desc?`<div style="font-size:.81rem;color:var(--muted);margin-bottom:.4rem;">${t.desc}</div>`:''}
+        ${t.deadline?`<div style="font-size:.78rem;color:${deadlineColor};font-weight:600;">${deadlineIcon} ${overdue?'Quá hạn: ':dueToday?'Hôm nay: ':'Deadline: '}${t.deadline}</div>`:''}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:.35rem;align-items:flex-end;flex-shrink:0;">
+        ${t.status!=='done'?`<select onchange="updatePersonalTaskStatus('${t.id}',this.value)" style="font-size:.75rem;padding:.25rem .5rem;border:1.5px solid var(--border);border-radius:7px;font-family:var(--font);cursor:pointer;">
+          <option value="todo" ${t.status==='todo'?'selected':''}>Chưa làm</option>
+          <option value="doing" ${t.status==='doing'?'selected':''}>Đang làm</option>
+          <option value="done">✅ Hoàn thành</option>
+        </select>`:`<button onclick="updatePersonalTaskStatus('${t.id}','todo')" style="font-size:.72rem;padding:.25rem .6rem;border:1.5px solid #aaa;background:#fff;border-radius:7px;cursor:pointer;color:var(--muted);">Mở lại</button>`}
+        <div style="display:flex;gap:.3rem;">
+          <button onclick="openPersonalTaskModal('${t.id}')" style="font-size:.75rem;padding:.22rem .6rem;border:1.5px solid var(--teal);background:#fff;color:var(--teal);border-radius:7px;cursor:pointer;">Sửa</button>
+          <button onclick="deletePersonalTask('${t.id}')" style="font-size:.75rem;padding:.22rem .6rem;border:1.5px solid #E53935;background:#fff;color:#E53935;border-radius:7px;cursor:pointer;">Xóa</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function initPersonalSection(){
+  const s=getSession(); if(!s) return;
+  // Hiển thị ngày ghi chú
+  const today=new Date();
+  const days=['Chủ nhật','Thứ hai','Thứ ba','Thứ tư','Thứ năm','Thứ sáu','Thứ bảy'];
+  document.getElementById('personal-note-date').textContent=`${days[today.getDay()]}, ${today.getDate()}/${today.getMonth()+1}/${today.getFullYear()}`;
+  // Load ghi chú
+  document.getElementById('personal-daily-note').value=getPersonalNote();
+  renderPersonalTasks();
+  // Kiểm tra nhắc việc
+  checkPersonalReminders();
+}
+
+function checkPersonalReminders(){
+  const tasks=getPersonalTasks().filter(t=>t.remind&&t.status!=='done');
+  if(!tasks.length) return;
+  const today=new Date().toISOString().slice(0,10);
+  const overdue=tasks.filter(t=>t.deadline&&t.deadline<today);
+  const dueToday=tasks.filter(t=>t.deadline===today);
+  const remindKey='cntt_reminded_'+today;
+  if(localStorage.getItem(remindKey)) return;
+  localStorage.setItem(remindKey,'1');
+  let msgs=[];
+  if(dueToday.length) msgs.push(`🔔 ${dueToday.length} việc deadline hôm nay`);
+  if(overdue.length) msgs.push(`⚠️ ${overdue.length} việc quá hạn`);
+  if(!msgs.length && tasks.length) msgs.push(`📋 Bạn có ${tasks.length} việc cá nhân cần làm`);
+  if(msgs.length) showToast(msgs.join(' · '), 5000);
 }
 
 /* =====================================================
