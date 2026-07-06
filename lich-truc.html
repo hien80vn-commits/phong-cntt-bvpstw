@@ -696,24 +696,77 @@ function renderMine(c){
 /* ===== ĐĂNG KÝ ===== */
 function renderReg(c){
   const td = new Date().toISOString().split('T')[0];
+  const curMonth = td.slice(0,7);
   c.innerHTML = `<p style="font-weight:700;color:var(--purple-d);margin-bottom:.8rem;">Đăng ký ca trực / nghỉ phép</p>
-  <div class="alert alert-info">Hệ thống ưu tiên nguyện vọng khi phân công tự động. Đăng ký nghỉ sẽ tự xóa bạn khỏi ca trực ngày đó.</div>
-  <div class="fg"><label>Chọn ngày</label><input type="date" id="rdate" value="${td}"></div>
+  <div class="alert alert-info">Hệ thống ưu tiên nguyện vọng khi phân công tự động. Đăng ký nghỉ sẽ tự xóa bạn khỏi ca trực ngày đó. Có thể đăng ký nhiều ngày liên tiếp bằng cách chọn "Từ ngày – Đến ngày".</div>
+  <div class="form-grid">
+    <div class="fg"><label>Từ ngày</label><input type="date" id="rdate" value="${td}"></div>
+    <div class="fg"><label>Đến ngày <span style="font-weight:400;color:var(--muted);">(bỏ trống nếu chỉ 1 ngày)</span></label><input type="date" id="rdate2"></div>
+  </div>
   <div class="fg"><label>Loại đăng ký</label><select id="rtype"><option value="morning">Muốn trực sáng (5h30–7h30)</option><option value="night">Muốn trực đêm (16h30–5h30)</option><option value="leave">Nghỉ phép / ốm</option></select></div>
   <div class="fg"><label>Ghi chú</label><input type="text" id="rnote" placeholder="Lý do, ghi chú..."></div>
   <button class="btn btn-primary" style="width:auto;" onclick="submitReg()">Gửi đăng ký</button>
-  <div class="dpanel" style="margin-top:1.2rem;"><p style="font-weight:700;font-size:.85rem;color:var(--purple-d);margin-bottom:.6rem;">Đăng ký của tôi</p><div id="myregs"></div></div>`;
+  <div class="dpanel" style="margin-top:1.2rem;"><p style="font-weight:700;font-size:.85rem;color:var(--purple-d);margin-bottom:.6rem;">Đăng ký của tôi</p><div id="myregs"></div></div>
+  <div class="dpanel" style="margin-top:1.2rem;">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;margin-bottom:.6rem;">
+      <p style="font-weight:700;font-size:.85rem;color:var(--purple-d);">📊 Tổng hợp nghỉ theo tháng (từng cá nhân)</p>
+      <input type="month" id="reg-sum-month" value="${curMonth}" onchange="renderRegLeaveSummary()" style="padding:.35rem .5rem;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:.82rem;">
+    </div>
+    <div id="reg-leave-summary"></div>
+  </div>`;
   paintRegs();
+  renderRegLeaveSummary();
 }
 function submitReg(){
   const date=document.getElementById('rdate').value, type=document.getElementById('rtype').value, note=document.getElementById('rnote').value;
+  let date2=document.getElementById('rdate2').value;
   if(!date){ alert('Chọn ngày!'); return; }
-  if(regs.find(r=>r.staffId===user.id&&r.date===date&&r.type===type)){ alert('Bạn đã đăng ký rồi!'); return; }
-  regs.push({staffId:user.id, date, type, note}); persistRegs();
-  if(type==='leave'){ const s=schedule[date]; if(s){ s.morning=s.morning.filter(i=>i!==user.id); s.night=s.night.filter(i=>i!==user.id); persistSchedule(); } }
+  if(!date2||date2<date) date2=date;
+  // Giới hạn tối đa 62 ngày cho một lần đăng ký
+  const nDays=Math.round((new Date(date2)-new Date(date))/86400000)+1;
+  if(nDays>62){ alert('Khoảng thời gian tối đa là 62 ngày!'); return; }
+  let added=0, skipped=0;
+  const cur=new Date(date+'T00:00:00');
+  const end=new Date(date2+'T00:00:00');
+  while(cur<=end){
+    const key=`${cur.getFullYear()}-${pad(cur.getMonth()+1)}-${pad(cur.getDate())}`;
+    if(regs.find(r=>r.staffId===user.id&&r.date===key&&r.type===type)){ skipped++; }
+    else{
+      regs.push({staffId:user.id, date:key, type, note});
+      if(type==='leave'){ const s=schedule[key]; if(s){ s.morning=s.morning.filter(i=>i!==user.id); s.night=s.night.filter(i=>i!==user.id); } }
+      added++;
+    }
+    cur.setDate(cur.getDate()+1);
+  }
+  if(!added){ alert('Bạn đã đăng ký tất cả các ngày này rồi!'); return; }
+  persistRegs();
+  if(type==='leave') persistSchedule();
   // Gửi thông báo: nghỉ/ốm → admin + trưởng nhóm; trực sáng/đêm → admin
-  pushNotif(type==='leave'?['admin','leader']:['admin'], type, date, note);
-  document.getElementById('rnote').value=''; paintRegs(); alert('Đã gửi đăng ký!');
+  const rangeNote=(date2!==date?`đến ${date2.split('-')[2]}/${date2.split('-')[1]} (${added} ngày)`:'')+(note?(date2!==date?' — ':'')+note:'');
+  pushNotif(type==='leave'?['admin','leader']:['admin'], type, date, rangeNote);
+  document.getElementById('rnote').value=''; document.getElementById('rdate2').value='';
+  paintRegs(); renderRegLeaveSummary();
+  alert(`Đã gửi đăng ký ${added} ngày${skipped?` (bỏ qua ${skipped} ngày đã đăng ký trước đó)`:''}!`);
+}
+function renderRegLeaveSummary(){
+  const el=document.getElementById('reg-leave-summary'); if(!el) return;
+  const month=(document.getElementById('reg-sum-month')||{}).value||new Date().toISOString().slice(0,7);
+  const leaveRegs=regs.filter(r=>r.type==='leave'&&r.date.startsWith(month));
+  if(!leaveRegs.length){ el.innerHTML='<p class="empty-txt">Không có đăng ký nghỉ nào trong tháng này.</p>'; return; }
+  const byStaff={};
+  leaveRegs.forEach(r=>{ if(!byStaff[r.staffId]) byStaff[r.staffId]=[]; byStaff[r.staffId].push(r); });
+  const rows=Object.entries(byStaff)
+    .map(([id,rs])=>({s:staffById(+id), rs}))
+    .sort((a,b)=>b.rs.length-a.rs.length)
+    .map(({s,rs})=>`<tr>
+      <td><b>${s?s.name:'?'}</b>${s&&s.position?`<br><span style="font-size:.72rem;color:var(--muted);">${s.position}</span>`:''}</td>
+      <td style="text-align:center;font-weight:700;color:var(--leave);">${rs.length}</td>
+      <td style="font-size:.78rem;">${rs.sort((a,b)=>a.date.localeCompare(b.date)).map(r=>{const p=r.date.split('-');return `${p[2]}/${p[1]}${r.note?` (${r.note})`:''}`}).join(', ')}</td>
+    </tr>`).join('');
+  el.innerHTML=`<div class="tbl-wrap"><table class="tbl">
+    <thead><tr><th>Họ tên</th><th style="width:90px;">Số ngày nghỉ</th><th>Các ngày nghỉ</th></tr></thead>
+    <tbody>${rows}</tbody></table></div>
+  <p style="font-size:.75rem;color:var(--muted);margin-top:.4rem;">Tổng: <b>${leaveRegs.length}</b> lượt nghỉ trong tháng ${month.split('-')[1]}/${month.split('-')[0]}</p>`;
 }
 function paintRegs(){
   const el = document.getElementById('myregs'); if(!el) return;
@@ -724,7 +777,7 @@ function paintRegs(){
     <button class="btn btn-sm" onclick="delReg('${r.date}','${r.type}')">Xóa</button>
   </div>`).join('') : '<p class="empty-txt">Chưa có đăng ký nào.</p>';
 }
-function delReg(date,type){ regs = regs.filter(r=>!(r.staffId===user.id&&r.date===date&&r.type===type)); persistRegs(); paintRegs(); }
+function delReg(date,type){ regs = regs.filter(r=>!(r.staffId===user.id&&r.date===date&&r.type===type)); persistRegs(); paintRegs(); renderRegLeaveSummary(); }
 
 /* ===== NHÂN SỰ (ADMIN) ===== */
 function renderStaffDir(c){
