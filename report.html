@@ -3344,7 +3344,7 @@ function approveTask(id){
   showToast('✅ Đã duyệt hoàn thành việc!');
 }
 
-function submitTaskUpdate(id){
+function submitTaskUpdate(id,editMode){
   const s=getSession(); if(!s) return;
   const status=document.getElementById('tu-status').value;
   const progress=parseInt(document.getElementById('tu-progress').value||'0');
@@ -3352,6 +3352,22 @@ function submitTaskUpdate(id){
   const arr=getTasks();
   const t=arr.find(t=>t.id===id); if(!t) return;
   if(!t.updates) t.updates=[];
+
+  if(editMode&&t.updates.length){
+    // Sửa lại đúng bản ghi cập nhật gần nhất thay vì tạo bản ghi mới
+    const last=t.updates[t.updates.length-1];
+    last.status=status; last.progress=progress;
+    last.text=note||'Cập nhật tiến độ.';
+    last.editedAt=new Date().toLocaleString('vi-VN');
+    t.status=status; t.progress=progress;
+    t.updatedAt=new Date().toLocaleString('vi-VN');
+    saveTasks(arr);
+    closeTaskModal();
+    renderMyTasks(); renderTaskAssign(); renderTaskStatsBar();
+    showToast('✅ Đã sửa nội dung cập nhật!');
+    return;
+  }
+
   const prevStatus=t.status;
   t.status=status; t.progress=progress;
   t.updatedAt=new Date().toLocaleString('vi-VN');
@@ -3431,6 +3447,7 @@ function buildTaskCardHTML(t, mode){
   const canDelete=s&&(t.assignedById==s.id)&&(t.status==='Chưa bắt đầu');
   const canUpdate=s&&(t.assignedToId==s.id)&&(t.status!=='Đã duyệt');
   const canEdit=s&&(t.status!=='Đã duyệt')&&(isAdmin||t.assignedById==s.id);
+  const canEditLastUpdate=canUpdate&&lastUpdate&&lastUpdate.fromName===s.name;
 
   return `<div class="task-card ${di.cls}" id="tcard-${t.id}">
     <div class="task-card-hdr">
@@ -3454,6 +3471,7 @@ function buildTaskCardHTML(t, mode){
       <button class="task-action-btn" onclick="openTaskDetail(${t.id})">🔍 Chi tiết</button>
       ${canEdit?`<button class="task-action-btn edit" onclick="editTask(${t.id})">✏️ Sửa</button>`:''}
       ${canUpdate?`<button class="task-action-btn" onclick="openTaskUpdate(${t.id})">📝 Cập nhật</button>`:''}
+      ${canEditLastUpdate?`<button class="task-action-btn edit" onclick="openTaskUpdate(${t.id},true)">✏️ Sửa cập nhật</button>`:''}
       ${canApprove?`<button class="task-action-btn approve" onclick="approveTask(${t.id})">✅ Duyệt</button>`:''}
       ${canDelete?`<button class="task-action-btn del" onclick="deleteTask(${t.id})">🗑️ Xóa</button>`:''}
     </div>
@@ -3507,7 +3525,7 @@ function openTaskDetail(id){
     <div class="task-log">
       <div style="font-size:.78rem;font-weight:700;color:var(--purple-d);margin-bottom:.4rem;">📜 Lịch sử cập nhật:</div>
       ${t.updates.slice().reverse().map(u=>`<div class="task-log-item">
-        <strong>${u.fromName}</strong> · ${u.ts}<br>${u.text} · Tiến độ: ${u.progress}% · Trạng thái: ${u.status}
+        <strong>${u.fromName}</strong> · ${u.ts}${u.editedAt?` <span style="color:var(--purple);">(✏️ đã sửa lúc ${u.editedAt})</span>`:''}<br>${u.text} · Tiến độ: ${u.progress}% · Trạng thái: ${u.status}
       </div>`).join('')}
     </div>`:'';
   document.getElementById('task-modal-title').textContent=t.title;
@@ -3530,28 +3548,33 @@ function openTaskDetail(id){
   document.getElementById('task-modal').classList.add('open');
 }
 
-function openTaskUpdate(id){
+function openTaskUpdate(id,editMode){
   const t=getTasks().find(t=>t.id===id); if(!t) return;
-  document.getElementById('task-modal-title').textContent='✏️ Cập nhật tiến độ';
+  const lastUpdate=editMode&&t.updates&&t.updates.length?t.updates[t.updates.length-1]:null;
+  const curStatus=lastUpdate?lastUpdate.status:t.status;
+  const curProgress=lastUpdate?lastUpdate.progress:(t.progress||0);
+  const curNote=lastUpdate?(lastUpdate.text==='Cập nhật tiến độ.'?'':lastUpdate.text):'';
+  document.getElementById('task-modal-title').textContent=editMode?'✏️ Sửa cập nhật gần nhất':'✏️ Cập nhật tiến độ';
   document.getElementById('task-modal-sub').textContent=t.title;
   document.getElementById('task-modal-body').innerHTML=`
+    ${editMode?'<div class="alert alert-info" style="margin-bottom:.75rem;font-size:.8rem;">Bạn đang sửa lại nội dung cập nhật gần nhất của mình.</div>':''}
     <div class="form-row"><label>Trạng thái</label>
       <select id="tu-status">
-        <option ${t.status==='Chưa bắt đầu'?'selected':''}>Chưa bắt đầu</option>
-        <option ${t.status==='Đang thực hiện'?'selected':''}>Đang thực hiện</option>
-        <option ${t.status==='Hoàn thành'?'selected':''}>Hoàn thành</option>
+        <option ${curStatus==='Chưa bắt đầu'?'selected':''}>Chưa bắt đầu</option>
+        <option ${curStatus==='Đang thực hiện'?'selected':''}>Đang thực hiện</option>
+        <option ${curStatus==='Hoàn thành'?'selected':''}>Hoàn thành</option>
       </select>
     </div>
-    <div class="form-row"><label>Tiến độ: <span id="tu-pct-lbl">${t.progress||0}</span>%</label>
-      <input type="range" class="progress-input" id="tu-progress" min="0" max="100" value="${t.progress||0}"
+    <div class="form-row"><label>Tiến độ: <span id="tu-pct-lbl">${curProgress}</span>%</label>
+      <input type="range" class="progress-input" id="tu-progress" min="0" max="100" value="${curProgress}"
         oninput="document.getElementById('tu-pct-lbl').textContent=this.value">
     </div>
     <div class="form-row"><label>Ghi chú / Báo cáo tiến độ</label>
-      <textarea id="tu-note" rows="3" placeholder="Nhập ghi chú..."></textarea>
+      <textarea id="tu-note" rows="3" placeholder="Nhập ghi chú...">${curNote}</textarea>
     </div>
     <div class="modal-actions">
       <button class="btn-outline" onclick="closeTaskModal()">Hủy</button>
-      <button class="btn-primary" onclick="submitTaskUpdate(${id})">Lưu cập nhật</button>
+      <button class="btn-primary" onclick="submitTaskUpdate(${id},${!!editMode})">${editMode?'Lưu thay đổi':'Lưu cập nhật'}</button>
     </div>
   `;
   document.getElementById('task-modal').classList.add('open');
