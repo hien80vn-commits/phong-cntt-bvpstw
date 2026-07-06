@@ -2182,7 +2182,7 @@ function createTask(){
     const selectedIds=getSelectedAssignees();
     if(!selectedIds.length){ showToast('⚠️ Vui lòng chọn người thực hiện!'); return; }
     const arr=getTasks();
-    const t=arr.find(t=>t.id===editingTaskId); if(!t) return;
+    const t=arr.find(t=>t.id==editingTaskId); if(!t) return;
     const newAssigneeId=selectedIds[0];
     const assignee=STAFF.find(m=>m.id===newAssigneeId);
     t.title=title; t.desc=desc;
@@ -2228,7 +2228,7 @@ function createTask(){
 }
 
 function editTask(id){
-  const t=getTasks().find(t=>t.id===id); if(!t) return;
+  const t=getTasks().find(t=>t.id==id); if(!t) return;
   editingTaskId=id;
   document.getElementById('ta-title').value=t.title;
   document.getElementById('ta-desc').value=t.desc||'';
@@ -2353,10 +2353,11 @@ function buildTaskCardHTML(t, mode){
   const fillCls=t.status==='Hoàn thành'||t.status==='Đã duyệt'?'done':(di.cls==='task-overdue'?'over':'');
   const lastUpdate=t.updates&&t.updates.length?t.updates[t.updates.length-1]:null;
   const s=getSession();
-  const canApprove=s&&(s.role==='lanh_dao'||s.role==='to_truong'||(s.role==='leader'&&t.assignedById===s.id))&&(t.status==='Hoàn thành');
-  const canDelete=s&&(t.assignedById===s.id)&&(t.status==='Chưa bắt đầu');
-  const canUpdate=s&&(t.assignedToId===s.id)&&(t.status!=='Đã duyệt');
-  const canEdit=s&&(t.assignedById===s.id)&&(t.status!=='Đã duyệt');
+  const isAdmin=s&&(s.role==='lanh_dao'||s.role==='to_truong');
+  const canApprove=s&&(isAdmin||(s.role==='leader'&&t.assignedById==s.id))&&(t.status==='Hoàn thành');
+  const canDelete=s&&(t.assignedById==s.id)&&(t.status==='Chưa bắt đầu');
+  const canUpdate=s&&(t.assignedToId==s.id)&&(t.status!=='Đã duyệt');
+  const canEdit=s&&(t.status!=='Đã duyệt')&&(isAdmin||t.assignedById==s.id);
 
   return `<div class="task-card ${di.cls}" id="tcard-${t.id}">
     <div class="task-card-hdr">
