@@ -45,6 +45,7 @@ a{color:inherit;text-decoration:none}
 .form-row select,.form-row input,.form-row textarea{width:100%;padding:.65rem 1rem;border:2px solid var(--border);border-radius:10px;font-family:var(--font);font-size:.9rem;outline:none;transition:.2s;background:var(--bg);}
 .form-row select:focus,.form-row input:focus,.form-row textarea:focus{border-color:var(--purple);background:#fff;}
 .form-row textarea{resize:vertical;min-height:90px;}
+#w-done,#m-done{min-height:240px;font-size:.86rem;line-height:1.55;}
 .btn-login{width:100%;padding:.8rem;border-radius:10px;border:none;background:linear-gradient(135deg,var(--purple),var(--pink));color:#fff;font-family:var(--font);font-weight:700;font-size:1rem;cursor:pointer;transition:opacity .2s;margin-top:.5rem;}
 .btn-login:hover{opacity:.88;}
 .login-note{font-size:.75rem;color:var(--muted);text-align:center;margin-top:1rem;line-height:1.5;}
@@ -450,6 +451,8 @@ a{color:inherit;text-decoration:none}
           <div class="form-row" style="display:flex;gap:.5rem;flex-wrap:wrap;">
             <button type="button" class="btn-outline" onclick="synthWeeklyFromDaily()">📥 Tổng hợp báo cáo ngày trong tuần</button>
             <button type="button" class="btn-outline leader-synth-btn" style="display:none;" onclick="synthWeeklyFromMembers()">👥 Tổng hợp BC tuần của thành viên nhóm</button>
+            <button type="button" class="btn-outline" onclick="exportReportDoc('weekly')">📄 Xuất Word</button>
+            <button type="button" class="btn-outline" onclick="exportReportPdf('weekly')">🖨️ Xuất PDF</button>
           </div>
           <div class="form-row">
             <label>Kết quả công việc trong tuần</label>
@@ -503,6 +506,8 @@ a{color:inherit;text-decoration:none}
           <div class="form-row" style="display:flex;gap:.5rem;flex-wrap:wrap;">
             <button type="button" class="btn-outline" onclick="synthMonthlyFromWeekly()">📥 Tổng hợp báo cáo các tuần trong tháng</button>
             <button type="button" class="btn-outline leader-synth-btn" style="display:none;" onclick="synthMonthlyFromMembers()">👥 Tổng hợp theo tuần của thành viên nhóm</button>
+            <button type="button" class="btn-outline" onclick="exportReportDoc('monthly')">📄 Xuất Word</button>
+            <button type="button" class="btn-outline" onclick="exportReportPdf('monthly')">🖨️ Xuất PDF</button>
           </div>
           <div class="form-row">
             <label>Tổng hợp kết quả công việc tháng</label>
@@ -1632,6 +1637,9 @@ function synthSection(label,val){
 function appendToTextarea(id,text){
   const el=document.getElementById(id); if(!el) return;
   el.value=(el.value.trim()?el.value.replace(/\s+$/,'')+'\n\n':'')+text;
+  // Tự giãn chiều cao cho dễ đọc (tối đa 600px)
+  el.style.height='auto';
+  el.style.height=Math.min(el.scrollHeight+20,600)+'px';
 }
 function synthMemberIds(s){
   if(s.role==='leader'){
@@ -1655,9 +1663,15 @@ function synthWeeklyFromDaily(){
   mine.forEach(r=>{
     const d=new Date(r.date+'T00:00:00');
     txt+=`\n📅 ${SYNTH_DOW[d.getDay()]} ${synthFmtD(r.date)}${r.isChecklist?' (checklist)':''}:\n`;
-    txt+=synthSection('Đã làm',r.done);
-    txt+=synthSection('Tồn đọng',r.pending);
-    txt+=synthSection('Vướng mắc',r.issue);
+    if(r.isChecklist){
+      // Checklist: chỉ ghi dòng tóm tắt — chi tiết nằm ở bảng checklist khi xuất file
+      const firstLine=(r.done||'').split('\n')[0];
+      txt+=`  • ${firstLine} (chi tiết xem bảng checklist khi xuất Word/PDF)\n`;
+    } else {
+      txt+=synthSection('Đã làm',r.done);
+      txt+=synthSection('Tồn đọng',r.pending);
+      txt+=synthSection('Vướng mắc',r.issue);
+    }
   });
   appendToTextarea('w-done',txt.trim());
   showToast(`✅ Đã tổng hợp ${mine.length} báo cáo ngày vào nội dung tuần!`);
@@ -1731,6 +1745,112 @@ function synthMonthlyFromMembers(){
   });
   appendToTextarea('m-done',txt.trim());
   showToast(`✅ Đã tổng hợp ${reports.length} báo cáo tuần của thành viên!`);
+}
+
+/* =====================================================
+   XUẤT BÁO CÁO WORD / PDF + BẢNG CHECKLIST
+===================================================== */
+function synthFmtFull(iso){ const p=(iso||'').split('-'); return p.length>=3?`${p[2]}/${p[1]}/${p[0]}`:iso; }
+function escHTML(t){ return (t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// Trích danh sách mục đã tích ✅ từ nội dung checklist đã nộp
+function parseChecklistDone(txt){
+  const items=[];
+  (txt||'').split('\n').forEach(l=>{
+    const m=l.match(/✅\s*(.+)$/);
+    if(m){
+      let name=m[1].trim();
+      const i=name.indexOf(' — '); if(i>-1) name=name.slice(0,i).trim();
+      if(name) items.push(name);
+    }
+  });
+  return items;
+}
+
+// Bảng checklist: hàng = danh mục công việc, cột = các ngày, ô ✓ = ngày có thực hiện
+function buildChecklistTablesHTML(from,to,userIds){
+  const daily=getReports('daily').filter(r=>r.isChecklist&&r.date>=from&&r.date<=to&&userIds.some(id=>id==r.authorId));
+  if(!daily.length) return '';
+  const byUser={};
+  daily.forEach(r=>{ const k=r.reporter||('#'+r.authorId); if(!byUser[k]) byUser[k]=[]; byUser[k].push(r); });
+  let html='';
+  Object.entries(byUser).forEach(([name,reps])=>{
+    const days=[...new Set(reps.map(r=>r.date))].sort();
+    const marks={}; const order=[];
+    reps.forEach(r=>{
+      parseChecklistDone(r.done).forEach(it=>{
+        if(!marks[it]){ marks[it]={}; order.push(it); }
+        marks[it][r.date]=true;
+      });
+    });
+    if(!order.length) return;
+    html+=`<p style="margin:12px 0 4px;font-weight:bold;">Bảng checklist hàng ngày — ${escHTML(name)}</p>
+    <table border="1" cellspacing="0" cellpadding="4" style="border-collapse:collapse;width:100%;font-size:9pt;">
+      <tr style="background:#eee;"><th align="left" style="min-width:200px;">Danh mục công việc</th>${days.map(d=>{const p=d.split('-');return `<th style="white-space:nowrap;">${p[2]}/${p[1]}</th>`;}).join('')}</tr>
+      ${order.map(it=>`<tr><td>${escHTML(it)}</td>${days.map(d=>`<td align="center">${marks[it][d]?'✓':''}</td>`).join('')}</tr>`).join('')}
+    </table>`;
+  });
+  return html;
+}
+
+function buildReportExportHTML(type){
+  const s=getSession(); if(!s) return null;
+  let period='',fields=[],from,to,title;
+  if(type==='weekly'){
+    from=document.getElementById('w-from').value; to=document.getElementById('w-to').value;
+    if(!from||!to){ showToast('⚠️ Chọn "Từ ngày / Đến ngày" trước!'); return null; }
+    period=`Từ ngày ${synthFmtFull(from)} đến ngày ${synthFmtFull(to)}`;
+    title='BÁO CÁO CÔNG VIỆC TUẦN';
+    fields=[['Kết quả công việc trong tuần','w-done'],['Công việc tồn đọng / chuyển sang tuần sau','w-pending'],['Kế hoạch tuần tới','w-plan'],['Kiến nghị / Đề xuất','w-suggest']];
+  } else {
+    const month=document.getElementById('m-month').value;
+    if(!month){ showToast('⚠️ Chọn tháng trước!'); return null; }
+    from=month+'-01'; to=month+'-31';
+    const [yy,mm]=month.split('-'); period=`Tháng ${mm}/${yy}`;
+    title='BÁO CÁO CÔNG VIỆC THÁNG';
+    fields=[['Tổng hợp kết quả công việc tháng','m-done'],['Điểm nổi bật / Thành tích','m-highlight'],['Khó khăn, tồn đọng','m-issue'],['Kế hoạch tháng tới','m-plan'],['Tình hình nhân sự','m-hr']];
+  }
+  let body='';
+  fields.forEach(([label,id])=>{
+    const v=(document.getElementById(id)?.value||'').trim();
+    if(v) body+=`<p style="margin:14px 0 4px;font-weight:bold;color:#4A1D62;">${label}</p><div>${escHTML(v).replace(/\n/g,'<br>')}</div>`;
+  });
+  // Bảng checklist: của bản thân; nhóm trưởng/tổ trưởng/lãnh đạo kèm cả thành viên
+  const ids=['leader','to_truong','lanh_dao'].includes(s.role)?[s.id,...synthMemberIds(s)]:[s.id];
+  const clHTML=buildChecklistTablesHTML(from,to,ids);
+  return `<div style="font-family:'Times New Roman',serif;font-size:11pt;color:#000;">
+    <p align="center" style="margin:0;"><b>BỆNH VIỆN PHỤ SẢN TRUNG ƯƠNG</b></p>
+    <p align="center" style="margin:0;"><b>PHÒNG CÔNG NGHỆ THÔNG TIN</b></p>
+    <p align="center" style="margin:14px 0 2px;font-size:14pt;font-weight:bold;color:#4A1D62;">${title}</p>
+    <p align="center" style="margin:0 0 12px;font-style:italic;">${period}</p>
+    <p><b>Người báo cáo:</b> ${escHTML(s.name)}${s.position?` — ${escHTML(s.position)}`:''}</p>
+    ${body||'<p><i>(Chưa có nội dung báo cáo)</i></p>'}
+    ${clHTML?`<p style="margin:18px 0 4px;font-weight:bold;font-size:12pt;color:#4A1D62;">BẢNG TỔNG HỢP CHECKLIST HÀNG NGÀY</p>${clHTML}`:''}
+    <p style="margin-top:20px;" align="right"><i>Xuất ngày ${new Date().toLocaleDateString('vi-VN')}</i></p>
+  </div>`;
+}
+
+function exportReportDoc(type){
+  const html=buildReportExportHTML(type); if(!html) return;
+  const doc='﻿<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"></head><body>'+html+'</body></html>';
+  const blob=new Blob([doc],{type:'application/msword'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`bao-cao-${type==='weekly'?'tuan':'thang'}-${new Date().toISOString().slice(0,10)}.doc`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+  showToast('📄 Đã xuất file Word (.doc)!');
+}
+
+function exportReportPdf(type){
+  const html=buildReportExportHTML(type); if(!html) return;
+  const w=window.open('','_blank');
+  if(!w){ showToast('⚠️ Trình duyệt chặn cửa sổ mới — hãy cho phép popup!'); return; }
+  w.document.write(`<!DOCTYPE html><html lang="vi"><head><meta charset="utf-8"><title>Báo cáo</title>
+  <style>body{margin:1.5cm;} table{page-break-inside:auto;} tr{page-break-inside:avoid;} .no-print{margin-bottom:12px;} @media print{.no-print{display:none;}}</style></head><body>
+  <div class="no-print"><button onclick="window.print()" style="padding:6px 18px;cursor:pointer;font-size:11pt;">🖨️ In / Lưu thành PDF</button></div>
+  ${html}</body></html>`);
+  w.document.close();
 }
 
 /* =====================================================
