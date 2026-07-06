@@ -309,6 +309,22 @@ const GROUPS=[
   {num:9,  name:'Hỗ trợ Khối phụ',                    leaderId:7},
   {num:10, name:'Hỗ trợ Khối xét nghiệm',             leaderId:4},
 ];
+// Staff IDs used by lich-truc.html (different from report.html STAFF)
+const DUTY_STAFF=[
+  {id:1, name:'Vương Hoàng Linh'},{id:2, name:'Nguyễn Quỳnh Ngọc'},{id:3, name:'Nguyễn Thị Thu Hiền'},
+  {id:4, name:'Hoàng Hải Anh'},{id:5, name:'Vũ Trung Kiên'},{id:6, name:'Bạch Lê Thắng'},
+  {id:7, name:'Hoàng Thị Ngọc Yến'},{id:8, name:'Đàm Văn Thành'},{id:9, name:'Phan Tiến Dũng'},
+  {id:10,name:'Nguyễn Thị Ngọc Anh'},{id:11,name:'Lê Thị Thanh Thanh'},{id:12,name:'Lê Thị Việt Hương'},
+  {id:13,name:'Phan Quang Huy'},{id:14,name:'Nguyễn Văn Cường'},{id:15,name:'Nguyễn Ngọc Anh'},
+  {id:16,name:'Phan Thanh Hiếu'},{id:17,name:'Trần Hoàng Dương'},{id:18,name:'Đoàn Quốc Trung'},
+  {id:19,name:'Nguyễn Thanh Tùng'},{id:20,name:'Nguyễn Hữu Quân'},{id:21,name:'Nguyễn Đức Thịnh'},
+  {id:22,name:'Phạm Ngọc Linh'},{id:23,name:'Nguyễn Đăng Tùng'},{id:24,name:'Bùi Thị Hồng Hạnh'},
+  {id:25,name:'Nguyễn Tuấn Linh'},{id:26,name:'Quách Trường Giang'},{id:27,name:'Nguyễn Quỳnh Anh'},
+  {id:28,name:'Cao Thị Thuý'},{id:29,name:'Hoàng Long'},{id:30,name:'Nguyễn Hoàng Hiệp'},
+  {id:31,name:'Nguyễn Văn Công'},{id:32,name:'Bùi Thị Kim Oanh'},
+];
+function dutyStaffName(id){ const s=DUTY_STAFF.find(x=>x.id===Number(id)); return s?s.name:'#'+id; }
+
 const DAYS_VI=['Chủ Nhật','Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy'];
 const MONTHS_VI=['tháng 1','tháng 2','tháng 3','tháng 4','tháng 5','tháng 6','tháng 7','tháng 8','tháng 9','tháng 10','tháng 11','tháng 12'];
 
@@ -344,13 +360,12 @@ async function loadAll(){
       fbGet('rp_daily').then(v=>{try{return JSON.parse(v)||[];}catch(e){return [];}}),
       fbGet('rp_weekly').then(v=>{try{return JSON.parse(v)||[];}catch(e){return [];}}),
       fbGet('rp_monthly').then(v=>{try{return JSON.parse(v)||[];}catch(e){return [];}}),
-      fbGet('schedule').then(v=>{try{return JSON.parse(v)||{};}catch(e){return {};}}),
+      fbGet('schedule').then(v=>{try{let p=JSON.parse(v);if(typeof p==='string')p=JSON.parse(p);return p||{};}catch(e){return {};}}),
     ]);
-    const schedule = loadTodaySchedule(rawSchedule);
     renderKPIs(rawTasks, rawNotifs, rawDaily);
     renderAlerts(rawTasks, rawNotifs, rawDaily);
     renderTaskProgress(rawTasks);
-    renderDuty(schedule, rawNotifs);
+    renderDuty(rawSchedule, rawNotifs);
     renderReports(rawDaily);
     renderLeave(rawNotifs);
     renderOverdue(rawTasks);
@@ -360,49 +375,7 @@ async function loadAll(){
   }
 }
 
-function loadTodaySchedule(cloudSchedule){
-  const key=todayISO();
-  // 1. Ưu tiên Firebase cloud
-  const cs=cloudSchedule&&cloudSchedule[key];
-  if(cs&&(cs.morning&&cs.morning.length||cs.night&&cs.night.length)) return cs;
-  // 2. Fallback localStorage
-  try{
-    const full=JSON.parse(localStorage.getItem('cntt_duty_schedule'))||{};
-    const ls=full[key];
-    if(ls&&(ls.morning&&ls.morning.length||ls.night&&ls.night.length)) return ls;
-  }catch(e){}
-  // 3. Tự sinh lịch xoay vòng và lưu lên Firebase cho ngày hôm nay
-  return autoGenSchedule(key);
-}
-
-function autoGenSchedule(key){
-  // Không kể lãnh đạo phòng (lanh_dao) vào lịch trực
-  const pool=STAFF.filter(s=>s.role!=='lanh_dao');
-  const n=pool.length;
-  // Dùng ngày trong năm làm seed xoay vòng
-  const d=new Date(key);
-  const start=new Date(d.getFullYear(),0,0);
-  const seed=Math.floor((d-start)/86400000);
-  const morning=[],night=[];
-  for(let i=0;i<n;i++){
-    const s=pool[(seed*7+i)%n];
-    if(morning.length<5) morning.push(s.id);
-    else if(night.length<2) night.push(s.id);
-    if(morning.length>=5&&night.length>=2) break;
-  }
-  const result={morning,night};
-  // Lưu lên Firebase để lich-truc.html cũng thấy
-  fbGet('schedule').then(v=>{
-    try{
-      const all=JSON.parse(v)||{};
-      if(!all[key]||(!all[key].morning.length&&!all[key].night.length)){
-        all[key]=result;
-        fbSet('schedule',all);
-      }
-    }catch(e){}
-  });
-  return result;
-}
+// Removed localStorage schedule — now loaded from Firebase `schedule` path directly
 
 /* ===== KPIs ===== */
 function renderKPIs(tasks, notifs, daily){
@@ -540,33 +513,27 @@ function renderDuty(schedule, notifs){
   const d=new Date();
   document.getElementById('duty-badge').textContent=`${DAYS_VI[d.getDay()]}, ${d.getDate()}/${d.getMonth()+1}`;
 
-  // schedule = {morning:[ids], night:[ids]} từ cntt_duty_schedule[todayISO]
-  const byType={morning:[],night:[]};
-  (schedule.morning||[]).forEach(id=>{
-    const s=STAFF.find(x=>x.id===id||String(x.id)===String(id));
-    const name=s?s.name:String(id);
-    if(!byType.morning.includes(name)) byType.morning.push(name);
-  });
-  (schedule.night||[]).forEach(id=>{
-    const s=STAFF.find(x=>x.id===id||String(x.id)===String(id));
-    const name=s?s.name:String(id);
-    if(!byType.night.includes(name)) byType.night.push(name);
+  // schedule = full object from Firebase, key = "YYYY-MM-DD"
+  // structure: { "2026-06-25": { morning:[id,id,...], night:[id,...] }, ... }
+  const today=todayISO();
+  const todaySlot=schedule[today]||{morning:[],night:[]};
+
+  const morningNames=(todaySlot.morning||[]).map(id=>dutyStaffName(id));
+  const nightNames=(todaySlot.night||[]).map(id=>dutyStaffName(id));
+
+  // Supplement with self-registered duties from notifs (lich-truc regs)
+  notifs.filter(n=>n.date===today&&(n.type==='morning'||n.type==='night')).forEach(n=>{
+    if(n.type==='morning'&&!morningNames.includes(n.fromName)) morningNames.push(n.fromName);
+    if(n.type==='night'&&!nightNames.includes(n.fromName)) nightNames.push(n.fromName);
   });
 
-  // Bổ sung từ Firebase notifs nếu có đăng ký trực riêng lẻ
-  const todayISO_val=todayISO();
-  notifs.filter(n=>n.date===todayISO_val&&(n.type==='morning'||n.type==='night')).forEach(n=>{
-    if(n.type==='morning'&&n.fromName&&!byType.morning.includes(n.fromName)) byType.morning.push(n.fromName);
-    if(n.type==='night'&&n.fromName&&!byType.night.includes(n.fromName)) byType.night.push(n.fromName);
-  });
-
-  if(!byType.morning.length&&!byType.night.length){
-    document.getElementById('duty-body').innerHTML=`<div class="empty">Không có dữ liệu lịch trực hôm nay.<br><small><a href="lich-truc.html" style="color:var(--purple)">Mở Lịch trực</a> để xem hoặc đăng ký trực.</small></div>`;
+  if(!morningNames.length&&!nightNames.length){
+    document.getElementById('duty-body').innerHTML=`<div class="empty">Không có dữ liệu lịch trực hôm nay.<br><small><a href="lich-truc.html" style="color:var(--purple)">Mở Lịch trực</a> để vào nhập lịch.</small></div>`;
     return;
   }
   let html='';
-  if(byType.morning.length) html+=`<div class="duty-row sang"><div class="duty-ca"><span class="duty-tag">Ca sáng</span><div class="duty-time">5h30–7h30</div></div><div class="duty-names">${byType.morning.join('<br>')}</div></div>`;
-  if(byType.night.length) html+=`<div class="duty-row dem"><div class="duty-ca"><span class="duty-tag">Trực đêm</span><div class="duty-time">16h30–5h30</div></div><div class="duty-names">${byType.night.join('<br>')}</div></div>`;
+  if(morningNames.length) html+=`<div class="duty-row sang"><div class="duty-ca"><span class="duty-tag">Ca sáng</span><div class="duty-time">5h30–7h30</div></div><div class="duty-names">${morningNames.join('<br>')}</div></div>`;
+  if(nightNames.length) html+=`<div class="duty-row dem"><div class="duty-ca"><span class="duty-tag">Trực đêm</span><div class="duty-time">16h30–5h30</div></div><div class="duty-names">${nightNames.join('<br>')}</div></div>`;
   document.getElementById('duty-body').innerHTML=html;
 }
 

@@ -213,11 +213,6 @@ button { font-family: var(--font); }
   .form-grid { grid-template-columns: 1fr; }
   .stats-row { grid-template-columns: repeat(2,1fr); }
 }
-
-/* NOTIFICATION BELL */
-.notif-bell { background: none; border: none; cursor: pointer; font-size: .88rem; padding: .3rem .6rem; border-radius: 8px; color: var(--text); display: flex; align-items: center; gap: .2rem; }
-.notif-bell:hover { background: var(--bg); }
-.notif-cnt { background: var(--pink); color: #fff; font-size: .62rem; font-weight: 700; padding: .1rem .38rem; border-radius: 999px; min-width: 16px; text-align: center; }
 </style>
 </head>
 <body>
@@ -239,7 +234,6 @@ button { font-family: var(--font); }
       <a href="report.html" style="background:var(--pink);color:#fff;">📋 Cổng báo cáo</a>
       <div class="nav-user" id="nav-user">
         <span class="nav-ubadge" id="nav-ubadge"></span>
-        <button class="notif-bell" id="notif-bell" onclick="openNotifsModal()" style="display:none;" title="Thông báo">🔔<span class="notif-cnt" id="notif-cnt" style="display:none;"></span></button>
         <button class="nav-logout" onclick="doLogout()">Đăng xuất</button>
       </div>
     </div>
@@ -252,10 +246,19 @@ button { font-family: var(--font); }
 </div>
 
 <!-- LOGIN -->
-<!-- Không cần màn hình đăng nhập — dùng session từ trang chủ -->
+<div id="login-screen">
+  <div class="login-box">
+    <h2>Đăng nhập hệ thống lịch trực</h2>
+    <p class="sub">Sử dụng tài khoản nhân sự Phòng CNTT</p>
+    <div class="fg"><label>Chọn họ tên</label><select id="sel-u"><option value="">-- Chọn tên --</option></select></div>
+    <div class="fg"><label>Mã PIN &nbsp;(Quản trị: 0000 · Nhân viên: 1234)</label><input type="password" id="inp-pin" maxlength="4" placeholder="Nhập PIN"></div>
+    <div class="login-err" id="lerr">PIN không đúng, vui lòng thử lại.</div>
+    <button class="btn btn-primary" onclick="doLogin()">Đăng nhập</button>
+    <p class="login-hint">PIN mặc định theo vai trò. Có thể đề nghị Tổ trưởng công tác đổi PIN riêng nếu cần.</p>
+  </div>
+</div>
 
 <!-- MAIN APP -->
-<div id="sync-toast" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:var(--purple);color:#fff;text-align:center;padding:.6rem;font-size:.85rem;font-weight:600;">⏳ Đang đồng bộ dữ liệu...</div>
 <div id="main-wrap" class="hide">
   <div class="wrap">
     <div class="tabs" id="tabs"></div>
@@ -325,15 +328,6 @@ button { font-family: var(--font); }
   </div>
 </div>
 
-<!-- NOTIFICATIONS MODAL -->
-<div class="modal-overlay" id="modal-notifs">
-  <div class="modal" style="max-width:520px;">
-    <div class="modal-hdr"><h3>🔔 Thông báo</h3><button class="modal-close" onclick="closeModal('modal-notifs')">✕</button></div>
-    <div class="modal-body" id="notifs-body" style="max-height:60vh;overflow-y:auto;padding:0;"></div>
-    <div class="modal-footer"><button class="btn" onclick="markAllNotifsRead()">Đánh dấu đã đọc tất cả</button><button class="btn btn-outline" onclick="closeModal('modal-notifs')">Đóng</button></div>
-  </div>
-</div>
-
 <script>
 /* =====================================================
    DỮ LIỆU NHÂN SỰ THẬT — đồng bộ từ index.html (STAFF)
@@ -342,31 +336,31 @@ button { font-family: var(--font); }
    riêng trong localStorage của trang lịch trực.
 ===================================================== */
 const BASE_STAFF = [
-  {id:1, name:'Vương Hoàng Linh',     position:'Trưởng phòng',       title:'Kế toán viên',  degree:'Đại học',  gender:'Nam', contract:'VC', year:2011},
-  {id:2, name:'Nguyễn Quỳnh Ngọc',    position:'Phó Trưởng phòng',   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2011},
+  {id:1, name:'Nguyễn Văn Cường',     position:'',                   title:'Kỹ sư',         degree:'Thạc sĩ',  gender:'Nam', contract:'VC', year:2011},
+  {id:2, name:'Vương Hoàng Linh',     position:'Trưởng phòng',       title:'Kế toán viên',  degree:'Đại học',  gender:'Nam', contract:'VC', year:2011},
   {id:3, name:'Nguyễn Thị Thu Hiền',  position:'Tổ trưởng công tác', title:'Kỹ sư',         degree:'Đại học',  gender:'Nữ',  contract:'VC', year:2011},
-  {id:4, name:'Hoàng Hải Anh',        position:'Trưởng nhóm',        title:'Chuyên viên',   degree:'Đại học',  gender:'Nữ',  contract:'VC', year:2018},
-  {id:5, name:'Vũ Trung Kiên',        position:'Trưởng nhóm',        title:'Chuyên viên',   degree:'Đại học',  gender:'Nam', contract:'VC', year:2016},
-  {id:6, name:'Bạch Lê Thắng',        position:'Trưởng nhóm',        title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2012},
-  {id:7, name:'Hoàng Thị Ngọc Yến',   position:'Trưởng nhóm',        title:'Kỹ sư',         degree:'Đại học',  gender:'Nữ',  contract:'VC', year:2011},
-  {id:8, name:'Đàm Văn Thành',        position:'Trưởng nhóm',        title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2012},
-  {id:9, name:'Phan Tiến Dũng',       position:'Trưởng nhóm',        title:'Kỹ sư',         degree:'Thạc sĩ',  gender:'Nam', contract:'VC', year:2017},
-  {id:10,name:'Nguyễn Thị Ngọc Anh',  position:'Trưởng nhóm',        title:'Chuyên viên',   degree:'Đại học',  gender:'Nữ',  contract:'VC', year:2017},
-  {id:11,name:'Lê Thị Thanh Thanh',   position:'Trưởng nhóm',        title:'Chuyên viên',   degree:'Đại học',  gender:'Nữ',  contract:'VC', year:2018},
-  {id:12,name:'Lê Thị Việt Hương',    position:'Trưởng nhóm',        title:'Chuyên viên',   degree:'Thạc sĩ',  gender:'Nữ',  contract:'VC', year:2011},
-  {id:13,name:'Phan Quang Huy',       position:'Trưởng nhóm',        title:'Kỹ sư',         degree:'Thạc sĩ',  gender:'Nam', contract:'VC', year:2010},
-  {id:14,name:'Nguyễn Văn Cường',     position:'',                   title:'Kỹ sư',         degree:'Thạc sĩ',  gender:'Nam', contract:'VC', year:2011},
-  {id:15,name:'Nguyễn Ngọc Anh',      position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2011},
-  {id:16,name:'Phan Thanh Hiếu',      position:'',                   title:'Kỹ thuật viên', degree:'Cao đẳng', gender:'Nam', contract:'VC', year:2012},
-  {id:17,name:'Trần Hoàng Dương',     position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2013},
-  {id:18,name:'Đoàn Quốc Trung',      position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2014},
-  {id:19,name:'Nguyễn Thanh Tùng',    position:'',                   title:'Kế toán viên',  degree:'Đại học',  gender:'Nam', contract:'VC', year:2014},
-  {id:20,name:'Nguyễn Hữu Quân',      position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2017},
-  {id:21,name:'Nguyễn Đức Thịnh',     position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2017},
-  {id:22,name:'Phạm Ngọc Linh',       position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nữ',  contract:'VC', year:2018},
-  {id:23,name:'Nguyễn Đăng Tùng',     position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'HĐ', year:2018},
-  {id:24,name:'Bùi Thị Hồng Hạnh',    position:'',                   title:'Chuyên viên',   degree:'Đại học',  gender:'Nữ',  contract:'VC', year:2018},
-  {id:25,name:'Nguyễn Tuấn Linh',     position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'HĐ', year:2018},
+  {id:4, name:'Phan Quang Huy',       position:'Trưởng nhóm',        title:'Kỹ sư',         degree:'Thạc sĩ',  gender:'Nam', contract:'VC', year:2010},
+  {id:5, name:'Nguyễn Quỳnh Ngọc',    position:'Phó Trưởng phòng',   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2011},
+  {id:6, name:'Nguyễn Ngọc Anh',      position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2011},
+  {id:7, name:'Lê Thị Việt Hương',    position:'Trưởng nhóm',        title:'Chuyên viên',   degree:'Thạc sĩ',  gender:'Nữ',  contract:'VC', year:2011},
+  {id:8, name:'Hoàng Thị Ngọc Yến',   position:'Trưởng nhóm',        title:'Kỹ sư',         degree:'Đại học',  gender:'Nữ',  contract:'VC', year:2011},
+  {id:9, name:'Đàm Văn Thành',        position:'Trưởng nhóm',        title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2012},
+  {id:10,name:'Phan Thanh Hiếu',      position:'',                   title:'Kỹ thuật viên', degree:'Cao đẳng', gender:'Nam', contract:'VC', year:2012},
+  {id:11,name:'Bạch Lê Thắng',        position:'Trưởng nhóm',        title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2012},
+  {id:12,name:'Trần Hoàng Dương',     position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2013},
+  {id:13,name:'Đoàn Quốc Trung',      position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2014},
+  {id:14,name:'Nguyễn Thanh Tùng',    position:'',                   title:'Kế toán viên',  degree:'Đại học',  gender:'Nam', contract:'VC', year:2014},
+  {id:15,name:'Vũ Trung Kiên',        position:'Trưởng nhóm',        title:'Chuyên viên',   degree:'Đại học',  gender:'Nam', contract:'VC', year:2016},
+  {id:16,name:'Nguyễn Hữu Quân',      position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2017},
+  {id:17,name:'Phan Tiến Dũng',       position:'Trưởng nhóm',        title:'Kỹ sư',         degree:'Thạc sĩ',  gender:'Nam', contract:'VC', year:2017},
+  {id:18,name:'Nguyễn Đức Thịnh',     position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2017},
+  {id:19,name:'Nguyễn Thị Ngọc Anh',  position:'Trưởng nhóm',        title:'Chuyên viên',   degree:'Đại học',  gender:'Nữ',  contract:'VC', year:2017},
+  {id:20,name:'Hoàng Hải Anh',        position:'Trưởng nhóm',        title:'Chuyên viên',   degree:'Đại học',  gender:'Nữ',  contract:'VC', year:2018},
+  {id:21,name:'Phạm Ngọc Linh',       position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nữ',  contract:'VC', year:2018},
+  {id:22,name:'Nguyễn Đăng Tùng',     position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'HĐ', year:2018},
+  {id:23,name:'Bùi Thị Hồng Hạnh',    position:'',                   title:'Chuyên viên',   degree:'Đại học',  gender:'Nữ',  contract:'VC', year:2018},
+  {id:24,name:'Nguyễn Tuấn Linh',     position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'HĐ', year:2018},
+  {id:25,name:'Lê Thị Thanh Thanh',   position:'Trưởng nhóm',        title:'Chuyên viên',   degree:'Đại học',  gender:'Nữ',  contract:'VC', year:2018},
   {id:26,name:'Quách Trường Giang',   position:'',                   title:'Chuyên viên',   degree:'Đại học',  gender:'Nam', contract:'VC', year:2022},
   {id:27,name:'Nguyễn Quỳnh Anh',     position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nữ',  contract:'HĐ', year:2022},
   {id:28,name:'Cao Thị Thuý',         position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nữ',  contract:'HĐ', year:2024},
@@ -383,23 +377,6 @@ const LS = {
   regs: 'cntt_duty_regs',
 };
 
-/* ===== CLOUD SYNC (Firebase) ===== */
-const FB_URL = 'https://cntt-bvpstw-default-rtdb.asia-southeast1.firebasedatabase.app';
-
-function fbGet(path){ return fetch(FB_URL+'/'+path+'.json').then(r=>r.text()).catch(()=>'null'); }
-function fbSet(path,val){ if(!FB_URL) return; fetch(FB_URL+'/'+path+'.json',{method:'PUT',headers:{'Content-Type':'application/json'},body:val}).catch(()=>{}); }
-
-function syncScheduleToCloud(){ fbSet('schedule', JSON.stringify(schedule)); }
-function syncRegsToCloud(){ fbSet('regs', JSON.stringify(regs)); }
-
-async function syncFromCloud(){
-  if(!FB_URL) return;
-  const sv = await fbGet('schedule');
-  if(sv&&sv!=='null'){ try{ Object.assign(schedule,JSON.parse(sv)); localStorage.setItem(LS.schedule,JSON.stringify(schedule)); }catch(e){} }
-  const rv = await fbGet('regs');
-  if(rv&&rv!=='null'){ try{ regs=JSON.parse(rv); localStorage.setItem(LS.regs,rv); }catch(e){} }
-}
-
 function loadLS(key, fallback){ try{ const v = JSON.parse(localStorage.getItem(key)); return v===null||v===undefined ? fallback : v; }catch(e){ return fallback; } }
 function saveLS(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
 
@@ -415,17 +392,15 @@ let nextStaffId = Math.max(...staffList.map(s=>s.id), 0) + 1;
 
 let schedule = loadLS(LS.schedule, {});
 let regs = loadLS(LS.regs, []);
-function persistSchedule(){ saveLS(LS.schedule, schedule); syncScheduleToCloud(); }
-function persistRegs(){ saveLS(LS.regs, regs); syncRegsToCloud(); }
+function persistSchedule(){ saveLS(LS.schedule, schedule); }
+function persistRegs(){ saveLS(LS.regs, regs); }
 function persistStaff(){ saveLS(LS.staff, staffList); }
 
-const MIN_DATE = new Date(2026, 5, 1); // Tháng 6/2026 — không cho điều hướng về trước
 let user = null;
-const _today = new Date();
-let curDate = new Date(_today);
-let curWeekStart = weekStart(new Date(_today));
-let curYear = _today.getFullYear();
-let curMon = _today.getMonth();
+let curDate = new Date();
+let curWeekStart = weekStart(new Date());
+let curYear = new Date().getFullYear();
+let curMon = new Date().getMonth();
 let calSelKey = null;
 let editingStaffId = null, deletingStaffId = null;
 
@@ -482,9 +457,7 @@ function autoRange(sd, ed){
   const cur = new Date(sd);
   while(cur<=ed){
     const key = dk(cur.getFullYear(),cur.getMonth(),cur.getDate());
-    const s = schedule[key];
-    // Tự động phân công nếu ngày chưa có lịch, hoặc cả 2 ca đều rỗng
-    if(!s || (!s.morning.length && !s.night.length)) autoAssignDay(key, new Date(cur));
+    if(!schedule[key]) autoAssignDay(key, new Date(cur));
     cur.setDate(cur.getDate()+1);
   }
   persistSchedule();
@@ -499,7 +472,6 @@ function initSchedule(){
 /* ===== LOGIN ===== */
 function populateSel(){
   const sel = document.getElementById('sel-u');
-  if(!sel) return;
   sel.innerHTML = '<option value="">-- Chọn tên --</option>';
   [...staffList].sort((a,b)=>a.name.localeCompare(b.name)).forEach(s=>{
     const o = document.createElement('option');
@@ -508,38 +480,29 @@ function populateSel(){
     sel.appendChild(o);
   });
 }
-function getPwKey(name){ return 'cntt_pw_' + name; }
-function getUserPw(name){ return localStorage.getItem(getPwKey(name)) || 'cntt2026'; }
-function getSession(){ try{ return JSON.parse(sessionStorage.getItem('cntt_session'))||null; }catch(e){ return null; } }
-function setSession(s){ sessionStorage.setItem('cntt_session', JSON.stringify(s)); }
-function clearSession(){ sessionStorage.removeItem('cntt_session'); }
-
-function enterUser(s){
+function doLogin(){
+  const uid = document.getElementById('sel-u').value;
+  const pin = document.getElementById('inp-pin').value;
+  if(!uid){ alert('Vui lòng chọn tên!'); return; }
+  const s = staffById(+uid); if(!s) return;
   const isAdmin = isAdminPosition(s.position);
+  if(pin !== (isAdmin ? '0000' : '1234')){ document.getElementById('lerr').style.display='block'; return; }
+  document.getElementById('lerr').style.display='none';
   user = {id:s.id, name:s.name, isAdmin};
+  document.getElementById('login-screen').classList.add('hide');
   document.getElementById('main-wrap').classList.remove('hide');
   document.getElementById('nav-user').classList.add('show');
   document.getElementById('nav-ubadge').textContent = (isAdmin?'⭐ ':'') + user.name;
-  updateNotifBell();
   buildTabs();
   showTab('day');
 }
-function doLogin(){
-  const uid = document.getElementById('sel-u').value;
-  const pw = document.getElementById('inp-pin').value;
-  if(!uid){ alert('Vui lòng chọn tên!'); return; }
-  const s = staffById(+uid); if(!s) return;
-  if(pw !== getUserPw(s.name)){ document.getElementById('lerr').style.display='block'; return; }
-  document.getElementById('lerr').style.display='none';
-  const isAdmin = isAdminPosition(s.position);
-  const role = s.position==='Trưởng phòng'||s.position==='Phó Trưởng phòng'?'lanh_dao':s.position==='Tổ trưởng công tác'?'to_truong':s.position==='Trưởng nhóm'?'leader':'staff';
-  setSession({id:s.id, name:s.name, role});
-  enterUser(s);
-}
 function doLogout(){
   user = null;
-  clearSession();
-  window.location.href = 'index.html';
+  document.getElementById('main-wrap').classList.add('hide');
+  document.getElementById('nav-user').classList.remove('show');
+  document.getElementById('login-screen').classList.remove('hide');
+  document.getElementById('inp-pin').value = '';
+  populateSel();
 }
 
 /* ===== TABS ===== */
@@ -549,7 +512,7 @@ function buildTabs(){
     {id:'day', label:'Theo ngày'}, {id:'week', label:'Theo tuần'}, {id:'month', label:'Theo tháng'},
     {id:'mine', label:'Lịch của tôi'}, {id:'reg', label:'Đăng ký'},
   ];
-  if(user.isAdmin) tabs.push({id:'staff', label:'👥 Nhân sự'}, {id:'assign', label:'⚙️ Phân công'}, {id:'overview', label:'📊 Tổng quan'}, {id:'report', label:'📋 Báo cáo'});
+  if(user.isAdmin) tabs.push({id:'staff', label:'👥 Nhân sự'}, {id:'assign', label:'⚙️ Phân công'}, {id:'overview', label:'📊 Tổng quan'});
   tabs.forEach(t=>{
     const b = document.createElement('button');
     b.className='tab-btn'; b.textContent=t.label; b.id='tb-'+t.id;
@@ -564,7 +527,7 @@ function showTab(id){
   ({
     day:()=>renderDay(host), week:()=>renderWeek(host), month:()=>renderMonth(host),
     mine:()=>renderMine(host), reg:()=>renderReg(host),
-    staff:()=>renderStaffDir(host), assign:()=>renderAssign(host), overview:()=>renderOverview(host), report:()=>renderReport(host)
+    staff:()=>renderStaffDir(host), assign:()=>renderAssign(host), overview:()=>renderOverview(host)
   }[id]||function(){})();
 }
 
@@ -587,7 +550,7 @@ function renderDay(c){
   c.innerHTML = legendHTML() + `<div class="nrow"><button class="nav-btn" onclick="chDay(-1)">◀ Trước</button><span class="lbl" id="dl"></span><button class="nav-btn" onclick="chDay(1)">Sau ▶</button></div><div id="day-c"></div>`;
   paintDay();
 }
-function chDay(d){ curDate=new Date(curDate); curDate.setDate(curDate.getDate()+d); if(curDate<MIN_DATE) curDate=new Date(MIN_DATE); paintDay(); }
+function chDay(d){ curDate=new Date(curDate); curDate.setDate(curDate.getDate()+d); paintDay(); }
 function paintDay(){
   const y=curDate.getFullYear(),m=curDate.getMonth(),d=curDate.getDate();
   const key=dk(y,m,d); const s=schedule[key]||{morning:[],night:[]}; const lv=regs.filter(r=>r.date===key&&r.type==='leave');
@@ -607,7 +570,7 @@ function renderWeek(c){
   c.innerHTML = legendHTML() + `<div class="nrow"><button class="nav-btn" onclick="chWeek(-1)">◀ Tuần trước</button><span class="lbl" id="wl"></span><button class="nav-btn" onclick="chWeek(1)">Tuần sau ▶</button></div><div class="stats-row s3"><div class="scard"><div class="sn" style="color:var(--morning);" id="wms">0</div><div class="sl">Lượt ca sáng</div></div><div class="scard"><div class="sn" style="color:var(--night);" id="wns">0</div><div class="sl">Lượt ca đêm</div></div><div class="scard"><div class="sn" style="color:var(--leave);" id="wlv">0</div><div class="sl">Lượt nghỉ</div></div></div><div class="tbl-wrap"><div class="wgrid" style="min-width:520px;" id="wg"></div></div><div id="wd" style="margin-top:1.2rem;"></div>`;
   paintWeek();
 }
-function chWeek(d){ curWeekStart=new Date(curWeekStart); curWeekStart.setDate(curWeekStart.getDate()+d*7); if(curWeekStart<MIN_DATE) curWeekStart=weekStart(MIN_DATE); paintWeek(); }
+function chWeek(d){ curWeekStart=new Date(curWeekStart); curWeekStart.setDate(curWeekStart.getDate()+d*7); paintWeek(); }
 function paintWeek(){
   const ws=new Date(curWeekStart); const we=new Date(ws); we.setDate(ws.getDate()+6);
   document.getElementById('wl').textContent = `Tuần ${getWeekNum(ws.getFullYear(),ws.getMonth(),ws.getDate())} — ${ws.getDate()}/${ws.getMonth()+1} đến ${we.getDate()}/${we.getMonth()+1}/${we.getFullYear()}`;
@@ -632,7 +595,7 @@ function renderMonth(c){
   c.innerHTML = legendHTML() + `<div class="nrow"><button class="nav-btn" onclick="chMon(-1)">◀ Trước</button><span class="lbl" id="ml"></span><button class="nav-btn" onclick="chMon(1)">Sau ▶</button></div><div class="cal-grid" id="cdn"></div><div class="cal-grid" style="margin-top:.25rem;" id="cells"></div><div id="dpanel" class="hide"><div id="dc"></div></div>`;
   paintMonth();
 }
-function chMon(d){ curMon+=d; if(curMon>11){curMon=0;curYear++;} if(curMon<0){curMon=11;curYear--;} if(curYear<2026||(curYear===2026&&curMon<5)){curYear=2026;curMon=5;} calSelKey=null; paintMonth(); }
+function chMon(d){ curMon+=d; if(curMon>11){curMon=0;curYear++;} if(curMon<0){curMon=11;curYear--;} calSelKey=null; paintMonth(); }
 function paintMonth(){
   document.getElementById('ml').textContent = MONS[curMon]+' '+curYear;
   const dn = document.getElementById('cdn'); dn.innerHTML='';
@@ -711,8 +674,6 @@ function submitReg(){
   if(regs.find(r=>r.staffId===user.id&&r.date===date&&r.type===type)){ alert('Bạn đã đăng ký rồi!'); return; }
   regs.push({staffId:user.id, date, type, note}); persistRegs();
   if(type==='leave'){ const s=schedule[date]; if(s){ s.morning=s.morning.filter(i=>i!==user.id); s.night=s.night.filter(i=>i!==user.id); persistSchedule(); } }
-  // Gửi thông báo: nghỉ/ốm → admin + trưởng nhóm; trực sáng/đêm → admin
-  pushNotif(type==='leave'?['admin','leader']:['admin'], type, date, note);
   document.getElementById('rnote').value=''; paintRegs(); alert('Đã gửi đăng ký!');
 }
 function paintRegs(){
@@ -844,66 +805,34 @@ function renderAssign(c){
   const td=new Date().toISOString().split('T')[0];
   c.innerHTML = `<p style="font-weight:700;color:var(--purple-d);margin-bottom:.8rem;">Phân công thủ công</p>
   <div class="alert alert-warn">Thay đổi sẽ ghi đè lịch tự động. Hệ thống vẫn kiểm tra giới hạn 1 ca sáng + 1 ca đêm / người / tuần.</div>
-  <div class="fg"><label>Chọn ngày</label><input type="date" id="asgn-dt" value="${td}" onchange="initAChips()"></div>
-  <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.6rem;">
-    <input type="checkbox" id="bypass-limit" onchange="renderAChips()" style="width:16px;height:16px;accent-color:var(--purple);cursor:pointer;">
-    <label for="bypass-limit" style="font-size:.82rem;font-weight:600;color:var(--purple-d);cursor:pointer;">Bỏ giới hạn tuần — cho phép chọn tất cả mọi người</label>
-  </div>
+  <div class="fg"><label>Chọn ngày</label><input type="date" id="asgn-dt" value="${td}" onchange="renderAChips()"></div>
   <div class="alert alert-info" id="wlinfo" style="margin-top:.6rem;"></div>
   <p style="font-size:.78rem;font-weight:700;color:var(--purple-d);margin-bottom:.4rem;">Ca sáng — chọn đúng 5 người</p><div id="chips-m"></div>
   <p style="font-size:.78rem;font-weight:700;color:var(--purple-d);margin:.8rem 0 .4rem;">Ca đêm — chọn đúng 2 người</p><div id="chips-n"></div>
   <div style="display:flex;gap:.6rem;margin-top:1rem;"><button class="btn btn-primary" style="width:auto;" onclick="saveAssign()">Lưu phân công</button><button class="btn btn-outline" onclick="reAutoDay2()">Tự động lại</button></div>
-  <div id="ares" style="margin-top:.6rem;font-size:.82rem;"></div>
-  <hr style="margin:1.5rem 0;border:none;border-top:2px dashed var(--border);">
-  <div style="background:#fff5f5;border:2px solid #ffcdd2;border-radius:12px;padding:1.2rem;">
-    <p style="font-weight:700;color:#c62828;margin-bottom:.5rem;">⚠️ Vùng nguy hiểm</p>
-    <p style="font-size:.82rem;color:var(--muted);margin-bottom:.9rem;">Xóa dữ liệu lịch trực đã lưu. Hành động này <strong>không thể hoàn tác</strong>.</p>
-    <div style="display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin-bottom:.75rem;">
-      <span style="font-size:.8rem;font-weight:600;color:#c62828;">Xóa theo:</span>
-      <div style="display:flex;align-items:center;gap:.4rem;">
-        <input type="date" id="clear-day-dt" style="padding:.3rem .6rem;border:1.5px solid #ffcdd2;border-radius:7px;font-size:.8rem;">
-        <button class="btn btn-danger" style="padding:.35rem .9rem;font-size:.8rem;" onclick="clearByDay()">🗑 Xóa ngày</button>
-      </div>
-      <div style="display:flex;align-items:center;gap:.4rem;">
-        <input type="week" id="clear-week-dt" style="padding:.3rem .6rem;border:1.5px solid #ffcdd2;border-radius:7px;font-size:.8rem;">
-        <button class="btn btn-danger" style="padding:.35rem .9rem;font-size:.8rem;" onclick="clearByWeek()">🗑 Xóa tuần</button>
-      </div>
-      <div style="display:flex;align-items:center;gap:.4rem;">
-        <input type="month" id="clear-month-dt" style="padding:.3rem .6rem;border:1.5px solid #ffcdd2;border-radius:7px;font-size:.8rem;">
-        <button class="btn btn-danger" style="padding:.35rem .9rem;font-size:.8rem;" onclick="clearByMonth()">🗑 Xóa tháng</button>
-      </div>
-    </div>
-    <hr style="border:none;border-top:1px dashed #ffcdd2;margin:.75rem 0;">
-    <button class="btn btn-danger" onclick="clearAllSchedule()">🗑 Xóa toàn bộ lịch</button>
-  </div>`;
-  initAChips();
-}
-function initAChips(){
-  const dv = document.getElementById('asgn-dt'); if(!dv||!dv.value) return;
-  const s = schedule[dv.value]||{morning:[],night:[]};
-  aSelM=new Set(s.morning); aSelN=new Set(s.night);
+  <div id="ares" style="margin-top:.6rem;font-size:.82rem;"></div>`;
   renderAChips();
 }
 function renderAChips(){
   const dv = document.getElementById('asgn-dt'); if(!dv||!dv.value) return;
   const dateVal = dv.value;
+  const s = schedule[dateVal]||{morning:[],night:[]}; aSelM=new Set(s.morning); aSelN=new Set(s.night);
   const p = dateVal.split('-'); const baseDt = new Date(+p[0],+p[1]-1,+p[2]);
   document.getElementById('wlinfo').textContent = `Kiểm tra giới hạn 1 ca sáng + 1 ca đêm / tuần cho ngày ${p[2]}/${p[1]}/${p[0]}.`;
-  const bypass = document.getElementById('bypass-limit')?.checked;
   const cm = document.getElementById('chips-m'), cn = document.getElementById('chips-n'); cm.innerHTML=''; cn.innerHTML='';
   activeStaff().forEach(st=>{
     const wc = weekShifts(st.id, baseDt);
     const lv = regs.some(r=>r.date===dateVal&&r.staffId===st.id&&r.type==='leave');
-    const mDis = lv || (!bypass && wc.morning>=1 && !aSelM.has(st.id));
-    const nDis = lv || (!bypass && wc.night>=1 && !aSelN.has(st.id));
+    const mDis = lv || (wc.morning>=1 && !aSelM.has(st.id));
+    const nDis = lv || (wc.night>=1 && !aSelN.has(st.id));
     const mc = document.createElement('span');
     mc.className = 'achip' + (aSelM.has(st.id)?' sel-m':'') + (mDis?' disabled':'');
-    mc.textContent = st.name + (lv?' (nghỉ)':(!bypass&&wc.morning>=1&&!aSelM.has(st.id))?' (đã trực)':'');
+    mc.textContent = st.name + (lv?' (nghỉ)':wc.morning>=1&&!aSelM.has(st.id)?' (đã trực)':'');
     mc.onclick = ()=>{ if(mDis) return; aSelM.has(st.id)?aSelM.delete(st.id):(aSelM.size<5?aSelM.add(st.id):alert('Tối đa 5 người!')); renderAChips(); };
     cm.appendChild(mc);
     const nc = document.createElement('span');
     nc.className = 'achip' + (aSelN.has(st.id)?' sel-n':'') + (nDis?' disabled':'');
-    nc.textContent = st.name + (lv?' (nghỉ)':(!bypass&&wc.night>=1&&!aSelN.has(st.id))?' (đã trực)':'');
+    nc.textContent = st.name + (lv?' (nghỉ)':wc.night>=1&&!aSelN.has(st.id)?' (đã trực)':'');
     nc.onclick = ()=>{ if(nDis) return; aSelN.has(st.id)?aSelN.delete(st.id):(aSelN.size<2?aSelN.add(st.id):alert('Tối đa 2 người!')); renderAChips(); };
     cn.appendChild(nc);
   });
@@ -917,7 +846,7 @@ function reAutoDay2(){
   const dv = document.getElementById('asgn-dt'); if(!dv||!dv.value){ alert('Chọn ngày!'); return; }
   delete schedule[dv.value];
   const p = dv.value.split('-'); autoAssignDay(dv.value, new Date(+p[0],+p[1]-1,+p[2])); persistSchedule();
-  initAChips();
+  renderAChips();
   document.getElementById('ares').innerHTML = `<span style="color:var(--leave);">Đã tự động phân công lại ngày ${dv.value}</span>`;
 }
 
@@ -932,21 +861,20 @@ function openQuickAssign(key){
   paintMAChips(key, dt); openModal('modal-assign');
 }
 function paintMAChips(key, dt){
-  const bypass = document.getElementById('bypass-limit')?.checked;
   const cm = document.getElementById('ma-chips-m'), cn = document.getElementById('ma-chips-n'); cm.innerHTML=''; cn.innerHTML='';
   activeStaff().forEach(st=>{
     const wc = weekShifts(st.id, dt);
     const lv = regs.some(r=>r.date===key&&r.staffId===st.id&&r.type==='leave');
-    const mDis = lv || (!bypass && wc.morning>=1 && !maSelM.has(st.id));
-    const nDis = lv || (!bypass && wc.night>=1 && !maSelN.has(st.id));
+    const mDis = lv || (wc.morning>=1 && !maSelM.has(st.id));
+    const nDis = lv || (wc.night>=1 && !maSelN.has(st.id));
     const mc = document.createElement('span');
     mc.className = 'achip' + (maSelM.has(st.id)?' sel-m':'') + (mDis?' disabled':'');
-    mc.textContent = st.name + (lv?' (nghỉ)':(!bypass&&wc.morning>=1&&!maSelM.has(st.id))?' (đã trực)':'');
+    mc.textContent = st.name + (lv?' (nghỉ)':wc.morning>=1&&!maSelM.has(st.id)?' (đã trực)':'');
     mc.onclick = ()=>{ if(mDis) return; maSelM.has(st.id)?maSelM.delete(st.id):(maSelM.size<5?maSelM.add(st.id):alert('Tối đa 5!')); paintMAChips(key,dt); };
     cm.appendChild(mc);
     const nc = document.createElement('span');
     nc.className = 'achip' + (maSelN.has(st.id)?' sel-n':'') + (nDis?' disabled':'');
-    nc.textContent = st.name + (lv?' (nghỉ)':(!bypass&&wc.night>=1&&!maSelN.has(st.id))?' (đã trực)':'');
+    nc.textContent = st.name + (lv?' (nghỉ)':wc.night>=1&&!maSelN.has(st.id)?' (đã trực)':'');
     nc.onclick = ()=>{ if(nDis) return; maSelN.has(st.id)?maSelN.delete(st.id):(maSelN.size<2?maSelN.add(st.id):alert('Tối đa 2!')); paintMAChips(key,dt); };
     cn.appendChild(nc);
   });
@@ -992,284 +920,9 @@ function renderOverview(c){
   ${html}`;
 }
 
-/* ===== XÓA TOÀN BỘ LỊCH ===== */
-function clearDaysRange(sd, ed, label){
-  const cur = new Date(sd);
-  const clearedKeys = [];
-  while(cur <= ed){
-    const key = dk(cur.getFullYear(), cur.getMonth(), cur.getDate());
-    schedule[key] = {morning:[], night:[]};
-    clearedKeys.push(key);
-    cur.setDate(cur.getDate()+1);
-  }
-  persistSchedule();
-  showTab('assign');
-  alert(`✅ Đã xóa lịch trực ${label} (${clearedKeys.length} ngày) thành công!`);
-}
-
-function clearByDay(){
-  const val = document.getElementById('clear-day-dt').value;
-  if(!val){ alert('Vui lòng chọn ngày cần xóa!'); return; }
-  const [y,m,d] = val.split('-').map(Number);
-  if(!confirm(`Xóa lịch trực ngày ${d}/${m}/${y}?`)) return;
-  const dt = new Date(y, m-1, d);
-  clearDaysRange(dt, dt, `ngày ${d}/${m}/${y}`);
-}
-
-function clearByWeek(){
-  const val = document.getElementById('clear-week-dt').value;
-  if(!val){ alert('Vui lòng chọn tuần cần xóa!'); return; }
-  // val format: "2025-W23"
-  const [yr, wk] = val.split('-W').map(Number);
-  // Tính thứ 2 của tuần đó
-  const jan4 = new Date(yr, 0, 4);
-  const monday = new Date(jan4);
-  monday.setDate(jan4.getDate() - (jan4.getDay()||7) + 1 + (wk-1)*7);
-  const sunday = new Date(monday); sunday.setDate(monday.getDate()+6);
-  const fmt = d => `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
-  if(!confirm(`Xóa lịch trực tuần ${wk}/${yr} (${fmt(monday)} – ${fmt(sunday)})?`)) return;
-  clearDaysRange(monday, sunday, `tuần ${wk}/${yr}`);
-}
-
-function clearByMonth(){
-  const val = document.getElementById('clear-month-dt').value;
-  if(!val){ alert('Vui lòng chọn tháng cần xóa!'); return; }
-  const [y,m] = val.split('-').map(Number);
-  if(!confirm(`Xóa toàn bộ lịch trực tháng ${m}/${y}?`)) return;
-  const sd = new Date(y, m-1, 1);
-  const ed = new Date(y, m, 0);
-  clearDaysRange(sd, ed, `tháng ${m}/${y}`);
-}
-
-function clearAllSchedule(){
-  if(!confirm('Bạn có chắc muốn XÓA TOÀN BỘ lịch trực và đăng ký nghỉ không?\nHành động này không thể hoàn tác!')) return;
-  // Xóa dữ liệu và lưu lịch rỗng cho tất cả các ngày trong range để ngăn tự động fill lại
-  schedule = {};
-  regs = [];
-  const now = new Date();
-  const sd = new Date(now.getFullYear(), now.getMonth()-1, 1);
-  const ed = new Date(now.getFullYear(), now.getMonth()+2, 0);
-  const cur = new Date(sd);
-  while(cur<=ed){
-    const key = dk(cur.getFullYear(),cur.getMonth(),cur.getDate());
-    schedule[key] = {morning:[], night:[]};
-    cur.setDate(cur.getDate()+1);
-  }
-  localStorage.removeItem(LS.regs);
-  persistSchedule();
-  syncScheduleToCloud();
-  showTab('assign');
-  alert('✅ Đã xóa toàn bộ lịch trực thành công!');
-}
-
-/* ===== THÔNG BÁO (NOTIFICATIONS) ===== */
-let notifs = [];
-function getReadKey(){ return 'cntt_read_notifs_'+(user?user.id:0); }
-function getReadSet(){ try{ return new Set(JSON.parse(localStorage.getItem(getReadKey())||'[]')); }catch(e){ return new Set(); } }
-function saveReadSet(s){ localStorage.setItem(getReadKey(), JSON.stringify([...s])); }
-
-async function syncNotifsFromCloud(){
-  const v = await fbGet('notifs');
-  if(v&&v!=='null'){ try{ const obj=JSON.parse(v); notifs=Object.values(obj).sort((a,b)=>b.ts-a.ts); }catch(e){} }
-}
-function pushNotif(targets, type, date, note){
-  if(!FB_URL) return;
-  const ts = Date.now();
-  const notif = {ts, fromId:user.id, fromName:user.name, type, date, note, targets};
-  fbSet('notifs/n'+ts, JSON.stringify(notif));
-  notifs.unshift(notif);
-  updateNotifBell();
-}
-function isNotifTarget(){ if(!user) return false; const sv=staffById(user.id); return user.isAdmin||(sv&&sv.position==='Trưởng nhóm'); }
-function getMyNotifs(){ if(!user) return []; const myT=user.isAdmin?['admin','leader']:['leader']; return notifs.filter(n=>n.fromId!==user.id&&n.targets.some(t=>myT.includes(t))); }
-function getUnreadCount(){ const rs=getReadSet(); return getMyNotifs().filter(n=>!rs.has(String(n.ts))).length; }
-function updateNotifBell(){
-  const bell=document.getElementById('notif-bell'); const cnt=document.getElementById('notif-cnt');
-  if(!bell) return;
-  const show = isNotifTarget(); bell.style.display=show?'':'none';
-  const uc=getUnreadCount();
-  if(cnt){ cnt.textContent=uc>0?uc:''; cnt.style.display=uc>0?'':'none'; }
-}
-function renderNotifsBody(){
-  const mine=getMyNotifs(); const rs=getReadSet();
-  const typeLabels={morning:'Đăng ký trực sáng',night:'Đăng ký trực đêm',leave:'Đăng ký nghỉ/ốm'};
-  const typeColors={morning:'var(--morning)',night:'var(--night)',leave:'var(--leave)'};
-  const body=document.getElementById('notifs-body');
-  if(!mine.length){ body.innerHTML='<p class="empty-txt" style="padding:1.2rem;">Không có thông báo nào.</p>'; return; }
-  body.innerHTML=mine.slice(0,60).map(n=>{
-    const isRead=rs.has(String(n.ts));
-    const dt=new Date(n.ts);
-    const dtStr=`${dt.getDate()}/${dt.getMonth()+1}/${dt.getFullYear()} ${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
-    const p=n.date?n.date.split('-'):null;
-    const dateStr=p?`${p[2]}/${p[1]}/${p[0]}`:'';
-    return `<div style="padding:.8rem 1.1rem;border-bottom:1px solid var(--border);background:${isRead?'#fff':'#f8f4fc'};">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;">
-        <div style="flex:1;">
-          <span style="font-weight:700;font-size:.82rem;color:${typeColors[n.type]||'var(--text)'};">${typeLabels[n.type]||n.type}</span>
-          ${!isRead?'<span style="background:var(--pink);color:#fff;font-size:.6rem;padding:.05rem .35rem;border-radius:999px;margin-left:.4rem;">Mới</span>':''}
-          <div style="font-size:.82rem;margin-top:.25rem;"><b>${n.fromName}</b> — ngày <span style="color:var(--purple-d);font-weight:600;">${dateStr}</span>${n.note?` <span style="color:var(--muted);">(${n.note})</span>`:''}</div>
-        </div>
-        <span style="font-size:.7rem;color:var(--muted);white-space:nowrap;margin-top:.1rem;">${dtStr}</span>
-      </div>
-    </div>`;
-  }).join('');
-}
-function openNotifsModal(){
-  const rs=getReadSet(); getMyNotifs().forEach(n=>rs.add(String(n.ts))); saveReadSet(rs);
-  renderNotifsBody(); openModal('modal-notifs'); updateNotifBell();
-}
-function markAllNotifsRead(){
-  const rs=getReadSet(); getMyNotifs().forEach(n=>rs.add(String(n.ts))); saveReadSet(rs);
-  renderNotifsBody(); updateNotifBell();
-}
-
-/* ===== IN LỊCH TRỰC & BÁO CÁO (ADMIN) ===== */
-function renderReport(c){
-  const monthStart=`${curYear}-${pad(curMon+1)}-01`;
-  const monthEnd=`${curYear}-${pad(curMon+1)}-${pad(new Date(curYear,curMon+1,0).getDate())}`;
-  c.innerHTML=`<p style="font-weight:700;color:var(--purple-d);margin-bottom:1.2rem;">📋 Báo cáo & In lịch</p>
-
-  <div style="background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:1.2rem;margin-bottom:1.2rem;box-shadow:var(--shadow);">
-    <p style="font-weight:700;font-size:.92rem;color:var(--purple-d);margin-bottom:.9rem;">🖨️ In lịch trực tổng hợp</p>
-    <div class="form-grid">
-      <div class="fg"><label>Từ ngày</label><input type="date" id="rpt-pf" value="${monthStart}"></div>
-      <div class="fg"><label>Đến ngày</label><input type="date" id="rpt-pt" value="${monthEnd}"></div>
-      <div class="fg full"><label>Tiêu đề in</label><input type="text" id="rpt-ptitle" value="LỊCH TRỰC PHÒNG CNTT — ${MONS[curMon].toUpperCase()} ${curYear}"></div>
-    </div>
-    <button class="btn btn-primary" style="width:auto;" onclick="doPrintSchedule()">🖨️ Xem trước & In</button>
-  </div>
-
-  <div style="background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:1.2rem;box-shadow:var(--shadow);">
-    <p style="font-weight:700;font-size:.92rem;color:var(--purple-d);margin-bottom:.9rem;">📊 Tổng hợp nghỉ phép / ốm</p>
-    <div class="form-grid">
-      <div class="fg"><label>Từ ngày</label><input type="date" id="rpt-lf" value="${monthStart}"></div>
-      <div class="fg"><label>Đến ngày</label><input type="date" id="rpt-lt" value="${monthEnd}"></div>
-    </div>
-    <button class="btn btn-outline" onclick="renderLeaveTable()">🔍 Xem tổng hợp</button>
-    <div id="leave-tbl-wrap" style="margin-top:1rem;"></div>
-  </div>`;
-}
-
-function doPrintSchedule(){
-  const from=document.getElementById('rpt-pf').value, to=document.getElementById('rpt-pt').value;
-  const title=document.getElementById('rpt-ptitle').value||'LỊCH TRỰC PHÒNG CNTT';
-  if(!from||!to){ alert('Chọn ngày!'); return; }
-  if(from>to){ alert('Ngày bắt đầu phải trước ngày kết thúc!'); return; }
-  const [fy,fm,fd]=from.split('-').map(Number), [ty,tm,td]=to.split('-').map(Number);
-  const sd=new Date(fy,fm-1,fd), ed=new Date(ty,tm-1,td);
-  let rows=''; const cur=new Date(sd);
-  while(cur<=ed){
-    const key=dk(cur.getFullYear(),cur.getMonth(),cur.getDate());
-    const s=schedule[key]||{morning:[],night:[]}; const lv=regs.filter(r=>r.date===key&&r.type==='leave');
-    const d=cur.getDate(),m=cur.getMonth()+1,y=cur.getFullYear();
-    const bg=cur.getDay()===0||cur.getDay()===6?'#f0e8f8':'';
-    rows+=`<tr style="background:${bg};">
-      <td style="font-weight:600;white-space:nowrap;">${DOW_S[cur.getDay()]} ${d}/${m}/${y}</td>
-      <td>${s.morning.map(id=>nameById(id)).join('<br>')||'—'}</td>
-      <td>${s.night.map(id=>nameById(id)).join('<br>')||'—'}</td>
-      <td>${lv.map(r=>nameById(r.staffId)).join('<br>')||''}</td>
-    </tr>`;
-    cur.setDate(cur.getDate()+1);
-  }
-  const [pf1,pf2,pf3]=from.split('-'), [pt1,pt2,pt3]=to.split('-');
-  const win=window.open('','_blank');
-  win.document.write(`<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><title>${title}</title>
-  <style>body{font-family:'Times New Roman',serif;font-size:10.5pt;margin:1.5cm;}
-  h3{text-align:center;text-transform:uppercase;margin:.25rem 0;}
-  .sub{text-align:center;font-size:9pt;color:#555;margin-bottom:.8rem;}
-  table{width:100%;border-collapse:collapse;margin-top:.5rem;}
-  th,td{border:1px solid #333;padding:4px 7px;vertical-align:top;}
-  th{background:#ddd;font-weight:bold;text-align:center;}
-  .no-print{margin-bottom:.8rem;}@media print{.no-print{display:none;}}</style></head><body>
-  <h3>Bệnh viện Phụ Sản Trung Ương</h3>
-  <h3>Phòng Công nghệ thông tin</h3>
-  <h3 style="color:#4A1D62;">${title}</h3>
-  <div class="sub">Từ ngày ${pf3}/${pf2}/${pf1} đến ngày ${pt3}/${pt2}/${pt1}</div>
-  <div class="no-print"><button onclick="window.print()" style="padding:.4rem 1.2rem;cursor:pointer;font-size:10pt;">🖨️ In</button></div>
-  <table><thead><tr><th style="width:14%;">Ngày</th><th style="width:42%;">Ca sáng 5h30–7h30 (5 người)</th><th style="width:26%;">Ca đêm 16h30–5h30 (2 người)</th><th style="width:18%;">Nghỉ phép/ốm</th></tr></thead>
-  <tbody>${rows}</tbody></table>
-  <div style="font-size:8pt;color:#666;margin-top:.8rem;text-align:right;">In ngày ${new Date().getDate()}/${new Date().getMonth()+1}/${new Date().getFullYear()}</div>
-  </body></html>`);
-  win.document.close();
-}
-
-function renderLeaveTable(){
-  const from=document.getElementById('rpt-lf').value, to=document.getElementById('rpt-lt').value;
-  if(!from||!to){ alert('Chọn ngày!'); return; }
-  if(from>to){ alert('Ngày bắt đầu phải trước ngày kết thúc!'); return; }
-  const leaveRegs=regs.filter(r=>r.type==='leave'&&r.date>=from&&r.date<=to);
-  const [pf1,pf2,pf3]=from.split('-'), [pt1,pt2,pt3]=to.split('-');
-  const wrap=document.getElementById('leave-tbl-wrap');
-  if(!leaveRegs.length){ wrap.innerHTML='<p class="empty-txt">Không có đăng ký nghỉ nào trong khoảng thời gian này.</p>'; return; }
-  const byStaff={};
-  leaveRegs.forEach(r=>{ if(!byStaff[r.staffId]) byStaff[r.staffId]=[]; byStaff[r.staffId].push(r); });
-  const sumRows=Object.entries(byStaff).map(([id,rs])=>{
-    const s=staffById(+id);
-    return `<tr><td><b>${s?s.name:'?'}</b>${s&&s.position?`<br><span style="font-size:.72rem;color:var(--muted);">${s.position}</span>`:''}</td>
-      <td style="text-align:center;font-weight:700;color:var(--leave);">${rs.length}</td>
-      <td style="font-size:.78rem;">${rs.sort((a,b)=>a.date.localeCompare(b.date)).map(r=>{const p=r.date.split('-');return `${p[2]}/${p[1]}${r.note?` (${r.note})`:''}`}).join(', ')}</td></tr>`;
-  }).join('');
-  const detRows=leaveRegs.sort((a,b)=>a.date.localeCompare(b.date)).map(r=>{
-    const p=r.date.split('-'); const dt=new Date(+p[0],+p[1]-1,+p[2]); const s=staffById(r.staffId);
-    return `<tr><td>${DOW_S[dt.getDay()]} ${p[2]}/${p[1]}/${p[0]}</td><td>${s?s.name:'?'}</td><td style="font-size:.78rem;color:var(--muted);">${r.note||'—'}</td></tr>`;
-  }).join('');
-  wrap.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.7rem;flex-wrap:wrap;gap:.5rem;">
-    <p style="font-size:.85rem;color:var(--muted);">Từ ${pf3}/${pf2}/${pf1} đến ${pt3}/${pt2}/${pt1} — <b>${leaveRegs.length} lượt nghỉ</b></p>
-    <button class="btn btn-sm btn-blue" onclick="printLeaveReport('${from}','${to}')">🖨️ In bảng này</button>
-  </div>
-  <p style="font-weight:700;font-size:.82rem;color:var(--purple-d);margin-bottom:.4rem;">Tổng hợp theo người</p>
-  <div class="tbl-wrap" style="margin-bottom:1rem;"><table class="tbl"><thead><tr><th>Họ tên</th><th>Số ngày nghỉ</th><th>Các ngày nghỉ</th></tr></thead><tbody>${sumRows}</tbody></table></div>
-  <p style="font-weight:700;font-size:.82rem;color:var(--purple-d);margin-bottom:.4rem;">Chi tiết theo ngày</p>
-  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Ngày</th><th>Nhân viên</th><th>Ghi chú</th></tr></thead><tbody>${detRows}</tbody></table></div>`;
-}
-
-function printLeaveReport(from, to){
-  const leaveRegs=regs.filter(r=>r.type==='leave'&&r.date>=from&&r.date<=to);
-  const [pf1,pf2,pf3]=from.split('-'), [pt1,pt2,pt3]=to.split('-');
-  const byStaff={};
-  leaveRegs.forEach(r=>{ if(!byStaff[r.staffId]) byStaff[r.staffId]=[]; byStaff[r.staffId].push(r); });
-  const rows=Object.entries(byStaff).map(([id,rs])=>{
-    const s=staffById(+id);
-    return `<tr><td>${s?s.name:'?'}</td><td>${s&&s.position?s.position:''}</td>
-      <td style="text-align:center;">${rs.length}</td>
-      <td>${rs.sort((a,b)=>a.date.localeCompare(b.date)).map(r=>{const p=r.date.split('-');return `${p[2]}/${p[1]}${r.note?` (${r.note})`:''}`}).join(', ')}</td></tr>`;
-  }).join('');
-  const win=window.open('','_blank');
-  win.document.write(`<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><title>Tổng hợp nghỉ phép/ốm</title>
-  <style>body{font-family:'Times New Roman',serif;font-size:10.5pt;margin:1.5cm;}
-  h3{text-align:center;text-transform:uppercase;margin:.25rem 0;}
-  .sub{text-align:center;font-size:9pt;color:#555;margin-bottom:.8rem;}
-  table{width:100%;border-collapse:collapse;margin-top:.5rem;}
-  th,td{border:1px solid #333;padding:4px 7px;vertical-align:top;}
-  th{background:#ddd;font-weight:bold;}
-  .no-print{margin-bottom:.8rem;}@media print{.no-print{display:none;}}</style></head><body>
-  <h3>Bệnh viện Phụ Sản Trung Ương — Phòng Công nghệ thông tin</h3>
-  <h3>Tổng hợp nghỉ phép / ốm</h3>
-  <div class="sub">Từ ngày ${pf3}/${pf2}/${pf1} đến ngày ${pt3}/${pt2}/${pt1} — Tổng: ${leaveRegs.length} lượt</div>
-  <div class="no-print"><button onclick="window.print()" style="padding:.4rem 1.2rem;cursor:pointer;">🖨️ In</button></div>
-  <table><thead><tr><th>Họ tên</th><th>Chức vụ</th><th>Số ngày nghỉ</th><th>Các ngày nghỉ</th></tr></thead><tbody>${rows}</tbody></table>
-  <div style="font-size:8pt;color:#666;margin-top:.8rem;text-align:right;">In ngày ${new Date().getDate()}/${new Date().getMonth()+1}/${new Date().getFullYear()}</div>
-  </body></html>`);
-  win.document.close();
-}
-
 /* ===== INIT ===== */
 populateSel();
-(async function(){
-  const sess = getSession();
-  if(!sess){ window.location.href='index.html'; return; }
-  const s = staffById(sess.id);
-  if(!s){ window.location.href='index.html'; return; }
-  if(FB_URL){
-    const toast = document.getElementById('sync-toast');
-    if(toast) toast.style.display='block';
-    await syncFromCloud();
-    await syncNotifsFromCloud();
-    if(toast) toast.style.display='none';
-  }
-  initSchedule(); // Tự động phân công các ngày chưa có lịch
-  enterUser(s);
-})();
+initSchedule();
 </script>
 </body>
 </html>
