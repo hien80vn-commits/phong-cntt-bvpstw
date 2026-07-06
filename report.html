@@ -1216,6 +1216,7 @@ function renderReport(r, showAuthor=false, canDelete=false, type=null, globalIdx
   const levelMap = {leader:'→ Nhóm trưởng', to_truong:'→ Tổ trưởng', lanh_dao:'→ Lãnh đạo'};
   const levelBadge = r.targetLevel ? `<span style="font-size:.7rem;color:var(--teal);margin-left:.3rem;">${levelMap[r.targetLevel]||''}</span>` : '';
   const delBtn = canDelete ? `<button class="ri-del" onclick="deleteReport('${rtype}',${globalIdx})" title="Xóa">🗑</button>` : '';
+  const editBtn = (canDelete && !r.isChecklist && rtype!=='yearly') ? `<button class="ri-del" style="right:2.4rem;" onclick="editReport('${rtype}',${globalIdx})" title="Sửa báo cáo">✏️</button>` : '';
   const cls = r.isSynthesis ? 'report-item synthesis' : 'report-item';
   // File attachments
   const filesHtml = (r.files&&r.files.length) ? `<div class="file-chips" style="margin-top:.6rem;">${r.files.map(f=>{
@@ -1227,10 +1228,10 @@ function renderReport(r, showAuthor=false, canDelete=false, type=null, globalIdx
   return `<div class="${cls}">
     <div class="ri-header">
       <div class="ri-title">${title}${synthBadge}${levelBadge}</div>
-      <div class="ri-meta">${authorLine}Nộp: ${r.createdAt||''}</div>
+      <div class="ri-meta">${authorLine}Nộp: ${r.createdAt||''}${r.editedAt?` · ✏️ Sửa: ${r.editedAt}`:''}</div>
     </div>
     <div class="ri-body">${body||'<em style="color:var(--muted)">Không có nội dung</em>'}${filesHtml}</div>
-    ${delBtn}
+    ${editBtn}${delBtn}
   </div>`;
 }
 
@@ -1578,7 +1579,30 @@ async function submitReport(type){
   const fileInputMap={daily:'d-files',weekly:'w-files',monthly:'m-files',yearly:'y-files'};
   data.files = await readFilesBase64(fileInputMap[type]);
 
-  const arr=getReports(type); arr.unshift(data); saveReports(type,arr);
+  const arr=getReports(type);
+  if(editingReport&&editingReport.type===type){
+    // Chế độ sửa: thay thế báo cáo cũ, giữ nguyên ts & thời điểm nộp gốc
+    const idx=arr.findIndex(r=>r.ts===editingReport.ts);
+    if(idx>-1){
+      const old=arr[idx];
+      data.ts=old.ts;
+      data.createdAt=old.createdAt;
+      data.editedAt=now;
+      // Không chọn file mới thì giữ file đính kèm cũ
+      if(!data.files||!data.files.length) data.files=old.files||[];
+      arr[idx]=data;
+    } else {
+      arr.unshift(data);
+    }
+    saveReports(type,arr);
+    cancelEditReport(false);
+    loadMyReports(type);
+    if(['leader','to_truong','lanh_dao'].includes(session.role)) loadInbox();
+    showToast('✅ Đã cập nhật báo cáo!');
+    clearForm(type);
+    return;
+  }
+  arr.unshift(data); saveReports(type,arr);
 
   // Reset file input + preview
   const fi=document.getElementById(fileInputMap[type]);
@@ -1616,6 +1640,74 @@ function deleteReport(type,idx){
   loadMyReports(type);
   loadInbox();
   showToast('🗑 Đã xóa.');
+}
+
+/* =====================================================
+   SỬA BÁO CÁO ĐÃ NỘP
+===================================================== */
+let editingReport=null;
+
+function editReport(type,idx){
+  const r=getReports(type)[idx]; if(!r) return;
+  const s=getSession(); if(!s||(r.authorId!==s.id&&r.reporter!==s.name)) return;
+  editingReport={type, ts:r.ts};
+  // Điền lại dữ liệu vào form
+  if(type==='daily'){
+    document.getElementById('d-date').value=r.date||'';
+    document.getElementById('d-done').value=r.done||'';
+    document.getElementById('d-pending').value=r.pending||'';
+    document.getElementById('d-issue').value=r.issue||'';
+    document.getElementById('d-plan').value=r.plan||'';
+  } else if(type==='weekly'){
+    document.getElementById('w-from').value=r.from||'';
+    document.getElementById('w-to').value=r.to||'';
+    document.getElementById('w-done').value=r.done||'';
+    document.getElementById('w-pending').value=r.pending||'';
+    document.getElementById('w-plan').value=r.plan||'';
+    document.getElementById('w-suggest').value=r.suggest||'';
+  } else if(type==='monthly'){
+    document.getElementById('m-month').value=r.month||'';
+    document.getElementById('m-done').value=r.done||'';
+    document.getElementById('m-highlight').value=r.highlight||'';
+    document.getElementById('m-issue').value=r.issue||'';
+    document.getElementById('m-plan').value=r.plan||'';
+    document.getElementById('m-hr').value=r.hr||'';
+  }
+  // Chọn lại nhóm & checkbox tổng hợp
+  const groupSelId={daily:'d-group',weekly:'w-group',monthly:'m-group'}[type];
+  const gs=document.getElementById(groupSelId); if(gs&&r.authorGroup) gs.value=r.authorGroup;
+  const synthId={daily:'d-synth',weekly:'w-synth',monthly:'m-synth'}[type];
+  const se=document.getElementById(synthId); if(se) se.checked=!!r.isSynthesis&&s.role!=='to_truong';
+  // Chuyển sang đúng tab nộp báo cáo
+  const tabBtn=document.querySelector(`.report-tabs button[onclick*="'${type}'"]`);
+  switchTab(type, tabBtn);
+  // Banner báo đang sửa + nút hủy
+  showEditBanner(type);
+  document.getElementById('tab-'+type).scrollIntoView({behavior:'smooth',block:'start'});
+  showToast('✏️ Đang sửa báo cáo — chỉnh xong bấm "Lưu & Nộp báo cáo" để cập nhật.');
+}
+
+function showEditBanner(type){
+  removeEditBanner();
+  const card=document.querySelector('#tab-'+type+' .form-card');
+  if(!card) return;
+  const div=document.createElement('div');
+  div.id='report-edit-banner';
+  div.style.cssText='background:#FFF8E1;border:1.5px solid #F9A825;border-radius:10px;padding:.6rem .9rem;margin-bottom:1rem;font-size:.83rem;display:flex;justify-content:space-between;align-items:center;gap:.6rem;flex-wrap:wrap;';
+  div.innerHTML=`<span>✏️ <b>Đang sửa báo cáo đã nộp</b> — bấm "Lưu &amp; Nộp báo cáo" để cập nhật.</span>
+    <button class="btn-outline" style="padding:.3rem .9rem;font-size:.78rem;" onclick="cancelEditReport()">Hủy sửa</button>`;
+  card.insertBefore(div, card.firstChild.nextSibling);
+}
+
+function removeEditBanner(){
+  const b=document.getElementById('report-edit-banner'); if(b) b.remove();
+}
+
+function cancelEditReport(clear=true){
+  const type=editingReport?editingReport.type:null;
+  editingReport=null;
+  removeEditBanner();
+  if(clear&&type) clearForm(type);
 }
 
 function clearForm(type){
