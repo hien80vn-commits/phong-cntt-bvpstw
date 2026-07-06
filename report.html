@@ -2859,21 +2859,51 @@ function createTask(){
   if(!title){ showToast('⚠️ Vui lòng nhập tiêu đề công việc!'); return; }
   if(!deadline){ showToast('⚠️ Vui lòng chọn deadline!'); return; }
 
-  // Edit mode: update existing task
+  // Edit mode: update the whole task group (same groupId = tasks created together)
   if(editingTaskId!==null){
     const selectedIds=getSelectedAssignees();
-    if(!selectedIds.length){ showToast('⚠️ Vui lòng chọn người thực hiện!'); return; }
-    const arr=getTasks();
-    const t=arr.find(t=>t.id==editingTaskId); if(!t) return;
-    const newAssigneeId=selectedIds[0];
-    const assignee=STAFF.find(m=>m.id===newAssigneeId);
-    t.title=title; t.desc=desc;
-    t.assignedToId=newAssigneeId; t.assignedToName=assignee?assignee.name:'';
-    t.deadline=deadline; t.priority=priority;
-    t.updatedAt=new Date().toLocaleString('vi-VN');
+    if(!selectedIds.length){ showToast('⚠️ Vui lòng chọn ít nhất một người thực hiện!'); return; }
+    let arr=getTasks();
+    const t=arr.find(x=>x.id==editingTaskId); if(!t){ cancelEditTask(); return; }
+    const gid=t.groupId||t.id;
+    const group=arr.filter(x=>(x.groupId||x.id)==gid);
+    const now=new Date().toLocaleString('vi-VN');
+    // 1. Update tasks of people still selected; remove tasks of people unchecked
+    const keptIds=[];
+    group.forEach(x=>{
+      if(selectedIds.some(id=>id==x.assignedToId)){
+        x.groupId=gid;
+        x.title=title; x.desc=desc;
+        x.deadline=deadline; x.priority=priority;
+        x.updatedAt=now;
+        keptIds.push(x.assignedToId);
+      }
+    });
+    arr=arr.filter(x=>!((x.groupId||x.id)==gid && !selectedIds.some(id=>id==x.assignedToId)));
+    // 2. Add tasks for newly selected people
+    const baseTs=Date.now();
+    let added=0;
+    selectedIds.forEach(assigneeId=>{
+      if(keptIds.some(id=>id==assigneeId)) return;
+      const assignee=STAFF.find(m=>m.id==assigneeId);
+      arr.unshift({
+        id:baseTs+(added++),
+        groupId:gid,
+        title,desc,
+        assignedById:s.id, assignedByName:s.name,
+        assignedToId:assigneeId, assignedToName:assignee?assignee.name:'',
+        deadline,priority,
+        status:'Chưa bắt đầu',
+        progress:0,
+        createdAt:now, updatedAt:now,
+        updates:[]
+      });
+      pushTaskNotif(assigneeId,'assigned',title);
+    });
     saveTasks(arr);
     cancelEditTask();
-    showToast(`✅ Đã sửa việc "${title}"!`);
+    const names=selectedIds.map(id=>{const m=STAFF.find(m=>m.id==id);return m?m.name:'';}).filter(Boolean);
+    showToast(`✅ Đã cập nhật việc "${title}" — giao cho: ${names.join(', ')}!`);
     renderTaskAssign(); renderTaskStatsBar();
     return;
   }
@@ -2887,6 +2917,7 @@ function createTask(){
     const assignee=STAFF.find(m=>m.id===assigneeId);
     arr.unshift({
       id:baseTs+idx,
+      groupId:baseTs,
       title,desc,
       assignedById:s.id, assignedByName:s.name,
       assignedToId:assigneeId, assignedToName:assignee?assignee.name:'',
@@ -2910,14 +2941,18 @@ function createTask(){
 }
 
 function editTask(id){
-  const t=getTasks().find(t=>t.id==id); if(!t) return;
+  const all=getTasks();
+  const t=all.find(t=>t.id==id); if(!t) return;
   editingTaskId=id;
   document.getElementById('ta-title').value=t.title;
   document.getElementById('ta-desc').value=t.desc||'';
   document.getElementById('ta-deadline').value=t.deadline;
   document.getElementById('ta-priority').value=t.priority;
+  // Tick sẵn tất cả người đang được giao trong cùng nhóm việc
+  const gid=t.groupId||t.id;
+  const groupAssignees=all.filter(x=>(x.groupId||x.id)==gid).map(x=>x.assignedToId);
   document.querySelectorAll('#ta-assignee-list input[type=checkbox]').forEach(cb=>{
-    cb.checked=parseInt(cb.value)===t.assignedToId;
+    cb.checked=groupAssignees.some(aid=>aid==cb.value);
   });
   updateAssigneeCount();
   document.getElementById('task-form-title').textContent='✏️ Sửa việc';
