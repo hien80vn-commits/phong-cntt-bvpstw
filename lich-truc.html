@@ -1258,7 +1258,9 @@ populateSel();
 (async function(){
   const sess = getSession();
   if(!sess){ window.location.href='index.html'; return; }
-  const s = staffById(sess.id);
+  // Nhận diện theo TÊN trước, vì session có thể được ghi bởi report.html
+  // với hệ ID nhân viên khác (tránh nhầm lịch trực người này sang người khác)
+  const s = staffList.find(x=>x.name===sess.name) || staffById(sess.id);
   if(!s){ window.location.href='index.html'; return; }
   if(FB_URL){
     const toast = document.getElementById('sync-toast');
