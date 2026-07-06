@@ -133,6 +133,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .ltag.phep{background:var(--blue-l);color:var(--blue);}
 .ltag.om{background:var(--red-l);color:var(--red);}
 .ltag.bu{background:var(--teal-l);color:var(--teal);}
+.ltag.congtac{background:var(--teal-l);color:var(--teal);}
+.ltag.hoc{background:var(--orange-l);color:var(--orange);}
 
 /* OVERDUE TABLE */
 .mtable{width:100%;border-collapse:collapse;font-size:.74rem;}
@@ -354,20 +356,21 @@ function truncate(s,n){return s&&s.length>n?s.slice(0,n)+'…':s||'';}
 async function loadAll(){
   document.getElementById('last-upd').textContent='⏳ Đang cập nhật dữ liệu...';
   try{
-    const [rawTasks, rawNotifs, rawDaily, rawWeekly, rawMonthly, rawSchedule] = await Promise.all([
+    const [rawTasks, rawNotifs, rawDaily, rawWeekly, rawMonthly, rawSchedule, rawRegs] = await Promise.all([
       fbGet('tasks').then(v=>{try{return JSON.parse(v)||[];}catch(e){return [];}}),
       fbGet('notifs').then(v=>{try{const o=JSON.parse(v)||{};return Object.values(o);}catch(e){return [];}}),
       fbGet('rp_daily').then(v=>{try{return JSON.parse(v)||[];}catch(e){return [];}}),
       fbGet('rp_weekly').then(v=>{try{return JSON.parse(v)||[];}catch(e){return [];}}),
       fbGet('rp_monthly').then(v=>{try{return JSON.parse(v)||[];}catch(e){return [];}}),
       fbGet('schedule').then(v=>{try{let p=JSON.parse(v);if(typeof p==='string')p=JSON.parse(p);return p||{};}catch(e){return {};}}),
+      fbGet('regs').then(v=>{try{return JSON.parse(v)||[];}catch(e){return [];}}),
     ]);
     renderKPIs(rawTasks, rawNotifs, rawDaily);
     renderAlerts(rawTasks, rawNotifs, rawDaily);
     renderTaskProgress(rawTasks);
     renderDuty(rawSchedule, rawNotifs);
     renderReports(rawDaily);
-    renderLeave(rawNotifs);
+    renderLeave(rawRegs);
     renderOverdue(rawTasks);
     document.getElementById('last-upd').textContent='✅ Cập nhật lúc '+new Date().toLocaleTimeString('vi-VN');
   }catch(e){
@@ -560,29 +563,36 @@ function renderReports(daily){
   document.getElementById('rpt-body').innerHTML=`<div class="rpt-grid">${gridHTML}</div>${entriesHTML}`;
 }
 
-/* ===== LEAVE ===== */
-function renderLeave(notifs){
+/* ===== LEAVE =====
+   Nguồn dữ liệu: Firebase `regs` — chính là danh sách đăng ký nghỉ của
+   lich-truc.html (đã bao gồm xóa/hủy đăng ký), thay vì `notifs` (chỉ là
+   log thông báo, không được dọn khi hủy đăng ký nên dễ hiện sai người). */
+function renderLeave(regs){
   const d=new Date();
   const monthPfx=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-  const thisMonth=notifs.filter(n=>n.date&&n.date.startsWith(monthPfx)&&(n.type==='leave'||n.type==='sick'));
+  const thisMonth=(regs||[]).filter(r=>r.type==='leave'&&r.date&&r.date.startsWith(monthPfx));
   document.getElementById('leave-badge').textContent=thisMonth.length+' lượt';
 
-  const phep=thisMonth.filter(n=>n.type==='leave').length;
-  const om=thisMonth.filter(n=>n.type==='sick').length;
+  const counts={phep:0,om:0,congtac:0,hoc:0};
+  thisMonth.forEach(r=>{ const sub=r.sub||'phep'; counts[sub]=(counts[sub]||0)+1; });
 
-  // By person
+  // By person — tra tên qua DUTY_STAFF (đúng bảng ID mà lich-truc.html dùng để lưu staffId)
   const byP={};
-  thisMonth.forEach(n=>{
-    if(!byP[n.fromName]) byP[n.fromName]={phep:0,om:0};
-    if(n.type==='leave') byP[n.fromName].phep++;
-    else byP[n.fromName].om++;
+  thisMonth.forEach(r=>{
+    const name=dutyStaffName(r.staffId);
+    if(!byP[name]) byP[name]={phep:0,om:0,congtac:0,hoc:0};
+    const sub=r.sub||'phep';
+    byP[name][sub]=(byP[name][sub]||0)+1;
   });
-  const rows=Object.entries(byP).sort((a,b)=>(b[1].phep+b[1].om)-(a[1].phep+a[1].om));
+  const rows=Object.entries(byP).sort((a,b)=>{
+    const total=c=>c.phep+c.om+c.congtac+c.hoc;
+    return total(b[1])-total(a[1]);
+  });
 
   document.getElementById('leave-body').innerHTML=`
     <div class="leave-stat-row">
-      <div class="lstat" style="background:var(--blue-l)"><div class="lstat-n" style="color:var(--blue)">${phep}</div><div class="lstat-l">Nghỉ phép</div></div>
-      <div class="lstat" style="background:var(--red-l)"><div class="lstat-n" style="color:var(--red)">${om}</div><div class="lstat-l">Nghỉ ốm</div></div>
+      <div class="lstat" style="background:var(--blue-l)"><div class="lstat-n" style="color:var(--blue)">${counts.phep}</div><div class="lstat-l">Nghỉ phép</div></div>
+      <div class="lstat" style="background:var(--red-l)"><div class="lstat-n" style="color:var(--red)">${counts.om}</div><div class="lstat-l">Nghỉ ốm</div></div>
       <div class="lstat" style="background:var(--purple-l)"><div class="lstat-n" style="color:var(--purple)">${thisMonth.length}</div><div class="lstat-l">Tổng lượt</div></div>
     </div>
     ${rows.length
@@ -590,6 +600,8 @@ function renderLeave(notifs){
           <span style="flex:1">${name}</span>
           ${c.phep?`<span class="ltag phep">Phép ×${c.phep}</span>`:''}
           ${c.om?`<span class="ltag om">Ốm ×${c.om}</span>`:''}
+          ${c.congtac?`<span class="ltag congtac">CT ×${c.congtac}</span>`:''}
+          ${c.hoc?`<span class="ltag hoc">Học ×${c.hoc}</span>`:''}
         </div>`).join('')
       : '<div class="empty" style="padding:.5rem">Chưa có đăng ký nghỉ tháng này.</div>'
     }
