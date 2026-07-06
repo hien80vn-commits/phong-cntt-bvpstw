@@ -1423,11 +1423,11 @@ function setInboxMeta(session){
     titleEl.textContent='Báo cáo từ thành viên nhóm';
     descEl.textContent=`Phụ trách: ${leadGroups.map(n=>getGroupName(n)).join(', ')} – báo cáo do thành viên gửi lên`;
   } else if(session.role==='to_truong'){
-    titleEl.textContent='Báo cáo tổng hợp từ Nhóm trưởng';
-    descEl.textContent='Tổng hợp báo cáo từ 10 nhóm trưởng và nhân viên chưa phân nhóm';
+    titleEl.textContent='Báo cáo của toàn bộ nhân viên';
+    descEl.textContent='Tất cả báo cáo ngày / tuần / tháng của mọi nhân viên trong phòng';
   } else if(session.role==='lanh_dao'){
-    titleEl.textContent='Báo cáo tổng hợp từ Tổ trưởng';
-    descEl.textContent='Báo cáo do Tổ trưởng công tác tổng hợp và gửi lên lãnh đạo phòng';
+    titleEl.textContent='Báo cáo của toàn bộ nhân viên';
+    descEl.textContent='Tất cả báo cáo ngày / tuần / tháng của mọi nhân viên trong phòng';
   }
 }
 
@@ -1442,11 +1442,9 @@ function populateInboxReporterFilter(session){
       const sg=getEffectiveGroups(s.id);
       return sg.some(g=>leadGroups.includes(g));
     });
-  } else if(session.role==='to_truong'){
-    reporters=STAFF.filter(s=>s.role==='leader'||
-      (s.role==='staff'&&getEffectiveGroups(s.id).length===0));
-  } else if(session.role==='lanh_dao'){
-    reporters=STAFF.filter(s=>s.role==='to_truong');
+  } else if(session.role==='to_truong'||session.role==='lanh_dao'){
+    // Tổ trưởng & lãnh đạo lọc được theo mọi nhân viên
+    reporters=STAFF.filter(s=>s.id!==session.id);
   }
   reporters.forEach(s=>{const o=document.createElement('option');o.value=s.name;o.textContent=s.name;sel.appendChild(o);});
 }
@@ -1590,8 +1588,11 @@ async function submitReport(type){
   if(['leader','to_truong','lanh_dao'].includes(session.role)) loadInbox();
   if(document.getElementById('section-overview').classList.contains('active')){loadOverview();loadOverviewStats();}
 
-  const destMap={leader:'Nhóm trưởng',to_truong:'Tổ trưởng',lanh_dao:'Lãnh đạo phòng'};
-  showToast(`✅ Đã nộp báo cáo → ${destMap[targetLevel]||''}!`);
+  // Báo cáo đến cả 3 cấp: nhóm trưởng (nếu có nhóm), tổ trưởng & lãnh đạo
+  const dest=session.role==='to_truong'?'Lãnh đạo phòng'
+    :session.role==='leader'?'Tổ trưởng & Lãnh đạo'
+    :(selectedGroupNum>0||getEffectiveGroups(session.id).length?'Nhóm trưởng, Tổ trưởng & Lãnh đạo':'Tổ trưởng & Lãnh đạo');
+  showToast(`✅ Đã nộp báo cáo → ${dest}!`);
 }
 
 /* =====================================================
@@ -1865,14 +1866,16 @@ function loadInbox(){
   const types = typeFilter==='all' ? ['daily','weekly','monthly','yearly'] : [typeFilter];
   let arr=types.flatMap(t=>getReports(t).map(r=>({...r,type:r.type||t})));
 
-  // Filter by visibility
+  // Filter by visibility — báo cáo của nhân viên đến cả 3 cấp:
+  // nhóm trưởng (thành viên nhóm mình), tổ trưởng & lãnh đạo (toàn bộ)
   if(session.role==='leader'){
     const leadGroups=getLeadGroups(session.id);
-    arr=arr.filter(r=>r.targetLevel==='leader'&&r.authorId!==session.id&&leadGroups.some(g=>(r.authorGroups||[r.authorGroup]).includes(g)));
+    arr=arr.filter(r=>r.authorId!==session.id&&(r.authorGroups||[r.authorGroup]).some(g=>leadGroups.includes(g)));
   } else if(session.role==='to_truong'){
-    arr=arr.filter(r=>r.targetLevel==='to_truong');
+    // Tổ trưởng thấy tất cả báo cáo của mọi nhân viên
+    arr=arr.filter(r=>r.authorId!==session.id);
   } else if(session.role==='lanh_dao'){
-    // Lãnh đạo thấy tất cả báo cáo (kể cả báo cáo nhân viên gửi lên nhóm trưởng/tổ trưởng)
+    // Lãnh đạo thấy tất cả báo cáo của mọi nhân viên
     arr=arr.filter(r=>r.authorId!==session.id);
   } else {
     arr=[];
