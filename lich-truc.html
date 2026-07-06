@@ -703,7 +703,14 @@ function renderReg(c){
     <div class="fg"><label>Từ ngày</label><input type="date" id="rdate" value="${td}"></div>
     <div class="fg"><label>Đến ngày <span style="font-weight:400;color:var(--muted);">(bỏ trống nếu chỉ 1 ngày)</span></label><input type="date" id="rdate2"></div>
   </div>
-  <div class="fg"><label>Loại đăng ký</label><select id="rtype"><option value="morning">Muốn trực sáng (5h30–7h30)</option><option value="night">Muốn trực đêm (16h30–5h30)</option><option value="leave">Nghỉ phép / ốm</option></select></div>
+  <div class="fg"><label>Loại đăng ký</label><select id="rtype">
+    <option value="morning">Muốn trực sáng (5h30–7h30)</option>
+    <option value="night">Muốn trực đêm (16h30–5h30)</option>
+    <option value="leave:phep">Nghỉ phép</option>
+    <option value="leave:om">Nghỉ ốm</option>
+    <option value="leave:congtac">Đi công tác</option>
+    <option value="leave:hoc">Đi học</option>
+  </select></div>
   <div class="fg"><label>Ghi chú</label><input type="text" id="rnote" placeholder="Lý do, ghi chú..."></div>
   <button class="btn btn-primary" style="width:auto;" onclick="submitReg()">Gửi đăng ký</button>
   <div class="dpanel" style="margin-top:1.2rem;"><p style="font-weight:700;font-size:.85rem;color:var(--purple-d);margin-bottom:.6rem;">Đăng ký của tôi</p><div id="myregs"></div></div>
@@ -717,8 +724,18 @@ function renderReg(c){
   paintRegs();
   renderRegLeaveSummary();
 }
+const LEAVE_SUB_LABELS={phep:'Nghỉ phép', om:'Nghỉ ốm', congtac:'Đi công tác', hoc:'Đi học'};
+const LEAVE_SUB_SHORT={phep:'Phép', om:'Ốm', congtac:'CT', hoc:'Học'};
+function regLabel(r){
+  if(r.type==='morning') return 'Ca sáng';
+  if(r.type==='night') return 'Ca đêm';
+  return LEAVE_SUB_LABELS[r.sub]||'Nghỉ phép/ốm';
+}
+
 function submitReg(){
-  const date=document.getElementById('rdate').value, type=document.getElementById('rtype').value, note=document.getElementById('rnote').value;
+  const rawType=document.getElementById('rtype').value, note=document.getElementById('rnote').value;
+  const date=document.getElementById('rdate').value;
+  const [type,sub]=rawType.split(':');
   let date2=document.getElementById('rdate2').value;
   if(!date){ alert('Chọn ngày!'); return; }
   if(!date2||date2<date) date2=date;
@@ -732,7 +749,9 @@ function submitReg(){
     const key=`${cur.getFullYear()}-${pad(cur.getMonth()+1)}-${pad(cur.getDate())}`;
     if(regs.find(r=>r.staffId===user.id&&r.date===key&&r.type===type)){ skipped++; }
     else{
-      regs.push({staffId:user.id, date:key, type, note});
+      const entry={staffId:user.id, date:key, type, note};
+      if(sub) entry.sub=sub;
+      regs.push(entry);
       if(type==='leave'){ const s=schedule[key]; if(s){ s.morning=s.morning.filter(i=>i!==user.id); s.night=s.night.filter(i=>i!==user.id); } }
       added++;
     }
@@ -741,8 +760,10 @@ function submitReg(){
   if(!added){ alert('Bạn đã đăng ký tất cả các ngày này rồi!'); return; }
   persistRegs();
   if(type==='leave') persistSchedule();
-  // Gửi thông báo: nghỉ/ốm → admin + trưởng nhóm; trực sáng/đêm → admin
-  const rangeNote=(date2!==date?`đến ${date2.split('-')[2]}/${date2.split('-')[1]} (${added} ngày)`:'')+(note?(date2!==date?' — ':'')+note:'');
+  // Gửi thông báo: vắng mặt → admin + trưởng nhóm; trực sáng/đêm → admin
+  const subLabel=type==='leave'&&sub?LEAVE_SUB_LABELS[sub]:'';
+  const rangeTxt=(date2!==date?`đến ${date2.split('-')[2]}/${date2.split('-')[1]} (${added} ngày)`:'');
+  const rangeNote=[subLabel,rangeTxt,note].filter(Boolean).join(' — ');
   pushNotif(type==='leave'?['admin','leader']:['admin'], type, date, rangeNote);
   document.getElementById('rnote').value=''; document.getElementById('rdate2').value='';
   paintRegs(); renderRegLeaveSummary();
@@ -751,8 +772,13 @@ function submitReg(){
 function renderRegLeaveSummary(){
   const el=document.getElementById('reg-leave-summary'); if(!el) return;
   const month=(document.getElementById('reg-sum-month')||{}).value||new Date().toISOString().slice(0,7);
-  const leaveRegs=regs.filter(r=>r.type==='leave'&&r.date.startsWith(month));
-  if(!leaveRegs.length){ el.innerHTML='<p class="empty-txt">Không có đăng ký nghỉ nào trong tháng này.</p>'; return; }
+  // Phân quyền: nhân viên chỉ thấy ngày nghỉ của mình;
+  // Trưởng nhóm / Tổ trưởng / Lãnh đạo thấy của tất cả
+  const st=staffById(user.id);
+  const canSeeAll=user.isAdmin||(st&&st.position==='Trưởng nhóm');
+  let leaveRegs=regs.filter(r=>r.type==='leave'&&r.date.startsWith(month));
+  if(!canSeeAll) leaveRegs=leaveRegs.filter(r=>r.staffId===user.id);
+  if(!leaveRegs.length){ el.innerHTML=`<p class="empty-txt">${canSeeAll?'Không có đăng ký nghỉ nào trong tháng này.':'Bạn không có ngày nghỉ nào trong tháng này.'}</p>`; return; }
   const byStaff={};
   leaveRegs.forEach(r=>{ if(!byStaff[r.staffId]) byStaff[r.staffId]=[]; byStaff[r.staffId].push(r); });
   const rows=Object.entries(byStaff)
@@ -761,19 +787,18 @@ function renderRegLeaveSummary(){
     .map(({s,rs})=>`<tr>
       <td><b>${s?s.name:'?'}</b>${s&&s.position?`<br><span style="font-size:.72rem;color:var(--muted);">${s.position}</span>`:''}</td>
       <td style="text-align:center;font-weight:700;color:var(--leave);">${rs.length}</td>
-      <td style="font-size:.78rem;">${rs.sort((a,b)=>a.date.localeCompare(b.date)).map(r=>{const p=r.date.split('-');return `${p[2]}/${p[1]}${r.note?` (${r.note})`:''}`}).join(', ')}</td>
+      <td style="font-size:.78rem;">${rs.sort((a,b)=>a.date.localeCompare(b.date)).map(r=>{const p=r.date.split('-');const lb=LEAVE_SUB_SHORT[r.sub]||'Nghỉ';return `${p[2]}/${p[1]} (${lb}${r.note?` – ${r.note}`:''})`}).join(', ')}</td>
     </tr>`).join('');
   el.innerHTML=`<div class="tbl-wrap"><table class="tbl">
-    <thead><tr><th>Họ tên</th><th style="width:90px;">Số ngày nghỉ</th><th>Các ngày nghỉ</th></tr></thead>
+    <thead><tr><th>Họ tên</th><th style="width:90px;">Số ngày nghỉ</th><th>Các ngày nghỉ (loại)</th></tr></thead>
     <tbody>${rows}</tbody></table></div>
-  <p style="font-size:.75rem;color:var(--muted);margin-top:.4rem;">Tổng: <b>${leaveRegs.length}</b> lượt nghỉ trong tháng ${month.split('-')[1]}/${month.split('-')[0]}</p>`;
+  <p style="font-size:.75rem;color:var(--muted);margin-top:.4rem;">${canSeeAll?`Tổng: <b>${leaveRegs.length}</b> lượt nghỉ trong tháng`:`Bạn có <b>${leaveRegs.length}</b> ngày nghỉ trong tháng`} ${month.split('-')[1]}/${month.split('-')[0]} · Phép = nghỉ phép, Ốm = nghỉ ốm, CT = đi công tác, Học = đi học</p>`;
 }
 function paintRegs(){
   const el = document.getElementById('myregs'); if(!el) return;
   const mine = regs.filter(r=>r.staffId===user.id);
-  const tl = {morning:'Ca sáng', night:'Ca đêm', leave:'Nghỉ phép'};
   el.innerHTML = mine.length ? mine.map(r=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:.5rem 0;border-bottom:1px solid var(--border);font-size:.8rem;">
-    <span><b>${r.date}</b> &nbsp;<span class="chip ${r.type==='leave'?'l':r.type==='morning'?'m':'n'}">${tl[r.type]}</span>${r.note?` <span style="color:var(--muted);">${r.note}</span>`:''}</span>
+    <span><b>${r.date}</b> &nbsp;<span class="chip ${r.type==='leave'?'l':r.type==='morning'?'m':'n'}">${regLabel(r)}</span>${r.note?` <span style="color:var(--muted);">${r.note}</span>`:''}</span>
     <button class="btn btn-sm" onclick="delReg('${r.date}','${r.type}')">Xóa</button>
   </div>`).join('') : '<p class="empty-txt">Chưa có đăng ký nào.</p>';
 }
@@ -1260,11 +1285,11 @@ function renderLeaveTable(){
     const s=staffById(+id);
     return `<tr><td><b>${s?s.name:'?'}</b>${s&&s.position?`<br><span style="font-size:.72rem;color:var(--muted);">${s.position}</span>`:''}</td>
       <td style="text-align:center;font-weight:700;color:var(--leave);">${rs.length}</td>
-      <td style="font-size:.78rem;">${rs.sort((a,b)=>a.date.localeCompare(b.date)).map(r=>{const p=r.date.split('-');return `${p[2]}/${p[1]}${r.note?` (${r.note})`:''}`}).join(', ')}</td></tr>`;
+      <td style="font-size:.78rem;">${rs.sort((a,b)=>a.date.localeCompare(b.date)).map(r=>{const p=r.date.split('-');const lb=LEAVE_SUB_SHORT[r.sub]||'Nghỉ';return `${p[2]}/${p[1]} (${lb}${r.note?` – ${r.note}`:''})`}).join(', ')}</td></tr>`;
   }).join('');
   const detRows=leaveRegs.sort((a,b)=>a.date.localeCompare(b.date)).map(r=>{
     const p=r.date.split('-'); const dt=new Date(+p[0],+p[1]-1,+p[2]); const s=staffById(r.staffId);
-    return `<tr><td>${DOW_S[dt.getDay()]} ${p[2]}/${p[1]}/${p[0]}</td><td>${s?s.name:'?'}</td><td style="font-size:.78rem;color:var(--muted);">${r.note||'—'}</td></tr>`;
+    return `<tr><td>${DOW_S[dt.getDay()]} ${p[2]}/${p[1]}/${p[0]}</td><td>${s?s.name:'?'}</td><td>${LEAVE_SUB_LABELS[r.sub]||'Nghỉ phép/ốm'}</td><td style="font-size:.78rem;color:var(--muted);">${r.note||'—'}</td></tr>`;
   }).join('');
   wrap.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.7rem;flex-wrap:wrap;gap:.5rem;">
     <p style="font-size:.85rem;color:var(--muted);">Từ ${pf3}/${pf2}/${pf1} đến ${pt3}/${pt2}/${pt1} — <b>${leaveRegs.length} lượt nghỉ</b></p>
@@ -1273,7 +1298,7 @@ function renderLeaveTable(){
   <p style="font-weight:700;font-size:.82rem;color:var(--purple-d);margin-bottom:.4rem;">Tổng hợp theo người</p>
   <div class="tbl-wrap" style="margin-bottom:1rem;"><table class="tbl"><thead><tr><th>Họ tên</th><th>Số ngày nghỉ</th><th>Các ngày nghỉ</th></tr></thead><tbody>${sumRows}</tbody></table></div>
   <p style="font-weight:700;font-size:.82rem;color:var(--purple-d);margin-bottom:.4rem;">Chi tiết theo ngày</p>
-  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Ngày</th><th>Nhân viên</th><th>Ghi chú</th></tr></thead><tbody>${detRows}</tbody></table></div>`;
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Ngày</th><th>Nhân viên</th><th>Loại</th><th>Ghi chú</th></tr></thead><tbody>${detRows}</tbody></table></div>`;
 }
 
 function printLeaveReport(from, to){
@@ -1285,7 +1310,7 @@ function printLeaveReport(from, to){
     const s=staffById(+id);
     return `<tr><td>${s?s.name:'?'}</td><td>${s&&s.position?s.position:''}</td>
       <td style="text-align:center;">${rs.length}</td>
-      <td>${rs.sort((a,b)=>a.date.localeCompare(b.date)).map(r=>{const p=r.date.split('-');return `${p[2]}/${p[1]}${r.note?` (${r.note})`:''}`}).join(', ')}</td></tr>`;
+      <td>${rs.sort((a,b)=>a.date.localeCompare(b.date)).map(r=>{const p=r.date.split('-');const lb=LEAVE_SUB_SHORT[r.sub]||'Nghỉ';return `${p[2]}/${p[1]} (${lb}${r.note?` – ${r.note}`:''})`}).join(', ')}</td></tr>`;
   }).join('');
   const win=window.open('','_blank');
   win.document.write(`<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><title>Tổng hợp nghỉ phép/ốm</title>
