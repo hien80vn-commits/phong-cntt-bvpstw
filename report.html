@@ -317,6 +317,10 @@ a{color:inherit;text-decoration:none}
 
 <!-- Đăng nhập tập trung qua trang chủ index.html -->
 <div id="sync-toast-rpt" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:var(--purple);color:#fff;text-align:center;padding:.6rem;font-size:.85rem;font-weight:600;">⏳ Đang đồng bộ dữ liệu...</div>
+<div id="sync-pending-bar" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:#C62828;color:#fff;text-align:center;padding:.6rem 1rem;font-size:.82rem;font-weight:600;gap:.6rem;align-items:center;justify-content:center;">
+  <span id="sync-pending-msg">⚠️ Có dữ liệu chưa đồng bộ lên máy chủ (mất mạng?)</span>
+  <button onclick="flushSyncPending()" style="margin-left:.6rem;padding:.25rem .8rem;border-radius:999px;border:1.5px solid #fff;background:none;color:#fff;font-weight:700;font-size:.78rem;cursor:pointer;">🔄 Thử đồng bộ lại</button>
+</div>
 
 <!-- APP -->
 <div id="app-screen">
@@ -1075,7 +1079,47 @@ const DEFAULT_PW = 'cntt2026';
 const FB_URL = 'https://cntt-bvpstw-default-rtdb.asia-southeast1.firebasedatabase.app';
 
 function fbGet(path){ return fetch(FB_URL+'/'+path+'.json').then(r=>r.text()).catch(()=>'null'); }
-function fbSet(path,val){ if(!FB_URL) return; fetch(FB_URL+'/'+path+'.json',{method:'PUT',headers:{'Content-Type':'application/json'},body:val}).catch(()=>{}); }
+
+/* =====================================================
+   ĐỒNG BỘ FIREBASE + HÀNG ĐỢI THỬ LẠI
+   fbSet trước đây "bắn rồi quên" (fetch(...).catch(()=>{})) — nếu request
+   thất bại (mất mạng, timeout...) lỗi bị nuốt im lặng, người dùng vẫn thấy
+   toast "Đã nộp báo cáo" dù dữ liệu KHÔNG hề lên tới Firebase, nên người
+   khác (nhóm trưởng/tổ trưởng/lãnh đạo) không bao giờ thấy báo cáo đó.
+   Giờ mỗi lần ghi thất bại sẽ được xếp vào hàng đợi cục bộ và tự thử lại. */
+function getSyncPending(){ try{ return JSON.parse(localStorage.getItem('cntt_sync_pending'))||{}; }catch(e){ return {}; } }
+function setSyncPending(obj){ localStorage.setItem('cntt_sync_pending', JSON.stringify(obj)); updateSyncPendingBar(); }
+function addSyncPending(path,val){ const p=getSyncPending(); p[path]=val; setSyncPending(p); }
+function removeSyncPending(path){ const p=getSyncPending(); if(path in p){ delete p[path]; setSyncPending(p); } }
+
+function updateSyncPendingBar(){
+  const bar=document.getElementById('sync-pending-bar'); if(!bar) return;
+  const n=Object.keys(getSyncPending()).length;
+  if(n>0){
+    document.getElementById('sync-pending-msg').textContent=`⚠️ Có ${n} mục chưa đồng bộ lên máy chủ (mất mạng?)`;
+    bar.style.display='flex';
+  } else {
+    bar.style.display='none';
+  }
+}
+
+function fbSet(path,val){
+  if(!FB_URL) return Promise.resolve(false);
+  return fetch(FB_URL+'/'+path+'.json',{method:'PUT',headers:{'Content-Type':'application/json'},body:val})
+    .then(r=>{
+      if(r.ok){ removeSyncPending(path); return true; }
+      addSyncPending(path,val); return false;
+    })
+    .catch(()=>{ addSyncPending(path,val); return false; });
+}
+
+async function flushSyncPending(){
+  const pending=getSyncPending();
+  const paths=Object.keys(pending);
+  if(!paths.length) return;
+  for(const path of paths){ await fbSet(path, pending[path]); }
+  updateSyncPendingBar();
+}
 
 async function syncFromCloud(){
   if(!FB_URL) return;
@@ -1121,7 +1165,7 @@ function getReports(type){ try{return JSON.parse(localStorage.getItem('cntt_rp_'
 function saveReports(type,arr){
   const s=JSON.stringify(arr);
   localStorage.setItem('cntt_rp_'+type, s);
-  fbSet('rp_'+type, s);
+  return fbSet('rp_'+type, s);
 }
 function getAllReports(){ return ['daily','weekly','monthly','yearly'].flatMap(t=>getReports(t).map(r=>({...r,type:r.type||t}))); }
 
@@ -1388,7 +1432,10 @@ function enterApp(session){
     await syncTaskNotifsFromCloud();
     updateNotifBell();
     await syncTasksAndRender();
+    await flushSyncPending();
   }, 30000);
+  updateSyncPendingBar();
+  flushSyncPending();
 
   // Nút tổng hợp BC thành viên: chỉ nhóm trưởng / tổ trưởng / lãnh đạo thấy
   document.querySelectorAll('.leader-synth-btn').forEach(b=>{
@@ -1594,15 +1641,16 @@ async function submitReport(type){
     } else {
       arr.unshift(data);
     }
-    saveReports(type,arr);
+    const okEdit=await saveReports(type,arr);
     cancelEditReport(false);
     loadMyReports(type);
     if(['leader','to_truong','lanh_dao'].includes(session.role)) loadInbox();
-    showToast('✅ Đã cập nhật báo cáo!');
+    showToast(okEdit?'✅ Đã cập nhật báo cáo!':'⚠️ Đã lưu trên máy nhưng CHƯA đồng bộ lên máy chủ — mất mạng? Hệ thống sẽ tự thử lại.');
     clearForm(type);
     return;
   }
-  arr.unshift(data); saveReports(type,arr);
+  arr.unshift(data);
+  const okSave=await saveReports(type,arr);
 
   // Reset file input + preview
   const fi=document.getElementById(fileInputMap[type]);
@@ -1612,6 +1660,10 @@ async function submitReport(type){
   if(['leader','to_truong','lanh_dao'].includes(session.role)) loadInbox();
   if(document.getElementById('section-overview').classList.contains('active')){loadOverview();loadOverviewStats();}
 
+  if(!okSave){
+    showToast('⚠️ Đã lưu trên máy nhưng CHƯA đồng bộ lên máy chủ — mất mạng? Hệ thống sẽ tự thử lại, người nhận có thể chưa thấy ngay.');
+    return;
+  }
   // Báo cáo đến cả 3 cấp: nhóm trưởng (nếu có nhóm), tổ trưởng & lãnh đạo
   const dest=session.role==='to_truong'?'Lãnh đạo phòng'
     :session.role==='leader'?'Tổ trưởng & Lãnh đạo'
