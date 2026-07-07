@@ -386,8 +386,42 @@ const LS = {
 /* ===== CLOUD SYNC (Firebase) ===== */
 const FB_URL = 'https://cntt-bvpstw-default-rtdb.asia-southeast1.firebasedatabase.app';
 
-function fbGet(path){ return fetch(FB_URL+'/'+path+'.json').then(r=>r.text()).catch(()=>'null'); }
-function fbSet(path,val){ if(!FB_URL) return; fetch(FB_URL+'/'+path+'.json',{method:'PUT',headers:{'Content-Type':'application/json'},body:val}).catch(()=>{}); }
+/* Firebase Anonymous Auth — rule đã siết "auth != null" nên mọi request
+   đọc/ghi cần token. Lấy token qua Identity Toolkit REST (không cần tải
+   Firebase SDK), cache trong sessionStorage để dùng chung giữa các trang
+   trong cùng một tab trình duyệt. */
+const FB_API_KEY = 'AIzaSyCyOHEBJihvzhHmK4FhKZe4NyCtbowHG-Q';
+let _fbAuthPromise = null;
+async function ensureFbAuth(){
+  try{
+    const cached = JSON.parse(sessionStorage.getItem('cntt_fb_auth')||'null');
+    if(cached && cached.expiry > Date.now()) return cached.token;
+  }catch(e){}
+  if(_fbAuthPromise) return _fbAuthPromise;
+  _fbAuthPromise = fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${FB_API_KEY}`,{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({returnSecureToken:true})
+  }).then(r=>r.json()).then(data=>{
+    if(!data.idToken) return null;
+    const expiry = Date.now() + (parseInt(data.expiresIn||'3600',10)*1000) - 60000;
+    try{ sessionStorage.setItem('cntt_fb_auth', JSON.stringify({token:data.idToken, expiry})); }catch(e){}
+    return data.idToken;
+  }).catch(()=>null).finally(()=>{ _fbAuthPromise=null; });
+  return _fbAuthPromise;
+}
+function fbUrl(path){ return FB_URL+'/'+path+'.json'; }
+
+async function fbGet(path){
+  const token = await ensureFbAuth();
+  const url = fbUrl(path) + (token?('?auth='+token):'');
+  return fetch(url).then(r=>r.text()).catch(()=>'null');
+}
+async function fbSet(path,val){
+  if(!FB_URL) return;
+  const token = await ensureFbAuth();
+  const url = fbUrl(path) + (token?('?auth='+token):'');
+  fetch(url,{method:'PUT',headers:{'Content-Type':'application/json'},body:val}).catch(()=>{});
+}
 
 function syncScheduleToCloud(){ fbSet('schedule', JSON.stringify(schedule)); }
 function syncRegsToCloud(){ fbSet('regs', JSON.stringify(regs)); }
