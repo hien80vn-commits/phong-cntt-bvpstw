@@ -390,12 +390,23 @@ function truncate(s,n){return s&&s.length>n?s.slice(0,n)+'…':s||'';}
 async function loadAll(){
   document.getElementById('last-upd').textContent='⏳ Đang cập nhật dữ liệu...';
   try{
+    // Báo cáo giờ nằm ở 2 nơi: rp_<type> (mảng cũ, chỉ đọc) và rp2_<type>
+    // (mỗi báo cáo một khóa riêng — chống ghi đè khi nộp cùng lúc); gộp lại
+    const fetchReports=async(t,deletedAll)=>{
+      const [ls,ns]=await Promise.all([fbGet('rp_'+t),fbGet('rp2_'+t)]);
+      const map={};
+      try{ const p=JSON.parse(ls); (Array.isArray(p)?p:(p?Object.values(p):[])).forEach(r=>{ if(r&&r.ts!=null) map['r'+(r.ts||0)+'_'+(r.authorId||0)]=r; }); }catch(e){}
+      try{ Object.entries(JSON.parse(ns)||{}).forEach(([k,v])=>{ if(v!=null){ try{ map[k]=typeof v==='string'?JSON.parse(v):v; }catch(e){} } }); }catch(e){}
+      Object.keys((deletedAll||{})[t]||{}).forEach(k=>{ delete map[k]; });
+      return Object.values(map).sort((a,b)=>(b.ts||0)-(a.ts||0));
+    };
+    const deletedAll=await fbGet('rp2_deleted').then(v=>{try{return JSON.parse(v)||{};}catch(e){return {};}});
     const [rawTasks, rawNotifs, rawDaily, rawWeekly, rawMonthly, rawSchedule, rawRegs] = await Promise.all([
       fbGet('tasks').then(v=>{try{return JSON.parse(v)||[];}catch(e){return [];}}),
       fbGet('notifs').then(v=>{try{const o=JSON.parse(v)||{};return Object.values(o);}catch(e){return [];}}),
-      fbGet('rp_daily').then(v=>{try{return JSON.parse(v)||[];}catch(e){return [];}}),
-      fbGet('rp_weekly').then(v=>{try{return JSON.parse(v)||[];}catch(e){return [];}}),
-      fbGet('rp_monthly').then(v=>{try{return JSON.parse(v)||[];}catch(e){return [];}}),
+      fetchReports('daily',deletedAll),
+      fetchReports('weekly',deletedAll),
+      fetchReports('monthly',deletedAll),
       fbGet('schedule').then(v=>{try{let p=JSON.parse(v);if(typeof p==='string')p=JSON.parse(p);return p||{};}catch(e){return {};}}),
       fbGet('regs').then(v=>{try{return JSON.parse(v)||[];}catch(e){return [];}}),
     ]);
