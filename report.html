@@ -125,6 +125,8 @@ a{color:inherit;text-decoration:none}
 .inbox-stat{background:#fff;border-radius:10px;padding:.75rem 1.25rem;box-shadow:var(--shadow);border-top:3px solid var(--teal);text-align:center;flex:1;min-width:100px;}
 .inbox-stat .sn{font-size:1.5rem;font-weight:800;color:var(--teal);display:block;}
 .inbox-stat .sl{font-size:.72rem;color:var(--muted);}
+.inbox-day-hdr{font-size:.85rem;font-weight:800;color:var(--purple-d);padding:.55rem .9rem;background:rgba(107,45,139,.08);border-left:4px solid var(--purple);border-radius:0 8px 8px 0;margin:1.2rem 0 .7rem;position:sticky;top:60px;z-index:5;backdrop-filter:blur(4px);}
+.inbox-day-hdr:first-child{margin-top:0;}
 
 /* Filter bar */
 .filter-bar{display:flex;gap:.75rem;flex-wrap:wrap;align-items:center;background:#fff;padding:1rem 1.25rem;border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:1.5rem;}
@@ -2069,7 +2071,24 @@ function loadInbox(){
 
   const el=document.getElementById('inbox-list');
   if(!arr.length){el.innerHTML='<p class="no-data">Chưa có báo cáo nào trong hộp thư đến.</p>';return;}
-  el.innerHTML=arr.map(r=>renderReport(r,true,false)).join('');
+
+  // Liệt kê theo ngày nộp: chèn tiêu đề ngày trước nhóm báo cáo của ngày đó
+  const DOW_VI=['Chủ nhật','Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy'];
+  let html='', curDay='';
+  arr.forEach(r=>{
+    const d=new Date(r.ts||0);
+    const dayKey=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    if(dayKey!==curDay){
+      curDay=dayKey;
+      const count=arr.filter(x=>{
+        const xd=new Date(x.ts||0);
+        return `${xd.getFullYear()}-${String(xd.getMonth()+1).padStart(2,'0')}-${String(xd.getDate()).padStart(2,'0')}`===dayKey;
+      }).length;
+      html+=`<div class="inbox-day-hdr">📅 ${DOW_VI[d.getDay()]}, ${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()} <span style="font-weight:400;color:var(--muted);">— ${count} báo cáo</span></div>`;
+    }
+    html+=renderReport(r,true,false);
+  });
+  el.innerHTML=html;
 }
 
 /* =====================================================
