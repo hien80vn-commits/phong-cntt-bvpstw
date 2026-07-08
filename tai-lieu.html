@@ -380,9 +380,13 @@ async function fbDeleteDocByKey(key){
   return fbSet('docs_deleted/'+key, 'true');
 }
 async function fetchFullDoc(key){
-  const v=await fbGet('docs/'+key);
-  if(!v||v==='null') return null;
-  try{ return JSON.parse(v); }catch(e){ return null; }
+  // Thử tối đa 2 lần — chống trục trặc mạng thoáng qua (wifi bệnh viện chập chờn)
+  for(let attempt=0; attempt<2; attempt++){
+    const v=await fbGet('docs/'+key);
+    if(v&&v!=='null'){ try{ return JSON.parse(v); }catch(e){ return null; } }
+    if(attempt===0) await new Promise(res=>setTimeout(res,700));
+  }
+  return null;
 }
 async function syncDocsFromCloud(){
   if(!FB_URL) return;
@@ -431,6 +435,9 @@ function fmtDateVN(iso){ if(!iso) return ''; const p=iso.split('-'); return p.le
    MODAL THÊM / SỬA
 ===================================================== */
 let editingDocKey=null;
+let editingDocFull=null; // bản ghi đầy đủ đã tải khi mở form Sửa — dùng lại lúc Lưu,
+                          // tránh phải gọi mạng lần 2 (nếu mạng trục trặc đúng lúc bấm Lưu
+                          // thì trước đây thao tác Lưu sẽ thất bại dù mở form vẫn tải được).
 
 function populateCategorySelect(){
   const sel=document.getElementById('doc-category');
@@ -440,6 +447,7 @@ function populateCategorySelect(){
 function openDocModal(isEdit){
   if(!isEdit){
     editingDocKey=null;
+    editingDocFull=null;
     document.getElementById('doc-modal-title').textContent='➕ Thêm tài liệu mới';
     document.getElementById('doc-category').value='';
     document.getElementById('doc-title').value='';
@@ -458,8 +466,9 @@ async function editDoc(key){
   if(!canManageDocs()) return;
   showToast('⏳ Đang tải dữ liệu tài liệu...');
   const rec=await fetchFullDoc(key);
-  if(!rec){ showToast('⚠️ Không tải được tài liệu để sửa!'); return; }
+  if(!rec){ showToast('⚠️ Không tải được tài liệu để sửa! Kiểm tra kết nối mạng rồi thử lại.'); return; }
   editingDocKey=key;
+  editingDocFull=rec;
   document.getElementById('doc-category').value=rec.category||'';
   document.getElementById('doc-title').value=rec.title||'';
   document.getElementById('doc-sohieu').value=rec.soHieu||'';
@@ -490,8 +499,9 @@ async function submitDoc(){
 
   let record;
   if(editingDocKey){
-    const old=await fetchFullDoc(editingDocKey);
-    if(!old){ showToast('⚠️ Không tìm thấy tài liệu gốc để sửa!'); return; }
+    // Dùng lại bản ghi đã tải lúc mở form Sửa — không gọi mạng lại lần nữa lúc Lưu
+    const old=editingDocFull;
+    if(!old){ showToast('⚠️ Không tìm thấy tài liệu gốc để sửa! Hãy mở lại nút Sửa.'); return; }
     record={...old, category, title, soHieu, ngayBanHanh, donVi, moTa};
     if(fileResult) record.file=fileResult;
   } else {
@@ -507,6 +517,8 @@ async function submitDoc(){
   upsertLocalMeta(record);
   renderDocList();
   closeDocModal();
+  editingDocKey=null;
+  editingDocFull=null;
   const ok=await fbSaveDoc(record);
   showToast(ok?'✅ Đã lưu tài liệu!':'⚠️ Đã lưu tạm nhưng CHƯA đồng bộ lên máy chủ — hệ thống sẽ tự thử lại.');
 }
