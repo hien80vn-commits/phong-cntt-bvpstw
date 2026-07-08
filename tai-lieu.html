@@ -519,21 +519,49 @@ function deleteDoc(key){
   showToast('🗑️ Đã xóa tài liệu.');
 }
 
+// Trình duyệt (Chrome...) chặn điều hướng thẳng tab/cửa sổ tới data: URL
+// (chống lừa đảo) nên "Xem" mở popup xong không hiện gì. Chuyển sang
+// blob: URL (qua Blob) thì mở/tải đều chạy bình thường và ổn định hơn
+// với file dung lượng lớn.
+function dataURLtoBlob(dataURL){
+  const commaIdx=dataURL.indexOf(',');
+  const header=dataURL.slice(0,commaIdx);
+  const base64=dataURL.slice(commaIdx+1);
+  const mimeMatch=header.match(/data:(.*?);base64/);
+  const mime=mimeMatch?mimeMatch[1]:'application/octet-stream';
+  const binary=atob(base64);
+  const bytes=new Uint8Array(binary.length);
+  for(let i=0;i<binary.length;i++) bytes[i]=binary.charCodeAt(i);
+  return new Blob([bytes],{type:mime});
+}
+
 async function viewDocFile(key){
   const w=window.open('','_blank');
   showToast('⏳ Đang tải file...');
   const rec=await fetchFullDoc(key);
   if(!rec||!rec.file){ if(w) w.close(); showToast('⚠️ Không tải được file!'); return; }
-  if(w) w.location.href=rec.file.data;
-  else showToast('⚠️ Trình duyệt chặn cửa sổ mới — cho phép popup để xem file!');
+  try{
+    const blobUrl=URL.createObjectURL(dataURLtoBlob(rec.file.data));
+    if(w){ w.location.href=blobUrl; setTimeout(()=>URL.revokeObjectURL(blobUrl),60000); }
+    else showToast('⚠️ Trình duyệt chặn cửa sổ mới — cho phép popup để xem file!');
+  }catch(e){
+    if(w) w.close();
+    showToast('⚠️ Không mở được file!');
+  }
 }
 async function downloadDocFile(key){
   showToast('⏳ Đang tải file...');
   const rec=await fetchFullDoc(key);
   if(!rec||!rec.file){ showToast('⚠️ Không tải được file!'); return; }
-  const a=document.createElement('a');
-  a.href=rec.file.data; a.download=rec.file.name;
-  document.body.appendChild(a); a.click(); a.remove();
+  try{
+    const blobUrl=URL.createObjectURL(dataURLtoBlob(rec.file.data));
+    const a=document.createElement('a');
+    a.href=blobUrl; a.download=rec.file.name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(blobUrl),60000);
+  }catch(e){
+    showToast('⚠️ Không tải được file!');
+  }
 }
 
 /* =====================================================
