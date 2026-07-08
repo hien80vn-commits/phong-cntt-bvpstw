@@ -1159,9 +1159,15 @@ async function flushSyncPending(){
 
 async function syncFromCloud(){
   if(!FB_URL) return;
+  // Đọc tombstone một lần cho cả 4 loại
+  let deletedAll={};
+  try{ deletedAll=JSON.parse(await fbGet('rp2_deleted'))||{}; }catch(e){}
   for(const t of ['daily','weekly','monthly','yearly']){
-    const v = await fbGet('rp_'+t);
-    if(v&&v!=='null'){ try{ localStorage.setItem('cntt_rp_'+t,v); }catch(e){} }
+    const [legacyS,newS] = await Promise.all([fbGet('rp_'+t), fbGet('rp2_'+t)]);
+    let legacy=[]; try{ const p=JSON.parse(legacyS); legacy=Array.isArray(p)?p:(p?Object.values(p):[]); }catch(e){}
+    let news={}; try{ news=JSON.parse(newS)||{}; }catch(e){}
+    const merged=mergeReportSources(legacy, news, deletedAll[t]);
+    try{ localStorage.setItem('cntt_rp_'+t, JSON.stringify(merged)); }catch(e){}
   }
   const gv = await fbGet('staff_groups');
   if(gv&&gv!=='null'){ try{ localStorage.setItem('cntt_staff_groups',gv); }catch(e){} }
@@ -1198,10 +1204,38 @@ function setSession(s){ sessionStorage.setItem('cntt_session',JSON.stringify(s))
 function clearSession(){ sessionStorage.removeItem('cntt_session'); }
 
 function getReports(type){ try{return JSON.parse(localStorage.getItem('cntt_rp_'+type))||[];}catch(e){return[];} }
+/* =====================================================
+   LƯU BÁO CÁO — MỖI BÁO CÁO MỘT KHÓA RIÊNG
+   Trước đây saveReports PUT nguyên MẢNG báo cáo lên rp_<type>: hai người
+   nộp gần cùng lúc thì người ghi sau đè mất báo cáo người ghi trước
+   (last-writer-wins). Giờ mỗi báo cáo ghi vào khóa riêng
+   rp2_<type>/r<ts>_<authorId> nên không còn ghi đè lẫn nhau.
+   rp_<type> cũ chỉ còn được ĐỌC (dữ liệu lịch sử), không ghi nữa.
+   Xóa báo cáo dùng tombstone rp2_deleted để xóa được cả bản ghi cũ. */
+function reportKey(r){ return 'r'+(r.ts||0)+'_'+(r.authorId||0); }
 function saveReports(type,arr){
-  const s=JSON.stringify(arr);
-  localStorage.setItem('cntt_rp_'+type, s);
-  return fbSet('rp_'+type, s);
+  // Chỉ còn là cache cục bộ — đồng bộ Firebase do fbSaveReport/fbDeleteReportRecord đảm nhiệm
+  localStorage.setItem('cntt_rp_'+type, JSON.stringify(arr));
+  return Promise.resolve(true);
+}
+function fbSaveReport(type,r){
+  return fbSet('rp2_'+type+'/'+reportKey(r), JSON.stringify(r));
+}
+function fbDeleteReportRecord(type,r){
+  const k=reportKey(r);
+  fbSet('rp2_'+type+'/'+k, 'null');          // gỡ bản ghi mới (nếu có)
+  return fbSet('rp2_deleted/'+type+'/'+k, 'true'); // tombstone: che luôn bản ghi cũ trong rp_<type>
+}
+// Gộp: mảng cũ (rp_) + object mới (rp2_) − tombstone; bản ghi rp2 thắng khi trùng khóa
+function mergeReportSources(legacyArr, newObj, deletedObj){
+  const map={};
+  (Array.isArray(legacyArr)?legacyArr:[]).forEach(r=>{ if(r&&r.ts!=null) map[reportKey(r)]=r; });
+  Object.entries(newObj||{}).forEach(([k,v])=>{
+    if(v==null) return;
+    try{ map[k]=typeof v==='string'?JSON.parse(v):v; }catch(e){}
+  });
+  Object.keys(deletedObj||{}).forEach(k=>{ delete map[k]; });
+  return Object.values(map).sort((a,b)=>(b.ts||0)-(a.ts||0));
 }
 function getAllReports(){ return ['daily','weekly','monthly','yearly'].flatMap(t=>getReports(t).map(r=>({...r,type:r.type||t}))); }
 
@@ -1678,7 +1712,8 @@ async function submitReport(type){
     } else {
       arr.unshift(data);
     }
-    const okEdit=await saveReports(type,arr);
+    saveReports(type,arr);
+    const okEdit=await fbSaveReport(type,data);
     cancelEditReport(false);
     loadMyReports(type);
     if(['leader','to_truong','lanh_dao'].includes(session.role)) loadInbox();
@@ -1687,7 +1722,8 @@ async function submitReport(type){
     return;
   }
   arr.unshift(data);
-  const okSave=await saveReports(type,arr);
+  saveReports(type,arr);
+  const okSave=await fbSaveReport(type,data);
 
   // Reset file input + preview
   const fi=document.getElementById(fileInputMap[type]);
@@ -1725,7 +1761,10 @@ function loadMyReports(type){
 
 function deleteReport(type,idx){
   if(!confirm('Xác nhận xóa báo cáo này?')) return;
-  const arr=getReports(type); arr.splice(idx,1); saveReports(type,arr);
+  const arr=getReports(type);
+  const removed=arr[idx];
+  arr.splice(idx,1); saveReports(type,arr);
+  if(removed) fbDeleteReportRecord(type,removed);
   loadMyReports(type);
   loadInbox();
   showToast('🗑 Đã xóa.');
@@ -3225,6 +3264,7 @@ function submitChecklist(){
 
   const rtype=data2.type;
   const arr=getReports(rtype); arr.unshift(data2); saveReports(rtype,arr);
+  fbSaveReport(rtype,data2);
   loadMyReports(rtype);
   showToast(`✅ Đã nộp checklist ${type==='daily'?'ngày '+period:type==='weekly'?period:period} (${done}/${total} mục)!`);
 }
