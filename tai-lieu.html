@@ -213,7 +213,7 @@ a{color:inherit;text-decoration:none}
         <textarea id="doc-mota" placeholder="Ghi chú thêm (nếu có)..."></textarea>
       </div>
       <div class="form-row">
-        <label>File đính kèm (PDF, DOC, XLS, JPG — tối đa 5MB) <span id="doc-cur-file" style="font-weight:400;color:var(--muted);"></span></label>
+        <label>File đính kèm (PDF, DOC, XLS, JPG — tối đa 20MB) <span id="doc-cur-file" style="font-weight:400;color:var(--muted);"></span></label>
         <input type="file" id="doc-file" class="file-input" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png">
       </div>
       <div class="modal-actions">
@@ -411,9 +411,9 @@ function canManageDocs(){
 async function readDocFile(inputId){
   const el=document.getElementById(inputId);
   if(!el||!el.files||!el.files.length) return null;
-  const MAX=5*1024*1024;
+  const MAX=20*1024*1024;
   const f=el.files[0];
-  if(f.size>MAX){ showToast(`⚠️ File "${f.name}" vượt 5MB, vui lòng nén nhỏ hơn!`); return undefined; }
+  if(f.size>MAX){ showToast(`⚠️ File "${f.name}" vượt 20MB, vui lòng nén nhỏ hơn!`); return undefined; }
   const data=await new Promise(res=>{ const r=new FileReader(); r.onload=e=>res(e.target.result); r.readAsDataURL(f); });
   return {name:f.name, mtype:f.type, size:f.size, data};
 }
