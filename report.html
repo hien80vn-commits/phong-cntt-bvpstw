@@ -361,6 +361,9 @@ a{color:inherit;text-decoration:none}
       </div>
       <div class="inbox-stats" id="inbox-stats"></div>
       <div class="filter-bar">
+        <label>Ngày nộp:</label>
+        <input type="date" id="inbox-date" onchange="loadInbox()">
+        <button class="btn-outline" style="padding:.35rem .8rem;font-size:.78rem;" onclick="document.getElementById('inbox-date').value='';loadInbox()">Tất cả ngày</button>
         <label>Loại:</label>
         <select id="inbox-type" onchange="loadInbox()">
           <option value="all">Tất cả</option>
@@ -1321,6 +1324,7 @@ document.addEventListener('DOMContentLoaded', async ()=>{
 
   const today=new Date().toISOString().slice(0,10);
   const dd=document.getElementById('d-date'); if(dd) dd.value=today;
+  const idt=document.getElementById('inbox-date'); if(idt) idt.value=today; // Hộp thư đến mặc định xem hôm nay
   const wf=document.getElementById('w-from'); if(wf){wf.value=getMonday();document.getElementById('w-to').value=today;}
   const mm=document.getElementById('m-month'); if(mm) mm.value=today.slice(0,7);
 
@@ -2038,6 +2042,7 @@ function loadInbox(){
   const session=getSession(); if(!session) return;
   const typeFilter=document.getElementById('inbox-type').value;
   const reporterFilter=document.getElementById('inbox-reporter').value;
+  const dateFilter=(document.getElementById('inbox-date')||{}).value||'';
   const search=(document.getElementById('inbox-search').value||'').toLowerCase();
 
   const types = typeFilter==='all' ? ['daily','weekly','monthly','yearly'] : [typeFilter];
@@ -2059,6 +2064,13 @@ function loadInbox(){
   }
 
   if(reporterFilter) arr=arr.filter(r=>r.reporter===reporterFilter);
+  // Lọc theo ngày nộp (dựa trên timestamp lúc nộp báo cáo)
+  if(dateFilter){
+    arr=arr.filter(r=>{
+      const d=new Date(r.ts||0);
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`===dateFilter;
+    });
+  }
   if(search) arr=arr.filter(r=>JSON.stringify(r).toLowerCase().includes(search));
   arr.sort((a,b)=>b.ts-a.ts);
 
@@ -2070,7 +2082,15 @@ function loadInbox(){
     .map(([t,l])=>`<div class="inbox-stat"><span class="sn">${counts[t]||0}</span><span class="sl">${l}</span></div>`).join('');
 
   const el=document.getElementById('inbox-list');
-  if(!arr.length){el.innerHTML='<p class="no-data">Chưa có báo cáo nào trong hộp thư đến.</p>';return;}
+  if(!arr.length){
+    if(dateFilter){
+      const p=dateFilter.split('-');
+      el.innerHTML=`<p class="no-data">Không có báo cáo nào nộp ngày ${p[2]}/${p[1]}/${p[0]}. Chọn ngày khác hoặc bấm "Tất cả ngày".</p>`;
+    } else {
+      el.innerHTML='<p class="no-data">Chưa có báo cáo nào trong hộp thư đến.</p>';
+    }
+    return;
+  }
 
   // Liệt kê theo ngày nộp: chèn tiêu đề ngày trước nhóm báo cáo của ngày đó
   const DOW_VI=['Chủ nhật','Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy'];
