@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thư viện Tài liệu – Phòng CNTT BVPSTW</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;}
+:root{
+  --purple:#6B2D8B;--purple-d:#4A1D62;--purple-l:#9B59C0;
+  --pink:#D63384;--teal:#00897B;--gold:#F9A825;--orange:#E67E22;
+  --bg:#F8F4FC;--card:#fff;--text:#1A1A2E;--muted:#6B7280;
+  --border:#E5E0ED;--shadow:0 4px 24px rgba(107,45,139,.12);
+  --radius:14px;--font:'Be Vietnam Pro',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;margin:0;}
+a{color:inherit;text-decoration:none}
+
+/* TOPBAR */
+.topbar{background:rgba(255,255,255,.96);backdrop-filter:blur(12px);border-bottom:2px solid var(--purple);position:sticky;top:0;z-index:999;box-shadow:0 2px 12px rgba(107,45,139,.1);}
+.topbar-inner{max-width:1200px;margin:auto;display:flex;align-items:center;justify-content:space-between;padding:.7rem 1.5rem;gap:1rem;flex-wrap:wrap;}
+.topbar-brand{display:flex;align-items:center;gap:.7rem;}
+.topbar-logo{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--pink));color:#fff;font-weight:800;font-size:1rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.topbar-title strong{display:block;font-size:.88rem;color:var(--purple);}
+.topbar-title span{font-size:.72rem;color:var(--muted);}
+.topbar-right{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;}
+.tbtn{padding:.4rem 1rem;border-radius:8px;border:2px solid var(--border);background:#fff;font-family:var(--font);font-size:.8rem;font-weight:600;cursor:pointer;transition:.2s;color:var(--muted);display:inline-block;}
+.tbtn:hover{border-color:var(--purple);color:var(--purple);}
+.tbtn.red{border-color:#E53935;color:#C62828;}
+#user-info{font-size:.85rem;font-weight:600;color:var(--purple-d);}
+
+/* SYNC BARS */
+#sync-toast{display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:var(--purple);color:#fff;text-align:center;padding:.6rem;font-size:.85rem;font-weight:600;}
+#sync-pending-bar{display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:#C62828;color:#fff;text-align:center;padding:.6rem 1rem;font-size:.82rem;font-weight:600;gap:.6rem;align-items:center;justify-content:center;}
+
+.app-inner{max-width:1200px;margin:auto;padding:1.5rem 1.25rem 4rem;}
+.page-hdr{margin-bottom:1.25rem;}
+.page-hdr h2{margin:0 0 .3rem;font-size:1.35rem;color:var(--purple-d);font-weight:800;}
+.page-hdr p{margin:0;color:var(--muted);font-size:.88rem;}
+
+/* LOGIN REQUIRED */
+#login-required{display:none;max-width:480px;margin:4rem auto;text-align:center;background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:2.5rem 2rem;}
+#login-required h3{color:var(--purple-d);margin:0 0 .6rem;}
+#login-required p{color:var(--muted);margin:0 0 1.2rem;font-size:.9rem;}
+
+/* STATS */
+.doc-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.75rem;margin-bottom:1.5rem;}
+.doc-stat{background:#fff;border-radius:10px;padding:.75rem 1rem;box-shadow:var(--shadow);text-align:center;border-top:3px solid var(--purple);}
+.doc-stat.total{border-top-color:var(--purple-d);}
+.dsn{font-size:1.4rem;font-weight:800;display:block;color:var(--purple);}
+.doc-stat.total .dsn{color:var(--purple-d);}
+.dsl{font-size:.68rem;color:var(--muted);font-weight:600;}
+
+/* TOOLBAR */
+.toolbar{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:1.1rem 1.25rem;margin-bottom:1.5rem;}
+.cat-pills{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem;}
+.cat-pill{padding:.4rem 1rem;border-radius:999px;border:2px solid var(--border);background:#fff;font-family:var(--font);font-weight:600;font-size:.8rem;cursor:pointer;transition:.2s;color:var(--muted);}
+.cat-pill:hover{opacity:.85;}
+.filter-row{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;}
+.filter-row input[type=text],.filter-row input[type=date],.filter-row select{padding:.55rem .8rem;border:2px solid var(--border);border-radius:9px;font-family:var(--font);font-size:.85rem;background:var(--bg);outline:none;}
+.filter-row input[type=text]{flex:1;min-width:180px;}
+.filter-row span{color:var(--muted);font-size:.85rem;}
+
+.btn-primary{background:linear-gradient(135deg,var(--purple),var(--pink));color:#fff;border:none;padding:.6rem 1.4rem;border-radius:10px;font-family:var(--font);font-weight:700;font-size:.85rem;cursor:pointer;transition:opacity .2s;}
+.btn-primary:hover{opacity:.9;}
+.btn-outline{background:#fff;color:var(--purple);border:2px solid var(--purple);padding:.55rem 1.2rem;border-radius:10px;font-family:var(--font);font-weight:700;font-size:.83rem;cursor:pointer;transition:.2s;}
+.btn-outline:hover{background:var(--purple);color:#fff;}
+
+/* DOC CARDS */
+#doc-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1rem;}
+.doc-card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:1.1rem 1.25rem;display:flex;flex-direction:column;gap:.4rem;}
+.doc-card-hdr{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.4rem;}
+.doc-cat-badge{font-size:.68rem;font-weight:700;padding:.2rem .65rem;border-radius:999px;}
+.doc-sohieu{font-size:.72rem;color:var(--muted);font-weight:600;}
+.doc-title{font-weight:700;font-size:.98rem;color:var(--text);line-height:1.35;}
+.doc-meta{font-size:.78rem;color:var(--muted);}
+.doc-desc{font-size:.8rem;color:var(--text);background:var(--bg);border-radius:8px;padding:.5rem .7rem;}
+.doc-file-info{font-size:.78rem;color:var(--text);}
+.doc-sub{font-size:.7rem;color:var(--muted);margin-top:.1rem;}
+.doc-actions{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.5rem;}
+.doc-action-btn{padding:.3rem .75rem;border-radius:7px;border:1.5px solid var(--border);background:#fff;font-family:var(--font);font-size:.75rem;font-weight:600;cursor:pointer;transition:.2s;}
+.doc-action-btn:hover{border-color:var(--purple);color:var(--purple);}
+.doc-action-btn.edit{border-color:#1565C0;color:#1565C0;}
+.doc-action-btn.edit:hover{background:#1565C0;color:#fff;}
+.doc-action-btn.del{border-color:#C62828;color:#C62828;}
+.doc-action-btn.del:hover{background:#C62828;color:#fff;}
+.no-data{text-align:center;color:var(--muted);padding:2.5rem;font-size:.9rem;grid-column:1/-1;}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9998;display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity .3s;}
+.modal-overlay.open{opacity:1;pointer-events:auto;}
+.modal{background:#fff;border-radius:20px;max-width:560px;width:100%;max-height:90vh;overflow-y:auto;transform:translateY(16px);transition:transform .3s;}
+.modal-overlay.open .modal{transform:translateY(0);}
+.modal-head{background:linear-gradient(135deg,var(--purple-d),var(--purple));padding:1.3rem 1.6rem;color:#fff;}
+.modal-head h3{margin:0;font-size:1.05rem;}
+.modal-body{padding:1.4rem 1.6rem 1.8rem;}
+.form-row{margin-bottom:1.1rem;}
+.form-row label{display:block;font-size:.83rem;font-weight:700;color:var(--purple-d);margin-bottom:.4rem;}
+.form-row select,.form-row input,.form-row textarea{width:100%;padding:.65rem 1rem;border:2px solid var(--border);border-radius:10px;font-family:var(--font);font-size:.9rem;outline:none;transition:.2s;background:var(--bg);}
+.form-row select:focus,.form-row input:focus,.form-row textarea:focus{border-color:var(--purple);}
+.form-row textarea{resize:vertical;min-height:70px;}
+.form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.file-input{width:100%;padding:.6rem;border:2px dashed var(--border);border-radius:10px;background:var(--bg);cursor:pointer;font-size:.83rem;}
+.modal-actions{display:flex;justify-content:flex-end;gap:.6rem;margin-top:.5rem;}
+
+/* TOAST */
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(100px);background:var(--purple-d);color:#fff;padding:.8rem 1.6rem;border-radius:999px;font-size:.85rem;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:10000;transition:transform .3s;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+@media (max-width:640px){
+  .form-grid-2{grid-template-columns:1fr;}
+  #doc-list{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<nav class="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-brand">
+      <div class="topbar-logo">IT</div>
+      <div class="topbar-title">
+        <strong>Thư viện Tài liệu</strong>
+        <span>Phòng CNTT – Bệnh viện Phụ Sản Trung Ương</span>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <a href="report.html" class="tbtn">📊 Báo cáo</a>
+      <a href="lich-truc.html" class="tbtn">📅 Lịch trực</a>
+      <a href="index.html" class="tbtn">← Trang chủ</a>
+      <span id="user-info" style="display:none"></span>
+      <button class="tbtn red" id="btn-logout" onclick="doLogout()" style="display:none">Đăng xuất</button>
+    </div>
+  </div>
+</nav>
+
+<div id="sync-toast">⏳ Đang đồng bộ dữ liệu...</div>
+<div id="sync-pending-bar">
+  <span id="sync-pending-msg">⚠️ Có dữ liệu chưa đồng bộ lên máy chủ (mất mạng?)</span>
+  <button onclick="flushSyncPending()" style="margin-left:.6rem;padding:.25rem .8rem;border-radius:999px;border:1.5px solid #fff;background:none;color:#fff;font-weight:700;font-size:.78rem;cursor:pointer;">🔄 Thử đồng bộ lại</button>
+</div>
+
+<div id="login-required">
+  <h3>🔒 Cần đăng nhập</h3>
+  <p>Vui lòng đăng nhập ở trang chủ để xem Thư viện Tài liệu.</p>
+  <a href="index.html" class="btn-primary" style="display:inline-block;">Về trang chủ</a>
+</div>
+
+<div id="app-screen" style="display:none;">
+  <div class="app-inner">
+    <div class="page-hdr">
+      <h2>📚 Thư viện Tài liệu</h2>
+      <p>Văn bản đi/đến, quy trình, nội quy - quy chế - quy định, biểu mẫu của Phòng CNTT</p>
+    </div>
+
+    <div class="doc-stats" id="doc-stats"></div>
+
+    <div class="toolbar">
+      <div class="cat-pills" id="cat-pills"></div>
+      <div class="filter-row">
+        <input type="text" id="f-search" placeholder="🔍 Tìm tên văn bản, số hiệu..." oninput="renderDocList()">
+        <span>Ban hành:</span>
+        <input type="date" id="f-from" onchange="renderDocList()" title="Từ ngày">
+        <span>–</span>
+        <input type="date" id="f-to" onchange="renderDocList()" title="Đến ngày">
+        <select id="f-sort" onchange="renderDocList()">
+          <option value="desc">Mới nhất trước</option>
+          <option value="asc">Cũ nhất trước</option>
+        </select>
+        <button class="btn-outline" onclick="clearDocFilters()">Xóa lọc</button>
+        <button class="btn-primary" id="btn-upload" style="display:none;" onclick="openDocModal(false)">➕ Tải lên tài liệu</button>
+      </div>
+    </div>
+
+    <div id="doc-list"></div>
+  </div>
+</div>
+
+<!-- Upload/Edit modal -->
+<div class="modal-overlay" id="doc-modal" onclick="if(event.target===this)closeDocModal()">
+  <div class="modal">
+    <div class="modal-head"><h3 id="doc-modal-title">➕ Thêm tài liệu mới</h3></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <label>Loại tài liệu <span style="color:red">*</span></label>
+        <select id="doc-category">
+          <option value="">-- Chọn loại --</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Tên văn bản / tài liệu <span style="color:red">*</span></label>
+        <input type="text" id="doc-title" placeholder="VD: Quy trình cấp phát tài khoản HIS">
+      </div>
+      <div class="form-grid-2">
+        <div class="form-row">
+          <label>Số hiệu văn bản</label>
+          <input type="text" id="doc-sohieu" placeholder="VD: 123/QĐ-BVPSTW">
+        </div>
+        <div class="form-row">
+          <label>Ngày ban hành <span style="color:red">*</span></label>
+          <input type="date" id="doc-ngay">
+        </div>
+      </div>
+      <div class="form-row">
+        <label>Đơn vị ban hành / Nơi gửi-nhận</label>
+        <input type="text" id="doc-donvi" placeholder="VD: Sở Y tế, Ban Giám đốc...">
+      </div>
+      <div class="form-row">
+        <label>Ghi chú / Mô tả</label>
+        <textarea id="doc-mota" placeholder="Ghi chú thêm (nếu có)..."></textarea>
+      </div>
+      <div class="form-row">
+        <label>File đính kèm (PDF, DOC, JPG — tối đa 5MB) <span id="doc-cur-file" style="font-weight:400;color:var(--muted);"></span></label>
+        <input type="file" id="doc-file" class="file-input" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+      </div>
+      <div class="modal-actions">
+        <button class="btn-outline" onclick="closeDocModal()">Hủy</button>
+        <button class="btn-primary" onclick="submitDoc()">💾 Lưu tài liệu</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+/* =====================================================
+   DANH SÁCH NHÂN VIÊN — dùng để tra role/position theo TÊN.
+   Không tin session.id thẳng vì index.html/lich-truc.html và
+   report.html/dashboard.html dùng 2 bảng số ID nhân viên khác nhau —
+   luôn re-resolve theo tên (xem enterApp bên dưới) để tránh lệch người.
+===================================================== */
+const STAFF = [
+  {id:1,  name:'Nguyễn Văn Cường',     position:'Kỹ sư',               role:'staff'},
+  {id:2,  name:'Vương Hoàng Linh',     position:'Trưởng phòng',        role:'lanh_dao'},
+  {id:3,  name:'Nguyễn Thị Thu Hiền',  position:'Tổ trưởng công tác',  role:'to_truong'},
+  {id:4,  name:'Phan Quang Huy',        position:'Trưởng nhóm',         role:'leader'},
+  {id:5,  name:'Nguyễn Quỳnh Ngọc',   position:'Phó Trưởng phòng',    role:'lanh_dao'},
+  {id:6,  name:'Nguyễn Ngọc Anh',      position:'Kỹ sư',               role:'staff'},
+  {id:7,  name:'Lê Thị Việt Hương',    position:'Trưởng nhóm',         role:'leader'},
+  {id:8,  name:'Hoàng Thị Ngọc Yến',  position:'Trưởng nhóm',         role:'leader'},
+  {id:9,  name:'Đàm Văn Thành',        position:'Trưởng nhóm',         role:'leader'},
+  {id:10, name:'Phan Thanh Hiếu',      position:'Kỹ thuật viên',       role:'staff'},
+  {id:11, name:'Bạch Lê Thắng',        position:'Trưởng nhóm',         role:'leader'},
+  {id:12, name:'Trần Hoàng Dương',     position:'Kỹ sư',               role:'staff'},
+  {id:13, name:'Đoàn Quốc Trung',      position:'Kỹ sư',               role:'staff'},
+  {id:14, name:'Nguyễn Thanh Tùng',    position:'Kế toán viên',        role:'staff'},
+  {id:15, name:'Vũ Trung Kiên',         position:'Trưởng nhóm',         role:'leader'},
+  {id:16, name:'Nguyễn Hữu Quân',      position:'Kỹ sư',               role:'staff'},
+  {id:17, name:'Phan Tiến Dũng',        position:'Trưởng nhóm',         role:'leader'},
+  {id:18, name:'Nguyễn Đức Thịnh',     position:'Kỹ sư',               role:'staff'},
+  {id:19, name:'Nguyễn Thị Ngọc Anh', position:'Trưởng nhóm',         role:'leader'},
+  {id:20, name:'Hoàng Hải Anh',         position:'Trưởng nhóm',         role:'leader'},
+  {id:21, name:'Phạm Ngọc Linh',        position:'Kỹ sư',               role:'staff'},
+  {id:22, name:'Nguyễn Đăng Tùng',     position:'Kỹ sư',               role:'staff'},
+  {id:23, name:'Bùi Thị Hồng Hạnh',   position:'Chuyên viên',         role:'staff'},
+  {id:24, name:'Nguyễn Tuấn Linh',     position:'Kỹ sư',               role:'staff'},
+  {id:25, name:'Lê Thị Thanh Thanh',   position:'Trưởng nhóm',         role:'leader'},
+  {id:26, name:'Quách Trường Giang',   position:'Chuyên viên',         role:'staff'},
+  {id:27, name:'Nguyễn Quỳnh Anh',     position:'Kỹ sư',               role:'staff'},
+  {id:28, name:'Cao Thị Thuý',          position:'Kỹ sư',               role:'staff'},
+  {id:29, name:'Hoàng Long',            position:'Kỹ sư',               role:'staff'},
+  {id:30, name:'Nguyễn Hoàng Hiệp',   position:'Kỹ thuật viên',       role:'staff'},
+  {id:31, name:'Nguyễn Văn Công',      position:'Kỹ sư',               role:'staff'},
+  {id:32, name:'Bùi Thị Kim Oanh',     position:'Chuyên viên',         role:'staff'},
+];
+
+function getSession(){ try{return JSON.parse(sessionStorage.getItem('cntt_session'))||null;}catch(e){return null;} }
+function setSession(s){ sessionStorage.setItem('cntt_session',JSON.stringify(s)); }
+function clearSession(){ sessionStorage.removeItem('cntt_session'); }
+function doLogout(){ clearSession(); window.location.href='index.html'; }
+
+/* =====================================================
+   CLOUD SYNC (Firebase) — copy nguyên cơ chế đã kiểm chứng ở report.html:
+   auth ẩn danh qua Identity Toolkit REST + hàng đợi tự thử lại khi mất mạng.
+===================================================== */
+const FB_URL = 'https://cntt-bvpstw-default-rtdb.asia-southeast1.firebasedatabase.app';
+const FB_API_KEY = 'AIzaSyCyOHEBJihvzhHmK4FhKZe4NyCtbowHG-Q';
+let _fbAuthPromise = null;
+async function ensureFbAuth(){
+  try{
+    const cached = JSON.parse(sessionStorage.getItem('cntt_fb_auth')||'null');
+    if(cached && cached.expiry > Date.now()) return cached.token;
+  }catch(e){}
+  if(_fbAuthPromise) return _fbAuthPromise;
+  _fbAuthPromise = fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${FB_API_KEY}`,{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({returnSecureToken:true})
+  }).then(r=>r.json()).then(data=>{
+    if(!data.idToken) return null;
+    const expiry = Date.now() + (parseInt(data.expiresIn||'3600',10)*1000) - 60000;
+    try{ sessionStorage.setItem('cntt_fb_auth', JSON.stringify({token:data.idToken, expiry})); }catch(e){}
+    return data.idToken;
+  }).catch(()=>null).finally(()=>{ _fbAuthPromise=null; });
+  return _fbAuthPromise;
+}
+function fbUrl(path){ return FB_URL+'/'+path+'.json'; }
+async function fbGet(path){
+  const token = await ensureFbAuth();
+  const url = fbUrl(path) + (token?('?auth='+token):'');
+  return fetch(url).then(r=>r.text()).catch(()=>'null');
+}
+function getSyncPending(){ try{ return JSON.parse(localStorage.getItem('cntt_sync_pending'))||{}; }catch(e){ return {}; } }
+function setSyncPending(obj){ localStorage.setItem('cntt_sync_pending', JSON.stringify(obj)); updateSyncPendingBar(); }
+function addSyncPending(path,val){ const p=getSyncPending(); p[path]=val; setSyncPending(p); }
+function removeSyncPending(path){ const p=getSyncPending(); if(path in p){ delete p[path]; setSyncPending(p); } }
+function updateSyncPendingBar(){
+  const bar=document.getElementById('sync-pending-bar'); if(!bar) return;
+  const n=Object.keys(getSyncPending()).length;
+  if(n>0){
+    document.getElementById('sync-pending-msg').textContent=`⚠️ Có ${n} mục chưa đồng bộ lên máy chủ (mất mạng?)`;
+    bar.style.display='flex';
+  } else { bar.style.display='none'; }
+}
+async function fbSet(path,val){
+  if(!FB_URL) return Promise.resolve(false);
+  const token = await ensureFbAuth();
+  const url = fbUrl(path) + (token?('?auth='+token):'');
+  return fetch(url,{method:'PUT',headers:{'Content-Type':'application/json'},body:val})
+    .then(r=>{
+      if(r.ok){ removeSyncPending(path); return true; }
+      addSyncPending(path,val); return false;
+    })
+    .catch(()=>{ addSyncPending(path,val); return false; });
+}
+async function flushSyncPending(){
+  const pending=getSyncPending();
+  const paths=Object.keys(pending);
+  if(!paths.length) return;
+  for(const path of paths){ await fbSet(path, pending[path]); }
+  updateSyncPendingBar();
+}
+
+/* =====================================================
+   DANH MỤC TÀI LIỆU
+===================================================== */
+const CATEGORIES = [
+  {key:'vb_di',   label:'Văn bản đi',                          color:'#00897B', bg:'#E0F2F1'},
+  {key:'vb_den',  label:'Văn bản đến',                         color:'#1565C0', bg:'#E3F2FD'},
+  {key:'qt_cntt', label:'Quy trình nội bộ CNTT',                color:'#6B2D8B', bg:'#F3E5F5'},
+  {key:'qt_bv',   label:'Quy trình bệnh viện',                  color:'#E67E22', bg:'#FFF3E0'},
+  {key:'noiquy',  label:'Nội quy - Quy chế - Quy định',         color:'#C62828', bg:'#FFEBEE'},
+  {key:'bieumau', label:'Biểu mẫu',                             color:'#F9A825', bg:'#FFF8E1'},
+];
+function catMeta(key){ return CATEGORIES.find(c=>c.key===key)||{label:key||'?',color:'#888',bg:'#eee'}; }
+
+/* =====================================================
+   LƯU TRỮ TÀI LIỆU
+   Mỗi tài liệu ghi vào MỘT khóa Firebase riêng (docs/d<ts>_<authorId>)
+   — không PUT nguyên mảng — để nhiều người tải lên cùng lúc không đè
+   mất dữ liệu của nhau (bài học từ lỗi tương tự ở phần Báo cáo).
+   Bộ nhớ đệm cục bộ (localStorage) chỉ giữ THÔNG TIN MÔ TẢ (không giữ
+   nội dung file base64) để tránh đầy dung lượng trình duyệt khi thư
+   viện có nhiều tài liệu; nội dung file được tải về theo yêu cầu mỗi
+   khi bấm Xem/Tải xuống/Sửa.
+===================================================== */
+function docKey(d){ return 'd'+(d.ts||d.id||0)+'_'+(d.authorId||0); }
+function stripFileData(rec){
+  const {file,...rest}=rec;
+  return {...rest, file: file?{name:file.name,mtype:file.mtype,size:file.size}:null};
+}
+function getDocsMeta(){ try{ return JSON.parse(localStorage.getItem('cntt_docs_meta'))||[]; }catch(e){ return []; } }
+function saveDocsMetaCache(arr){ localStorage.setItem('cntt_docs_meta', JSON.stringify(arr)); }
+function upsertLocalMeta(rec){
+  const arr=getDocsMeta();
+  const key=docKey(rec);
+  const idx=arr.findIndex(d=>docKey(d)===key);
+  const meta=stripFileData(rec);
+  if(idx>-1) arr[idx]=meta; else arr.unshift(meta);
+  saveDocsMetaCache(arr);
+}
+function removeLocalMeta(key){ saveDocsMetaCache(getDocsMeta().filter(d=>docKey(d)!==key)); }
+
+async function fbSaveDoc(rec){ return fbSet('docs/'+docKey(rec), JSON.stringify(rec)); }
+async function fbDeleteDocByKey(key){
+  fbSet('docs/'+key, 'null');
+  return fbSet('docs_deleted/'+key, 'true');
+}
+async function fetchFullDoc(key){
+  const v=await fbGet('docs/'+key);
+  if(!v||v==='null') return null;
+  try{ return JSON.parse(v); }catch(e){ return null; }
+}
+async function syncDocsFromCloud(){
+  if(!FB_URL) return;
+  const [rawS, delS] = await Promise.all([fbGet('docs'), fbGet('docs_deleted')]);
+  let raw={}; try{ raw=JSON.parse(rawS)||{}; }catch(e){}
+  let deleted={}; try{ deleted=JSON.parse(delS)||{}; }catch(e){}
+  const metaArr=Object.entries(raw)
+    .filter(([k,v])=>v!=null && !deleted[k])
+    .map(([k,v])=>{ try{ return stripFileData(typeof v==='string'?JSON.parse(v):v); }catch(e){ return null; } })
+    .filter(Boolean);
+  saveDocsMetaCache(metaArr);
+}
+
+/* =====================================================
+   PHÂN QUYỀN — chỉ Tổ trưởng / Lãnh đạo được tải lên - sửa - xóa;
+   mọi nhân viên đã đăng nhập đều xem/tìm kiếm/tải xuống được.
+===================================================== */
+function canManageDocs(){
+  const s=getSession();
+  return !!s && (s.role==='lanh_dao'||s.role==='to_truong');
+}
+
+/* =====================================================
+   ĐỌC FILE ĐÍNH KÈM
+===================================================== */
+async function readDocFile(inputId){
+  const el=document.getElementById(inputId);
+  if(!el||!el.files||!el.files.length) return null;
+  const MAX=5*1024*1024;
+  const f=el.files[0];
+  if(f.size>MAX){ showToast(`⚠️ File "${f.name}" vượt 5MB, vui lòng nén nhỏ hơn!`); return undefined; }
+  const data=await new Promise(res=>{ const r=new FileReader(); r.onload=e=>res(e.target.result); r.readAsDataURL(f); });
+  return {name:f.name, mtype:f.type, size:f.size, data};
+}
+function fileIcon(mtype){
+  if(!mtype) return '📎';
+  if(mtype.startsWith('image/')) return '🖼️';
+  if(mtype.includes('pdf')) return '📄';
+  if(mtype.includes('word')) return '📝';
+  return '📎';
+}
+function fmtDateVN(iso){ if(!iso) return ''; const p=iso.split('-'); return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:iso; }
+
+/* =====================================================
+   MODAL THÊM / SỬA
+===================================================== */
+let editingDocKey=null;
+
+function populateCategorySelect(){
+  const sel=document.getElementById('doc-category');
+  sel.innerHTML='<option value="">-- Chọn loại --</option>'+CATEGORIES.map(c=>`<option value="${c.key}">${c.label}</option>`).join('');
+}
+
+function openDocModal(isEdit){
+  if(!isEdit){
+    editingDocKey=null;
+    document.getElementById('doc-modal-title').textContent='➕ Thêm tài liệu mới';
+    document.getElementById('doc-category').value='';
+    document.getElementById('doc-title').value='';
+    document.getElementById('doc-sohieu').value='';
+    document.getElementById('doc-ngay').value=new Date().toISOString().slice(0,10);
+    document.getElementById('doc-donvi').value='';
+    document.getElementById('doc-mota').value='';
+    document.getElementById('doc-file').value='';
+    document.getElementById('doc-cur-file').textContent='';
+  }
+  document.getElementById('doc-modal').classList.add('open');
+}
+function closeDocModal(){ document.getElementById('doc-modal').classList.remove('open'); }
+
+async function editDoc(key){
+  if(!canManageDocs()) return;
+  showToast('⏳ Đang tải dữ liệu tài liệu...');
+  const rec=await fetchFullDoc(key);
+  if(!rec){ showToast('⚠️ Không tải được tài liệu để sửa!'); return; }
+  editingDocKey=key;
+  document.getElementById('doc-category').value=rec.category||'';
+  document.getElementById('doc-title').value=rec.title||'';
+  document.getElementById('doc-sohieu').value=rec.soHieu||'';
+  document.getElementById('doc-ngay').value=rec.ngayBanHanh||'';
+  document.getElementById('doc-donvi').value=rec.donVi||'';
+  document.getElementById('doc-mota').value=rec.moTa||'';
+  document.getElementById('doc-file').value='';
+  document.getElementById('doc-cur-file').textContent=rec.file?`(hiện có: ${rec.file.name} — chọn file mới để thay thế, để trống nếu giữ nguyên)`:'';
+  document.getElementById('doc-modal-title').textContent='✏️ Sửa tài liệu';
+  openDocModal(true);
+}
+
+async function submitDoc(){
+  const session=getSession(); if(!session||!canManageDocs()) return;
+  const category=document.getElementById('doc-category').value;
+  const title=(document.getElementById('doc-title').value||'').trim();
+  const soHieu=(document.getElementById('doc-sohieu').value||'').trim();
+  const ngayBanHanh=document.getElementById('doc-ngay').value;
+  const donVi=(document.getElementById('doc-donvi').value||'').trim();
+  const moTa=(document.getElementById('doc-mota').value||'').trim();
+
+  if(!category){ showToast('⚠️ Vui lòng chọn loại tài liệu!'); return; }
+  if(!title){ showToast('⚠️ Vui lòng nhập tên văn bản!'); return; }
+  if(!ngayBanHanh){ showToast('⚠️ Vui lòng chọn ngày ban hành!'); return; }
+
+  const fileResult=await readDocFile('doc-file');
+  if(fileResult===undefined) return; // quá dung lượng — đã báo lỗi trong readDocFile
+
+  let record;
+  if(editingDocKey){
+    const old=await fetchFullDoc(editingDocKey);
+    if(!old){ showToast('⚠️ Không tìm thấy tài liệu gốc để sửa!'); return; }
+    record={...old, category, title, soHieu, ngayBanHanh, donVi, moTa};
+    if(fileResult) record.file=fileResult;
+  } else {
+    const ts=Date.now();
+    record={
+      id:ts, ts, authorId:session.id, authorName:session.name,
+      category, title, soHieu, ngayBanHanh, donVi, moTa,
+      file:fileResult||null,
+      uploadedAt:new Date().toLocaleString('vi-VN'),
+    };
+  }
+
+  upsertLocalMeta(record);
+  renderDocList();
+  closeDocModal();
+  const ok=await fbSaveDoc(record);
+  showToast(ok?'✅ Đã lưu tài liệu!':'⚠️ Đã lưu tạm nhưng CHƯA đồng bộ lên máy chủ — hệ thống sẽ tự thử lại.');
+}
+
+function deleteDoc(key){
+  if(!canManageDocs()) return;
+  if(!confirm('Xác nhận xóa tài liệu này? Không thể hoàn tác.')) return;
+  removeLocalMeta(key);
+  renderDocList();
+  fbDeleteDocByKey(key);
+  showToast('🗑️ Đã xóa tài liệu.');
+}
+
+async function viewDocFile(key){
+  const w=window.open('','_blank');
+  showToast('⏳ Đang tải file...');
+  const rec=await fetchFullDoc(key);
+  if(!rec||!rec.file){ if(w) w.close(); showToast('⚠️ Không tải được file!'); return; }
+  if(w) w.location.href=rec.file.data;
+  else showToast('⚠️ Trình duyệt chặn cửa sổ mới — cho phép popup để xem file!');
+}
+async function downloadDocFile(key){
+  showToast('⏳ Đang tải file...');
+  const rec=await fetchFullDoc(key);
+  if(!rec||!rec.file){ showToast('⚠️ Không tải được file!'); return; }
+  const a=document.createElement('a');
+  a.href=rec.file.data; a.download=rec.file.name;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+/* =====================================================
+   HIỂN THỊ DANH SÁCH
+===================================================== */
+window._activeCat='all';
+
+function renderCatPills(){
+  const el=document.getElementById('cat-pills');
+  const active=window._activeCat;
+  let html=`<button class="cat-pill" style="${active==='all'?'background:var(--purple-d);border-color:var(--purple-d);color:#fff;':''}" onclick="setActiveCat('all')">Tất cả</button>`;
+  html+=CATEGORIES.map(c=>{
+    const isActive=active===c.key;
+    return `<button class="cat-pill" style="${isActive?`background:${c.color};border-color:${c.color};color:#fff;`:`border-color:${c.color};color:${c.color};`}" onclick="setActiveCat('${c.key}')">${c.label}</button>`;
+  }).join('');
+  el.innerHTML=html;
+}
+function setActiveCat(key){ window._activeCat=key; renderCatPills(); renderDocList(); }
+function clearDocFilters(){
+  document.getElementById('f-search').value='';
+  document.getElementById('f-from').value='';
+  document.getElementById('f-to').value='';
+  document.getElementById('f-sort').value='desc';
+  window._activeCat='all';
+  renderCatPills();
+  renderDocList();
+}
+
+function renderDocStats(){
+  const all=getDocsMeta();
+  const el=document.getElementById('doc-stats'); if(!el) return;
+  let html=`<div class="doc-stat total"><span class="dsn">${all.length}</span><span class="dsl">Tổng tài liệu</span></div>`;
+  html+=CATEGORIES.map(c=>{
+    const n=all.filter(d=>d.category===c.key).length;
+    return `<div class="doc-stat" style="border-top-color:${c.color}"><span class="dsn" style="color:${c.color}">${n}</span><span class="dsl">${c.label}</span></div>`;
+  }).join('');
+  el.innerHTML=html;
+}
+
+function buildDocCardHTML(d, canManage){
+  const key=docKey(d);
+  const c=catMeta(d.category);
+  const sizeKB=d.file&&d.file.size?Math.round(d.file.size/1024):null;
+  return `<div class="doc-card">
+    <div class="doc-card-hdr">
+      <span class="doc-cat-badge" style="background:${c.bg};color:${c.color};">${c.label}</span>
+      ${d.soHieu?`<span class="doc-sohieu">Số: ${d.soHieu}</span>`:''}
+    </div>
+    <div class="doc-title">${fileIcon(d.file&&d.file.mtype)} ${d.title}</div>
+    <div class="doc-meta">📅 Ban hành: <strong>${fmtDateVN(d.ngayBanHanh)}</strong>${d.donVi?` · 🏢 ${d.donVi}`:''}</div>
+    ${d.moTa?`<div class="doc-desc">${d.moTa}</div>`:''}
+    <div class="doc-file-info">${d.file?`${fileIcon(d.file.mtype)} ${d.file.name}${sizeKB?` <span style="color:var(--muted)">(${sizeKB}KB)</span>`:''}`:'<span style="color:var(--muted)">Không có file đính kèm</span>'}</div>
+    <div class="doc-sub">Tải lên bởi <strong>${d.authorName||'?'}</strong> · ${d.uploadedAt||''}</div>
+    <div class="doc-actions">
+      ${d.file?`<button class="doc-action-btn" onclick="viewDocFile('${key}')">👁️ Xem</button><button class="doc-action-btn" onclick="downloadDocFile('${key}')">⬇️ Tải xuống</button>`:''}
+      ${canManage?`<button class="doc-action-btn edit" onclick="editDoc('${key}')">✏️ Sửa</button><button class="doc-action-btn del" onclick="deleteDoc('${key}')">🗑️ Xóa</button>`:''}
+    </div>
+  </div>`;
+}
+
+function renderDocList(){
+  const cat=window._activeCat;
+  const q=(document.getElementById('f-search').value||'').toLowerCase();
+  const from=document.getElementById('f-from').value;
+  const to=document.getElementById('f-to').value;
+  const sortDir=document.getElementById('f-sort').value;
+
+  let arr=getDocsMeta();
+  if(cat!=='all') arr=arr.filter(d=>d.category===cat);
+  if(q) arr=arr.filter(d=>(d.title||'').toLowerCase().includes(q)||(d.soHieu||'').toLowerCase().includes(q));
+  if(from) arr=arr.filter(d=>(d.ngayBanHanh||'')>=from);
+  if(to) arr=arr.filter(d=>(d.ngayBanHanh||'')<=to);
+  arr.sort((a,b)=> sortDir==='asc' ? (a.ngayBanHanh||'').localeCompare(b.ngayBanHanh||'') : (b.ngayBanHanh||'').localeCompare(a.ngayBanHanh||''));
+
+  renderDocStats();
+
+  const el=document.getElementById('doc-list');
+  if(!arr.length){ el.innerHTML='<p class="no-data">Không có tài liệu nào khớp bộ lọc.</p>'; return; }
+  const canManage=canManageDocs();
+  el.innerHTML=arr.map(d=>buildDocCardHTML(d,canManage)).join('');
+}
+
+/* =====================================================
+   TOAST
+===================================================== */
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+/* =====================================================
+   KHỞI TẠO
+===================================================== */
+document.addEventListener('DOMContentLoaded', async ()=>{
+  const session=getSession();
+  if(!session){ document.getElementById('login-required').style.display='block'; return; }
+
+  // Re-resolve theo TÊN để tránh lệch ID giữa các trang (numbering khác nhau)
+  const staffMatch=STAFF.find(s=>s.name===session.name);
+  if(staffMatch){ session.id=staffMatch.id; session.role=staffMatch.role; session.position=staffMatch.position; setSession(session); }
+
+  document.getElementById('app-screen').style.display='block';
+  document.getElementById('user-info').style.display='';
+  document.getElementById('user-info').textContent='👤 '+session.name;
+  document.getElementById('btn-logout').style.display='';
+  if(canManageDocs()) document.getElementById('btn-upload').style.display='';
+
+  populateCategorySelect();
+  renderCatPills();
+
+  const st=document.getElementById('sync-toast');
+  st.style.display='block';
+  await syncDocsFromCloud();
+  st.style.display='none';
+
+  renderDocList();
+  updateSyncPendingBar();
+  flushSyncPending();
+  setInterval(()=>{ flushSyncPending(); }, 30000);
+});
+</script>
+</body>
+</html>
