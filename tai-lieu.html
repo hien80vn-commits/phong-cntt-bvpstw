@@ -213,8 +213,8 @@ a{color:inherit;text-decoration:none}
         <textarea id="doc-mota" placeholder="Ghi chú thêm (nếu có)..."></textarea>
       </div>
       <div class="form-row">
-        <label>File đính kèm (PDF, DOC, JPG — tối đa 5MB) <span id="doc-cur-file" style="font-weight:400;color:var(--muted);"></span></label>
-        <input type="file" id="doc-file" class="file-input" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+        <label>File đính kèm (PDF, DOC, XLS, JPG — tối đa 5MB) <span id="doc-cur-file" style="font-weight:400;color:var(--muted);"></span></label>
+        <input type="file" id="doc-file" class="file-input" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png">
       </div>
       <div class="modal-actions">
         <button class="btn-outline" onclick="closeDocModal()">Hủy</button>
@@ -422,6 +422,7 @@ function fileIcon(mtype){
   if(mtype.startsWith('image/')) return '🖼️';
   if(mtype.includes('pdf')) return '📄';
   if(mtype.includes('word')) return '📝';
+  if(mtype.includes('excel')||mtype.includes('spreadsheet')) return '📊';
   return '📎';
 }
 function fmtDateVN(iso){ if(!iso) return ''; const p=iso.split('-'); return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:iso; }
