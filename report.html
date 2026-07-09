@@ -1158,9 +1158,11 @@ async function flushSyncPending(){
   updateSyncPendingBar();
 }
 
-async function syncFromCloud(){
+// Đồng bộ riêng phần báo cáo (rp_/rp2_) — tách khỏi syncFromCloud() để các
+// nút "Tổng hợp..." gọi được nhanh trước khi đọc dữ liệu, KHÔNG phải đợi
+// đồng bộ luôn cả tasks/passwords/personal_tasks/meetings không liên quan.
+async function syncReportsFromCloud(){
   if(!FB_URL) return;
-  // Đọc tombstone một lần cho cả 4 loại
   let deletedAll={};
   try{ deletedAll=JSON.parse(await fbGet('rp2_deleted'))||{}; }catch(e){}
   for(const t of ['daily','weekly','monthly','yearly']){
@@ -1170,6 +1172,11 @@ async function syncFromCloud(){
     const merged=mergeReportSources(legacy, news, deletedAll[t]);
     try{ localStorage.setItem('cntt_rp_'+t, JSON.stringify(merged)); }catch(e){}
   }
+}
+
+async function syncFromCloud(){
+  if(!FB_URL) return;
+  await syncReportsFromCloud();
   const gv = await fbGet('staff_groups');
   if(gv&&gv!=='null'){ try{ localStorage.setItem('cntt_staff_groups',gv); }catch(e){} }
   const tv = await fbGet('tasks');
@@ -1863,20 +1870,23 @@ function appendToTextarea(id,text){
   el.style.height='auto';
   el.style.height=Math.min(el.scrollHeight+20,600)+'px';
 }
-function synthMemberIds(s){
+function synthMembers(s){
   if(s.role==='leader'){
     const myGroups=getLeadGroups(s.id);
-    return STAFF.filter(m=>m.id!==s.id&&getEffectiveGroups(m.id).some(g=>myGroups.includes(g))).map(m=>m.id);
+    return STAFF.filter(m=>m.id!==s.id&&getEffectiveGroups(m.id).some(g=>myGroups.includes(g)));
   }
   // Tổ trưởng / lãnh đạo: tổng hợp từ tất cả nhân viên
-  return STAFF.filter(m=>m.id!==s.id).map(m=>m.id);
+  return STAFF.filter(m=>m.id!==s.id);
 }
+function synthMemberIds(s){ return synthMembers(s).map(m=>m.id); }
 
 // Báo cáo tuần cá nhân ← tổng hợp báo cáo ngày trong tuần
-function synthWeeklyFromDaily(){
+async function synthWeeklyFromDaily(){
   const s=getSession(); if(!s) return;
   const from=document.getElementById('w-from').value, to=document.getElementById('w-to').value;
   if(!from||!to){ showToast('⚠️ Chọn "Từ ngày / Đến ngày" trước!'); return; }
+  showToast('⏳ Đang tải báo cáo mới nhất...');
+  await syncReportsFromCloud();
   const mine=getReports('daily')
     .filter(r=>(r.authorId===s.id||r.reporter===s.name)&&r.date>=from&&r.date<=to)
     .sort((a,b)=>a.date.localeCompare(b.date)||a.ts-b.ts);
@@ -1900,13 +1910,16 @@ function synthWeeklyFromDaily(){
 }
 
 // Báo cáo tuần của nhóm trưởng ← tổng hợp BC tuần của từng thành viên
-function synthWeeklyFromMembers(){
+async function synthWeeklyFromMembers(){
   const s=getSession(); if(!s) return;
   const from=document.getElementById('w-from').value, to=document.getElementById('w-to').value;
   if(!from||!to){ showToast('⚠️ Chọn "Từ ngày / Đến ngày" trước!'); return; }
-  const ids=synthMemberIds(s);
+  showToast('⏳ Đang tải báo cáo mới nhất...');
+  await syncReportsFromCloud();
+  const members=synthMembers(s);
+  const ids=members.map(m=>m.id), names=members.map(m=>m.name);
   const reports=getReports('weekly')
-    .filter(r=>ids.includes(r.authorId)&&r.from<=to&&r.to>=from)
+    .filter(r=>(ids.includes(r.authorId)||names.includes(r.reporter))&&r.from<=to&&r.to>=from)
     .sort((a,b)=>(a.reporter||'').localeCompare(b.reporter||'','vi')||a.from.localeCompare(b.from));
   if(!reports.length){ showToast('📭 Chưa có thành viên nào nộp báo cáo tuần trong khoảng này!'); return; }
   let txt=`═══ TỔNG HỢP BÁO CÁO TUẦN THÀNH VIÊN (${synthFmtD(from)} – ${synthFmtD(to)}) ═══\n`;
@@ -1922,10 +1935,12 @@ function synthWeeklyFromMembers(){
 }
 
 // Báo cáo tháng cá nhân ← tổng hợp báo cáo các tuần trong tháng
-function synthMonthlyFromWeekly(){
+async function synthMonthlyFromWeekly(){
   const s=getSession(); if(!s) return;
   const month=document.getElementById('m-month').value;
   if(!month){ showToast('⚠️ Chọn tháng trước!'); return; }
+  showToast('⏳ Đang tải báo cáo mới nhất...');
+  await syncReportsFromCloud();
   const first=month+'-01', last=month+'-31';
   const mine=getReports('weekly')
     .filter(r=>(r.authorId===s.id||r.reporter===s.name)&&r.from<=last&&r.to>=first)
@@ -1944,14 +1959,17 @@ function synthMonthlyFromWeekly(){
 }
 
 // Báo cáo tháng của nhóm trưởng ← tổng hợp BC tuần của thành viên, gộp theo từng tuần
-function synthMonthlyFromMembers(){
+async function synthMonthlyFromMembers(){
   const s=getSession(); if(!s) return;
   const month=document.getElementById('m-month').value;
   if(!month){ showToast('⚠️ Chọn tháng trước!'); return; }
+  showToast('⏳ Đang tải báo cáo mới nhất...');
+  await syncReportsFromCloud();
   const first=month+'-01', last=month+'-31';
-  const ids=synthMemberIds(s);
+  const members=synthMembers(s);
+  const ids=members.map(m=>m.id), names=members.map(m=>m.name);
   const reports=getReports('weekly')
-    .filter(r=>ids.includes(r.authorId)&&r.from<=last&&r.to>=first)
+    .filter(r=>(ids.includes(r.authorId)||names.includes(r.reporter))&&r.from<=last&&r.to>=first)
     .sort((a,b)=>a.from.localeCompare(b.from)||(a.reporter||'').localeCompare(b.reporter||'','vi'));
   if(!reports.length){ showToast('📭 Chưa có thành viên nào nộp báo cáo tuần trong tháng này!'); return; }
   const [yy,mm]=month.split('-');
