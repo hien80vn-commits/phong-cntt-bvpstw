@@ -113,6 +113,12 @@ a{color:inherit;text-decoration:none}
 @media (max-width:640px){
   .form-grid-2{grid-template-columns:1fr;}
   #doc-list{grid-template-columns:1fr;}
+  .filter-row{flex-direction:column;align-items:stretch;}
+  .filter-row span{display:none;}
+  .filter-row input[type=text],.filter-row input[type=date],.filter-row select,
+  .filter-row .btn-outline,.filter-row .btn-primary{width:100%;}
+  .doc-card-hdr{flex-direction:column;align-items:flex-start;gap:.3rem;}
+  .doc-stats{grid-template-columns:repeat(2,1fr);}
 }
 </style>
 </head>
@@ -548,17 +554,22 @@ function dataURLtoBlob(dataURL){
   return new Blob([bytes],{type:mime});
 }
 
+// Safari trên iPhone/iPad chặn kiểu "mở cửa sổ trắng rồi điều hướng sau khi
+// tải xong" (window.open('','_blank') + gán location.href muộn) — coi đó là
+// popup đáng ngờ nên chặn im lặng. Đổi sang cách bấm <a target="_blank">
+// (giống hệt cách "Tải xuống" đang dùng, vốn đã chạy ổn định) để Safari di
+// động chấp nhận mở tab mới bình thường.
 async function viewDocFile(key){
-  const w=window.open('','_blank');
   showToast('⏳ Đang tải file...');
   const rec=await fetchFullDoc(key);
-  if(!rec||!rec.file){ if(w) w.close(); showToast('⚠️ Không tải được file!'); return; }
+  if(!rec||!rec.file){ showToast('⚠️ Không tải được file!'); return; }
   try{
     const blobUrl=URL.createObjectURL(dataURLtoBlob(rec.file.data));
-    if(w){ w.location.href=blobUrl; setTimeout(()=>URL.revokeObjectURL(blobUrl),60000); }
-    else showToast('⚠️ Trình duyệt chặn cửa sổ mới — cho phép popup để xem file!');
+    const a=document.createElement('a');
+    a.href=blobUrl; a.target='_blank'; a.rel='noopener';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(blobUrl),60000);
   }catch(e){
-    if(w) w.close();
     showToast('⚠️ Không mở được file!');
   }
 }
