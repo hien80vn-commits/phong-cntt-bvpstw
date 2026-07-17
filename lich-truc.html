@@ -440,7 +440,13 @@ function syncScheduleToCloud(){ fbSet('schedule', JSON.stringify(schedule)); }
    tombstone regs2_deleted để xóa được cả bản ghi cũ mà không đụng vào
    đăng ký của người khác. */
 function regKey(r){ return r.staffId+'_'+r.date+'_'+r.type; }
-function fbSaveReg(r){ return fbSet('regs2/'+regKey(r), JSON.stringify(r)); }
+function fbSaveReg(r){
+  const key=regKey(r);
+  // Gỡ bia đánh dấu "đã xóa" nếu trước đó từng xóa đúng khóa này (staffId+date+type)
+  // — nếu không, đăng ký lại sau khi xóa sẽ bị ẩn vĩnh viễn vì tombstone cũ vẫn còn.
+  fbSet('regs2_deleted/'+key, 'null');
+  return fbSet('regs2/'+key, JSON.stringify(r));
+}
 function fbDeleteRegByKey(key){
   fbSet('regs2/'+key, 'null');
   return fbSet('regs2_deleted/'+key, 'true');
