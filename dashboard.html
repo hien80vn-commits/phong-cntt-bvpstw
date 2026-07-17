@@ -430,8 +430,8 @@ async function loadAll(){
       fbGet('schedule').then(v=>{try{let p=JSON.parse(v);if(typeof p==='string')p=JSON.parse(p);return p||{};}catch(e){return {};}}),
       fetchRegs(),
     ]);
-    renderKPIs(rawTasks, rawNotifs, rawDaily);
-    renderAlerts(rawTasks, rawNotifs, rawDaily);
+    renderKPIs(rawTasks, rawNotifs, rawDaily, rawRegs);
+    renderAlerts(rawTasks, rawNotifs, rawDaily, rawRegs);
     renderTaskProgress(rawTasks);
     renderDuty(rawSchedule, rawNotifs);
     renderReports(rawDaily);
@@ -446,7 +446,7 @@ async function loadAll(){
 // Removed localStorage schedule — now loaded from Firebase `schedule` path directly
 
 /* ===== KPIs ===== */
-function renderKPIs(tasks, notifs, daily){
+function renderKPIs(tasks, notifs, daily, regs){
   const today=todayISO();
   const total=tasks.length;
   const done=tasks.filter(t=>t.status==='Hoàn thành'||t.status==='Đã duyệt').length;
@@ -460,7 +460,9 @@ function renderKPIs(tasks, notifs, daily){
   }).length;
   const pendApprove=tasks.filter(t=>t.status==='Hoàn thành').length;
   const todayRpts=daily.filter(r=>r.date===today||isToday(r.createdAt)).length;
-  const leaveToday=notifs.filter(n=>(n.type==='leave'||n.type==='sick')&&n.date===today).length;
+  // Đếm trực tiếp từ regs (trạng thái nghỉ hiện tại) thay vì notifs (nhật ký
+  // thông báo — chỉ ghi thêm, không cập nhật khi xóa nên sẽ báo sai người đã hủy nghỉ)
+  const leaveToday=(regs||[]).filter(r=>r.type==='leave'&&r.date===today).length;
   const pct=total>0?Math.round(done/total*100):0;
 
   document.getElementById('kpi-grid').innerHTML=`
@@ -475,7 +477,7 @@ function renderKPIs(tasks, notifs, daily){
 }
 
 /* ===== ALERTS ===== */
-function renderAlerts(tasks, notifs, daily){
+function renderAlerts(tasks, notifs, daily, regs){
   const today=todayISO();
   const alerts=[];
 
@@ -520,10 +522,11 @@ function renderAlerts(tasks, notifs, daily){
     alerts.push({cls:'orange',icon:'📭',html:`<strong>${missing.length} nhóm chưa nộp báo cáo hôm nay</strong>: ${missing.slice(0,4).map(g=>`Nhóm ${g.num}`).join(', ')}${missing.length>4?`...`:''}`});
   }
 
-  // Leave today
-  const leaveToday=notifs.filter(n=>(n.type==='leave'||n.type==='sick')&&n.date===today);
+  // Leave today — lấy trực tiếp từ regs (trạng thái nghỉ hiện tại), không
+  // dùng notifs vì đó chỉ là nhật ký thông báo, không cập nhật khi hủy nghỉ
+  const leaveToday=(regs||[]).filter(r=>r.type==='leave'&&r.date===today);
   if(leaveToday.length){
-    alerts.push({cls:'orange',icon:'🏥',html:`<strong>${leaveToday.length} người nghỉ hôm nay</strong>: ${leaveToday.map(n=>n.fromName).join(', ')}`});
+    alerts.push({cls:'orange',icon:'🏥',html:`<strong>${leaveToday.length} người nghỉ hôm nay</strong>: ${leaveToday.map(r=>dutyStaffName(r.staffId)).join(', ')}`});
   }
 
   if(!alerts.length){
@@ -661,7 +664,7 @@ function renderLeave(regs){
       <div class="lstat" style="background:var(--purple-l)"><div class="lstat-n" style="color:var(--purple)">${thisMonth.length}</div><div class="lstat-l">Tổng lượt</div></div>
     </div>
     ${rows.length
-      ? rows.slice(0,7).map(([name,c])=>`<div class="leave-row">
+      ? rows.map(([name,c])=>`<div class="leave-row">
           <span style="flex:1">${name}</span>
           ${c.phep?`<span class="ltag phep">Phép ×${c.phep}</span>`:''}
           ${c.om?`<span class="ltag om">Ốm ×${c.om}</span>`:''}
