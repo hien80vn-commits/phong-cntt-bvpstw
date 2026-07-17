@@ -307,7 +307,9 @@ function fbUrl(path){ return FB_URL+'/'+path+'.json'; }
 async function fbGet(path){
   const token = await ensureFbAuth();
   const url = fbUrl(path) + (token?('?auth='+token):'');
-  return fetch(url).then(r=>r.text()).catch(()=>'null');
+  // cache:'no-store' — không để trình duyệt trả bản cache cũ cho cùng URL,
+  // đảm bảo mỗi lần làm mới đều lấy đúng dữ liệu mới nhất từ Firebase
+  return fetch(url,{cache:'no-store'}).then(r=>r.text()).catch(()=>'null');
 }
 function getSyncPending(){ try{ return JSON.parse(localStorage.getItem('cntt_sync_pending'))||{}; }catch(e){ return {}; } }
 function setSyncPending(obj){ localStorage.setItem('cntt_sync_pending', JSON.stringify(obj)); updateSyncPendingBar(); }
