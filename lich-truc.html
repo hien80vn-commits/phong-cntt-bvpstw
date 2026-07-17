@@ -454,11 +454,17 @@ function fbDeleteRegByKey(key){
 function mergeRegsSources(legacyArr, newObj, deletedObj){
   const map={};
   (Array.isArray(legacyArr)?legacyArr:[]).forEach(r=>{ if(r&&r.staffId!=null&&r.date&&r.type) map[regKey(r)]=r; });
+  // regs2 luôn là nguồn chân lý mới nhất cho MỌI khóa nó từng chạm tới — kể
+  // cả khi giá trị là null (nghĩa là đã xóa). Tombstone (regs2_deleted) chỉ
+  // dùng để che các bản ghi CŨ trong mảng legacy chưa từng có trong regs2;
+  // không được phép ghi đè lên trạng thái mới nhất của regs2 — nếu không,
+  // đăng ký lại sau khi xóa (cùng khóa) sẽ mãi bị ẩn dù regs2 đã có dữ liệu.
+  const newKeys=new Set(Object.keys(newObj||{}));
   Object.entries(newObj||{}).forEach(([k,v])=>{
-    if(v==null) return;
+    if(v==null){ delete map[k]; return; }
     try{ map[k]=typeof v==='string'?JSON.parse(v):v; }catch(e){}
   });
-  Object.keys(deletedObj||{}).forEach(k=>{ delete map[k]; });
+  Object.keys(deletedObj||{}).forEach(k=>{ if(!newKeys.has(k)) delete map[k]; });
   return Object.values(map);
 }
 

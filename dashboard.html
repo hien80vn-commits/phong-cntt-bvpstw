@@ -399,8 +399,11 @@ async function loadAll(){
       const [ls,ns]=await Promise.all([fbGet('rp_'+t),fbGet('rp2_'+t)]);
       const map={};
       try{ const p=JSON.parse(ls); (Array.isArray(p)?p:(p?Object.values(p):[])).forEach(r=>{ if(r&&r.ts!=null) map['r'+(r.ts||0)+'_'+(r.authorId||0)]=r; }); }catch(e){}
-      try{ Object.entries(JSON.parse(ns)||{}).forEach(([k,v])=>{ if(v!=null){ try{ map[k]=typeof v==='string'?JSON.parse(v):v; }catch(e){} } }); }catch(e){}
-      Object.keys((deletedAll||{})[t]||{}).forEach(k=>{ delete map[k]; });
+      // rp2 luôn là nguồn chân lý mới nhất cho mọi khóa nó từng chạm tới; tombstone
+      // chỉ che bản ghi CŨ trong mảng legacy chưa từng có trong rp2
+      const newKeys=new Set();
+      try{ Object.entries(JSON.parse(ns)||{}).forEach(([k,v])=>{ newKeys.add(k); if(v!=null){ try{ map[k]=typeof v==='string'?JSON.parse(v):v; }catch(e){} } else { delete map[k]; } }); }catch(e){}
+      Object.keys((deletedAll||{})[t]||{}).forEach(k=>{ if(!newKeys.has(k)) delete map[k]; });
       return Object.values(map).sort((a,b)=>(b.ts||0)-(a.ts||0));
     };
     const deletedAll=await fbGet('rp2_deleted').then(v=>{try{return JSON.parse(v)||{};}catch(e){return {};}});
@@ -411,8 +414,11 @@ async function loadAll(){
       const [ls,ns,ds]=await Promise.all([fbGet('regs'),fbGet('regs2'),fbGet('regs2_deleted')]);
       const map={};
       try{ const p=JSON.parse(ls); (Array.isArray(p)?p:[]).forEach(r=>{ if(r&&r.staffId!=null&&r.date&&r.type) map[r.staffId+'_'+r.date+'_'+r.type]=r; }); }catch(e){}
-      try{ Object.entries(JSON.parse(ns)||{}).forEach(([k,v])=>{ if(v!=null){ try{ map[k]=typeof v==='string'?JSON.parse(v):v; }catch(e){} } }); }catch(e){}
-      try{ Object.keys(JSON.parse(ds)||{}).forEach(k=>{ delete map[k]; }); }catch(e){}
+      // regs2 luôn là nguồn chân lý mới nhất cho mọi khóa nó từng chạm tới;
+      // tombstone chỉ che bản ghi CŨ trong mảng legacy chưa từng có trong regs2
+      const newKeys=new Set();
+      try{ Object.entries(JSON.parse(ns)||{}).forEach(([k,v])=>{ newKeys.add(k); if(v!=null){ try{ map[k]=typeof v==='string'?JSON.parse(v):v; }catch(e){} } else { delete map[k]; } }); }catch(e){}
+      try{ Object.keys(JSON.parse(ds)||{}).forEach(k=>{ if(!newKeys.has(k)) delete map[k]; }); }catch(e){}
       return Object.values(map);
     };
     const [rawTasks, rawNotifs, rawDaily, rawWeekly, rawMonthly, rawSchedule, rawRegs] = await Promise.all([

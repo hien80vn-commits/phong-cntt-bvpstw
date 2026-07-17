@@ -1232,7 +1232,9 @@ function saveReports(type,arr){
   return Promise.resolve(true);
 }
 function fbSaveReport(type,r){
-  return fbSet('rp2_'+type+'/'+reportKey(r), JSON.stringify(r));
+  const k=reportKey(r);
+  fbSet('rp2_deleted/'+type+'/'+k, 'null'); // gỡ tombstone cũ (nếu key này từng bị xóa trước đó)
+  return fbSet('rp2_'+type+'/'+k, JSON.stringify(r));
 }
 function fbDeleteReportRecord(type,r){
   const k=reportKey(r);
@@ -1243,11 +1245,16 @@ function fbDeleteReportRecord(type,r){
 function mergeReportSources(legacyArr, newObj, deletedObj){
   const map={};
   (Array.isArray(legacyArr)?legacyArr:[]).forEach(r=>{ if(r&&r.ts!=null) map[reportKey(r)]=r; });
+  // rp2 luôn là nguồn chân lý mới nhất cho mọi khóa nó từng chạm tới; tombstone
+  // chỉ che các bản ghi CŨ trong mảng legacy chưa từng có trong rp2 — không
+  // được ghi đè lên trạng thái mới nhất của rp2 (tránh lỗi "sửa/tạo lại sau
+  // khi xóa vẫn bị ẩn" do tombstone cũ chưa được dọn).
+  const newKeys=new Set(Object.keys(newObj||{}));
   Object.entries(newObj||{}).forEach(([k,v])=>{
-    if(v==null) return;
+    if(v==null){ delete map[k]; return; }
     try{ map[k]=typeof v==='string'?JSON.parse(v):v; }catch(e){}
   });
-  Object.keys(deletedObj||{}).forEach(k=>{ delete map[k]; });
+  Object.keys(deletedObj||{}).forEach(k=>{ if(!newKeys.has(k)) delete map[k]; });
   return Object.values(map).sort((a,b)=>(b.ts||0)-(a.ts||0));
 }
 function getAllReports(){ return ['daily','weekly','monthly','yearly'].flatMap(t=>getReports(t).map(r=>({...r,type:r.type||t}))); }
