@@ -856,7 +856,7 @@ function renderRegLeaveSummary(){
 }
 function paintRegs(){
   const el = document.getElementById('myregs'); if(!el) return;
-  const mine = regs.filter(r=>r.staffId===user.id);
+  const mine = regs.filter(r=>r.staffId===user.id).sort((a,b)=>b.date.localeCompare(a.date));
   el.innerHTML = mine.length ? mine.map(r=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:.5rem 0;border-bottom:1px solid var(--border);font-size:.8rem;">
     <span><b>${r.date}</b> &nbsp;<span class="chip ${r.type==='leave'?'l':r.type==='morning'?'m':'n'}">${regLabel(r)}</span>${r.note?` <span style="color:var(--muted);">${r.note}</span>`:''}</span>
     <button class="btn btn-sm" onclick="delReg('${r.date}','${r.type}')">Xóa</button>
