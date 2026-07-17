@@ -404,6 +404,17 @@ async function loadAll(){
       return Object.values(map).sort((a,b)=>(b.ts||0)-(a.ts||0));
     };
     const deletedAll=await fbGet('rp2_deleted').then(v=>{try{return JSON.parse(v)||{};}catch(e){return {};}});
+    // Đăng ký nghỉ/trực cũng nằm ở 2 nơi giống báo cáo: regs (mảng cũ, chỉ
+    // đọc) và regs2 (mỗi bản ghi một khóa riêng — chống ghi đè khi nhiều
+    // người đăng ký cùng lúc); gộp lại rồi trừ tombstone regs2_deleted
+    const fetchRegs=async()=>{
+      const [ls,ns,ds]=await Promise.all([fbGet('regs'),fbGet('regs2'),fbGet('regs2_deleted')]);
+      const map={};
+      try{ const p=JSON.parse(ls); (Array.isArray(p)?p:[]).forEach(r=>{ if(r&&r.staffId!=null&&r.date&&r.type) map[r.staffId+'_'+r.date+'_'+r.type]=r; }); }catch(e){}
+      try{ Object.entries(JSON.parse(ns)||{}).forEach(([k,v])=>{ if(v!=null){ try{ map[k]=typeof v==='string'?JSON.parse(v):v; }catch(e){} } }); }catch(e){}
+      try{ Object.keys(JSON.parse(ds)||{}).forEach(k=>{ delete map[k]; }); }catch(e){}
+      return Object.values(map);
+    };
     const [rawTasks, rawNotifs, rawDaily, rawWeekly, rawMonthly, rawSchedule, rawRegs] = await Promise.all([
       fbGet('tasks').then(v=>{try{return JSON.parse(v)||[];}catch(e){return [];}}),
       fbGet('notifs').then(v=>{try{const o=JSON.parse(v)||{};return Object.values(o);}catch(e){return [];}}),
@@ -411,7 +422,7 @@ async function loadAll(){
       fetchReports('weekly',deletedAll),
       fetchReports('monthly',deletedAll),
       fbGet('schedule').then(v=>{try{let p=JSON.parse(v);if(typeof p==='string')p=JSON.parse(p);return p||{};}catch(e){return {};}}),
-      fbGet('regs').then(v=>{try{return JSON.parse(v)||[];}catch(e){return [];}}),
+      fetchRegs(),
     ]);
     renderKPIs(rawTasks, rawNotifs, rawDaily);
     renderAlerts(rawTasks, rawNotifs, rawDaily);

@@ -427,14 +427,44 @@ async function fbSet(path,val){
 }
 
 function syncScheduleToCloud(){ fbSet('schedule', JSON.stringify(schedule)); }
-function syncRegsToCloud(){ fbSet('regs', JSON.stringify(regs)); }
+
+/* =====================================================
+   ĐĂNG KÝ NGHỈ/TRỰC — MỖI BẢN GHI MỘT KHÓA RIÊNG
+   Trước đây persistRegs() PUT nguyên MẢNG regs lên Firebase: hai người
+   đăng ký gần cùng lúc thì người ghi sau (dựa trên bản cục bộ có thể đã
+   cũ) đè mất đăng ký của người ghi trước — đúng lỗi khiến đăng ký nghỉ
+   của một người "biến mất" dù đã nộp thành công. Giờ mỗi đăng ký ghi vào
+   khóa riêng regs2/<staffId>_<date>_<type> nên không còn ghi đè nhau.
+   `regs` (mảng cũ) chỉ còn được ĐỌC làm dữ liệu lịch sử. Xóa dùng
+   tombstone regs2_deleted để xóa được cả bản ghi cũ mà không đụng vào
+   đăng ký của người khác. */
+function regKey(r){ return r.staffId+'_'+r.date+'_'+r.type; }
+function fbSaveReg(r){ return fbSet('regs2/'+regKey(r), JSON.stringify(r)); }
+function fbDeleteRegByKey(key){
+  fbSet('regs2/'+key, 'null');
+  return fbSet('regs2_deleted/'+key, 'true');
+}
+function mergeRegsSources(legacyArr, newObj, deletedObj){
+  const map={};
+  (Array.isArray(legacyArr)?legacyArr:[]).forEach(r=>{ if(r&&r.staffId!=null&&r.date&&r.type) map[regKey(r)]=r; });
+  Object.entries(newObj||{}).forEach(([k,v])=>{
+    if(v==null) return;
+    try{ map[k]=typeof v==='string'?JSON.parse(v):v; }catch(e){}
+  });
+  Object.keys(deletedObj||{}).forEach(k=>{ delete map[k]; });
+  return Object.values(map);
+}
 
 async function syncFromCloud(){
   if(!FB_URL) return;
   const sv = await fbGet('schedule');
   if(sv&&sv!=='null'){ try{ Object.assign(schedule,JSON.parse(sv)); localStorage.setItem(LS.schedule,JSON.stringify(schedule)); }catch(e){} }
-  const rv = await fbGet('regs');
-  if(rv&&rv!=='null'){ try{ regs=JSON.parse(rv); localStorage.setItem(LS.regs,rv); }catch(e){} }
+  const [legacyS, newS, delS] = await Promise.all([fbGet('regs'), fbGet('regs2'), fbGet('regs2_deleted')]);
+  let legacy=[]; try{ legacy=JSON.parse(legacyS)||[]; }catch(e){}
+  let news={}; try{ news=JSON.parse(newS)||{}; }catch(e){}
+  let deleted={}; try{ deleted=JSON.parse(delS)||{}; }catch(e){}
+  regs=mergeRegsSources(legacy, news, deleted);
+  try{ localStorage.setItem(LS.regs, JSON.stringify(regs)); }catch(e){}
 }
 
 function loadLS(key, fallback){ try{ const v = JSON.parse(localStorage.getItem(key)); return v===null||v===undefined ? fallback : v; }catch(e){ return fallback; } }
@@ -453,7 +483,7 @@ let nextStaffId = Math.max(...staffList.map(s=>s.id), 0) + 1;
 let schedule = loadLS(LS.schedule, {});
 let regs = loadLS(LS.regs, []);
 function persistSchedule(){ saveLS(LS.schedule, schedule); syncScheduleToCloud(); }
-function persistRegs(){ saveLS(LS.regs, regs); syncRegsToCloud(); }
+function persistRegs(){ saveLS(LS.regs, regs); } // Chỉ lưu cache cục bộ — đồng bộ Firebase do fbSaveReg/fbDeleteRegByKey đảm nhiệm
 function persistStaff(){ saveLS(LS.staff, staffList); }
 
 const MIN_DATE = new Date(2026, 5, 1); // Tháng 6/2026 — không cho điều hướng về trước
@@ -809,6 +839,7 @@ function submitReg(){
   const nDays=Math.round((new Date(date2)-new Date(date))/86400000)+1;
   if(nDays>62){ alert('Khoảng thời gian tối đa là 62 ngày!'); return; }
   let added=0, skipped=0;
+  const newEntries=[];
   const cur=new Date(date+'T00:00:00');
   const end=new Date(date2+'T00:00:00');
   while(cur<=end){
@@ -818,6 +849,7 @@ function submitReg(){
       const entry={staffId:user.id, date:key, type, note};
       if(sub) entry.sub=sub;
       regs.push(entry);
+      newEntries.push(entry);
       if(type==='leave'){ const s=schedule[key]; if(s){ s.morning=s.morning.filter(i=>i!==user.id); s.night=s.night.filter(i=>i!==user.id); } }
       added++;
     }
@@ -825,6 +857,7 @@ function submitReg(){
   }
   if(!added){ alert('Bạn đã đăng ký tất cả các ngày này rồi!'); return; }
   persistRegs();
+  newEntries.forEach(e=>fbSaveReg(e)); // mỗi ngày một khóa riêng — không đè lên đăng ký của người khác
   if(type==='leave') persistSchedule();
   // Gửi thông báo: vắng mặt → admin + trưởng nhóm; trực sáng/đêm → admin
   const subLabel=type==='leave'&&sub?LEAVE_SUB_LABELS[sub]:'';
@@ -868,7 +901,12 @@ function paintRegs(){
     <button class="btn btn-sm" onclick="delReg('${r.date}','${r.type}')">Xóa</button>
   </div>`).join('') : '<p class="empty-txt">Chưa có đăng ký nào.</p>';
 }
-function delReg(date,type){ regs = regs.filter(r=>!(r.staffId===user.id&&r.date===date&&r.type===type)); persistRegs(); paintRegs(); renderRegLeaveSummary(); }
+function delReg(date,type){
+  regs = regs.filter(r=>!(r.staffId===user.id&&r.date===date&&r.type===type));
+  persistRegs();
+  fbDeleteRegByKey(regKey({staffId:user.id,date,type}));
+  paintRegs(); renderRegLeaveSummary();
+}
 
 /* ===== NHÂN SỰ (ADMIN) ===== */
 function renderStaffDir(c){
@@ -956,8 +994,10 @@ function openDelStaff(id){
 function confirmDeleteStaff(){
   staffList = staffList.filter(x=>x.id!==deletingStaffId);
   Object.values(schedule).forEach(s=>{ s.morning=s.morning.filter(i=>i!==deletingStaffId); s.night=s.night.filter(i=>i!==deletingStaffId); });
+  const removedRegs=regs.filter(r=>r.staffId===deletingStaffId);
   regs = regs.filter(r=>r.staffId!==deletingStaffId);
   persistStaff(); persistSchedule(); persistRegs();
+  removedRegs.forEach(r=>fbDeleteRegByKey(regKey(r)));
   deletingStaffId=null; closeModal('modal-del'); paintStaffTable(); populateSel();
 }
 function openDetailStaff(id){
@@ -1202,6 +1242,10 @@ function clearAllSchedule(){
   localStorage.removeItem(LS.regs);
   persistSchedule();
   syncScheduleToCloud();
+  // Xóa sạch cả dữ liệu đăng ký cũ (mảng) lẫn mới (từng khóa riêng) trên Firebase
+  fbSet('regs', 'null');
+  fbSet('regs2', 'null');
+  fbSet('regs2_deleted', 'null');
   showTab('assign');
   alert('✅ Đã xóa toàn bộ lịch trực thành công!');
 }
