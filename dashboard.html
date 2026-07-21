@@ -302,7 +302,7 @@ async function fbSet(p,val){
 }
 
 /* ===== SHARED DATA ===== */
-const STAFF=[
+let STAFF=[
   {id:1,  name:'Nguyễn Văn Cường',     role:'staff',     groups:[]},
   {id:2,  name:'Vương Hoàng Linh',     role:'lanh_dao',  groups:[]},
   {id:3,  name:'Nguyễn Thị Thu Hiền',  role:'to_truong', groups:[]},
@@ -335,6 +335,7 @@ const STAFF=[
   {id:30, name:'Nguyễn Hoàng Hiệp',   role:'staff',     groups:[]},
   {id:31, name:'Nguyễn Văn Công',      role:'staff',     groups:[]},
   {id:32, name:'Bùi Thị Kim Oanh',    role:'staff',     groups:[]},
+  {id:33, name:'Nguyễn Minh Trí',     role:'staff',     groups:[5]},
 ];
 const GROUPS=[
   {num:1,  name:'Quản lý Kho – Sửa chữa TTB CNTT',   leaderId:20},
@@ -349,7 +350,7 @@ const GROUPS=[
   {num:10, name:'Hỗ trợ Khối xét nghiệm',             leaderId:4},
 ];
 // Staff IDs used by lich-truc.html (different from report.html STAFF)
-const DUTY_STAFF=[
+let DUTY_STAFF=[
   {id:1, name:'Vương Hoàng Linh'},{id:2, name:'Nguyễn Quỳnh Ngọc'},{id:3, name:'Nguyễn Thị Thu Hiền'},
   {id:4, name:'Hoàng Hải Anh'},{id:5, name:'Vũ Trung Kiên'},{id:6, name:'Bạch Lê Thắng'},
   {id:7, name:'Hoàng Thị Ngọc Yến'},{id:8, name:'Đàm Văn Thành'},{id:9, name:'Phan Tiến Dũng'},
@@ -360,7 +361,7 @@ const DUTY_STAFF=[
   {id:22,name:'Phạm Ngọc Linh'},{id:23,name:'Nguyễn Đăng Tùng'},{id:24,name:'Bùi Thị Hồng Hạnh'},
   {id:25,name:'Nguyễn Tuấn Linh'},{id:26,name:'Quách Trường Giang'},{id:27,name:'Nguyễn Quỳnh Anh'},
   {id:28,name:'Cao Thị Thuý'},{id:29,name:'Hoàng Long'},{id:30,name:'Nguyễn Hoàng Hiệp'},
-  {id:31,name:'Nguyễn Văn Công'},{id:32,name:'Bùi Thị Kim Oanh'},
+  {id:31,name:'Nguyễn Văn Công'},{id:32,name:'Bùi Thị Kim Oanh'},{id:33,name:'Nguyễn Minh Trí'},
 ];
 function dutyStaffName(id){ const s=DUTY_STAFF.find(x=>x.id===Number(id)); return s?s.name:'#'+id; }
 
@@ -385,6 +386,30 @@ function daysLeft(deadline){
   return Math.ceil((new Date(deadline)-new Date(todayISO()))/86400000);
 }
 function staffName(id){ const s=STAFF.find(x=>x.id===id); return s?s.name:'?'; }
+/* Gộp thêm nhân viên mới từ Firebase (staff2 — do lich-truc.html "Nhân sự"
+   ghi lên) vào các mảng hard-code sẵn có. Chỉ THÊM bản ghi mới (id chưa có
+   sẵn) — không đụng vào các bản ghi đã hard-code thủ công (đã cấu hình
+   đúng role/nhóm). ID nhân sự luôn tăng dần và không tái sử dụng nên xóa
+   xong thêm lại không bao giờ trùng khóa cũ — không cần tombstone-guard
+   như regs2/rp2. */
+function mergeStaffAdditions(baseArr, newObj, deletedObj, buildRecord){
+  const map={};
+  baseArr.forEach(s=>{ if(s&&s.id!=null) map[s.id]=s; });
+  Object.entries(newObj||{}).forEach(([k,v])=>{
+    if(v==null||map[k]) return;
+    let rec; try{ rec=typeof v==='string'?JSON.parse(v):v; }catch(e){ return; }
+    map[k]=buildRecord(rec);
+  });
+  Object.keys(deletedObj||{}).forEach(k=>{ delete map[k]; });
+  return Object.values(map).sort((a,b)=>a.id-b.id);
+}
+async function syncStaffAdditions(){
+  const [ns,ds]=await Promise.all([fbGet('staff2'),fbGet('staff2_deleted')]);
+  let news={}; try{ news=JSON.parse(ns)||{}; }catch(e){}
+  let del={}; try{ del=JSON.parse(ds)||{}; }catch(e){}
+  DUTY_STAFF = mergeStaffAdditions(DUTY_STAFF, news, del, rec=>({id:rec.id, name:rec.name}));
+  STAFF = mergeStaffAdditions(STAFF, news, del, rec=>({id:rec.id, name:rec.name, position:rec.title||rec.position||'', role:'staff', groups:[]}));
+}
 function groupName(n){ const g=GROUPS.find(x=>x.num===n); return g?g.name:''; }
 function leaderOfGroup(n){ const g=GROUPS.find(x=>x.num===n); return g?staffName(g.leaderId):'?'; }
 function truncate(s,n){return s&&s.length>n?s.slice(0,n)+'…':s||'';}
@@ -393,6 +418,7 @@ function truncate(s,n){return s&&s.length>n?s.slice(0,n)+'…':s||'';}
 async function loadAll(){
   document.getElementById('last-upd').textContent='⏳ Đang cập nhật dữ liệu...';
   try{
+    await syncStaffAdditions();
     // Báo cáo giờ nằm ở 2 nơi: rp_<type> (mảng cũ, chỉ đọc) và rp2_<type>
     // (mỗi báo cáo một khóa riêng — chống ghi đè khi nộp cùng lúc); gộp lại
     const fetchReports=async(t,deletedAll)=>{
