@@ -640,7 +640,7 @@ ul { list-style: none; }
 /* =====================================================
    DATA
 ===================================================== */
-const STAFF = [
+let STAFF = [
   {id:1, name:'Vương Hoàng Linh',     position:'Trưởng phòng',       title:'Kế toán viên',  degree:'Đại học',  gender:'Nam', contract:'VC', year:2011},
   {id:2, name:'Nguyễn Quỳnh Ngọc',    position:'Phó Trưởng phòng',   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:2011},
   {id:3, name:'Nguyễn Thị Thu Hiền',  position:'Tổ trưởng công tác', title:'Kỹ sư',         degree:'Đại học',  gender:'Nữ',  contract:'VC', year:2011},
@@ -673,7 +673,58 @@ const STAFF = [
   {id:30,name:'Nguyễn Hoàng Hiệp',    position:'',                   title:'Kỹ thuật viên', degree:'Đại học',  gender:'Nam', contract:'VC', year:null},
   {id:31,name:'Nguyễn Văn Công',      position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:null},
   {id:32,name:'Bùi Thị Kim Oanh',     position:'',                   title:'Chuyên viên',   degree:'Đại học',  gender:'Nữ',  contract:'HĐ', year:2025},
+  {id:33,name:'Nguyễn Minh Trí',      position:'',                   title:'Chuyên viên',   degree:'Đại học',  gender:'Nam', contract:'HĐ', year:2026},
 ];
+
+/* =====================================================
+   NHÂN SỰ — GỘP THÊM TỪ FIREBASE (staff2)
+   Nhân viên được thêm/sửa/xóa qua tab "Nhân sự" trên lich-truc.html giờ
+   đồng bộ lên Firebase — trang chủ gộp thêm dữ liệu đó vào mảng STAFF
+   hard-code có sẵn, để nhân viên mới hiện ra ở cả danh bạ lẫn ô đăng nhập
+   mà không cần sửa code mỗi lần có người mới.
+===================================================== */
+const FB_URL = 'https://cntt-bvpstw-default-rtdb.asia-southeast1.firebasedatabase.app';
+const FB_API_KEY = 'AIzaSyCyOHEBJihvzhHmK4FhKZe4NyCtbowHG-Q';
+let _fbAuthPromise = null;
+async function ensureFbAuth(){
+  try{
+    const cached = JSON.parse(sessionStorage.getItem('cntt_fb_auth')||'null');
+    if(cached && cached.expiry > Date.now()) return cached.token;
+  }catch(e){}
+  if(_fbAuthPromise) return _fbAuthPromise;
+  _fbAuthPromise = fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${FB_API_KEY}`,{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({returnSecureToken:true})
+  }).then(r=>r.json()).then(data=>{
+    if(!data.idToken) return null;
+    const expiry = Date.now() + (parseInt(data.expiresIn||'3600',10)*1000) - 60000;
+    try{ sessionStorage.setItem('cntt_fb_auth', JSON.stringify({token:data.idToken, expiry})); }catch(e){}
+    return data.idToken;
+  }).catch(()=>null).finally(()=>{ _fbAuthPromise=null; });
+  return _fbAuthPromise;
+}
+async function fbGet(path){
+  const token = await ensureFbAuth();
+  const url = `${FB_URL}/${path}.json` + (token?('?auth='+token):'');
+  return fetch(url,{cache:'no-store'}).then(r=>r.text()).catch(()=>'null');
+}
+function mergeStaffIntoBase(baseArr, newObj, deletedObj){
+  const map={};
+  baseArr.forEach(s=>{ if(s&&s.id!=null) map[s.id]=s; });
+  const newKeys=new Set(Object.keys(newObj||{}));
+  Object.entries(newObj||{}).forEach(([k,v])=>{
+    if(v==null){ delete map[k]; return; }
+    try{ map[k]=typeof v==='string'?JSON.parse(v):v; }catch(e){}
+  });
+  Object.keys(deletedObj||{}).forEach(k=>{ if(!newKeys.has(k)) delete map[k]; });
+  return Object.values(map).sort((a,b)=>a.id-b.id);
+}
+async function syncStaffFromCloud(){
+  const [newS, delS] = await Promise.all([fbGet('staff2'), fbGet('staff2_deleted')]);
+  let news={}; try{ news=JSON.parse(newS)||{}; }catch(e){}
+  let deleted={}; try{ deleted=JSON.parse(delS)||{}; }catch(e){}
+  STAFF = mergeStaffIntoBase(STAFF, news, deleted);
+}
 
 const GROUPS = [
   {num:1,  name:'Quản lý Kho – Sửa chữa TTB CNTT',      leader:'Hoàng Hải Anh',        desc:'Quản lý kho thiết bị CNTT, tiếp nhận và sửa chữa trang thiết bị bị hỏng, bảo trì phần cứng toàn Bệnh viện.'},
@@ -695,6 +746,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderGroups();
   applyFilters();
   populateSelects();
+  syncStaffFromCloud().then(()=>{ applyFilters(); populateSelects(); }); // gộp nhân viên mới (nếu có) rồi vẽ lại
   loadReports('daily');
   loadReports('weekly');
   loadReports('monthly');
@@ -860,6 +912,7 @@ function populateSelects(){
   ['d-name','m-name','y-name'].forEach(id=>{
     const sel = document.getElementById(id);
     if(!sel) return;
+    sel.innerHTML=''; // tránh nhân đôi option khi gọi lại sau khi gộp nhân sự từ Firebase
     names.forEach(n=>{ const o=document.createElement('option'); o.value=o.textContent=n; sel.appendChild(o); });
   });
 }

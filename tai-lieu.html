@@ -240,7 +240,7 @@ a{color:inherit;text-decoration:none}
    report.html/dashboard.html dùng 2 bảng số ID nhân viên khác nhau —
    luôn re-resolve theo tên (xem enterApp bên dưới) để tránh lệch người.
 ===================================================== */
-const STAFF = [
+let STAFF = [
   {id:1,  name:'Nguyễn Văn Cường',     position:'Kỹ sư',               role:'staff'},
   {id:2,  name:'Vương Hoàng Linh',     position:'Trưởng phòng',        role:'lanh_dao'},
   {id:3,  name:'Nguyễn Thị Thu Hiền',  position:'Tổ trưởng công tác',  role:'to_truong'},
@@ -273,7 +273,24 @@ const STAFF = [
   {id:30, name:'Nguyễn Hoàng Hiệp',   position:'Kỹ thuật viên',       role:'staff'},
   {id:31, name:'Nguyễn Văn Công',      position:'Kỹ sư',               role:'staff'},
   {id:32, name:'Bùi Thị Kim Oanh',     position:'Chuyên viên',         role:'staff'},
+  {id:33, name:'Nguyễn Minh Trí',      position:'Chuyên viên',         role:'staff'},
 ];
+/* Gộp thêm nhân viên mới từ Firebase (staff2 — do lich-truc.html "Nhân sự"
+   ghi lên) — chỉ THÊM bản ghi có id chưa tồn tại, không đụng bản ghi đã
+   hard-code sẵn (đã cấu hình đúng role/chức danh). */
+async function syncStaffAdditions(){
+  const [ns,ds]=await Promise.all([fbGet('staff2'),fbGet('staff2_deleted')]);
+  let news={}; try{ news=JSON.parse(ns)||{}; }catch(e){}
+  let del={}; try{ del=JSON.parse(ds)||{}; }catch(e){}
+  const map={}; STAFF.forEach(s=>{ if(s&&s.id!=null) map[s.id]=s; });
+  Object.entries(news).forEach(([k,v])=>{
+    if(v==null||map[k]) return;
+    let rec; try{ rec=typeof v==='string'?JSON.parse(v):v; }catch(e){ return; }
+    map[k]={id:rec.id, name:rec.name, position:rec.title||rec.position||'', role:'staff'};
+  });
+  Object.keys(del).forEach(k=>{ delete map[k]; });
+  STAFF = Object.values(map).sort((a,b)=>a.id-b.id);
+}
 
 function getSession(){ try{return JSON.parse(sessionStorage.getItem('cntt_session'))||null;}catch(e){return null;} }
 function setSession(s){ sessionStorage.setItem('cntt_session',JSON.stringify(s)); }
@@ -686,6 +703,8 @@ function showToast(msg){
 document.addEventListener('DOMContentLoaded', async ()=>{
   const session=getSession();
   if(!session){ document.getElementById('login-required').style.display='block'; return; }
+
+  await syncStaffAdditions(); // gộp nhân viên mới trước khi re-resolve, tránh bỏ sót người vừa được thêm
 
   // Re-resolve theo TÊN để tránh lệch ID giữa các trang (numbering khác nhau)
   const staffMatch=STAFF.find(s=>s.name===session.name);

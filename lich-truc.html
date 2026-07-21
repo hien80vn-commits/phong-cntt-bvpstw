@@ -376,6 +376,7 @@ const BASE_STAFF = [
   {id:30,name:'Nguyễn Hoàng Hiệp',    position:'',                   title:'Kỹ thuật viên', degree:'Đại học',  gender:'Nam', contract:'VC', year:null},
   {id:31,name:'Nguyễn Văn Công',      position:'',                   title:'Kỹ sư',         degree:'Đại học',  gender:'Nam', contract:'VC', year:null},
   {id:32,name:'Bùi Thị Kim Oanh',     position:'',                   title:'Chuyên viên',   degree:'Đại học',  gender:'Nữ',  contract:'HĐ', year:2025},
+  {id:33,name:'Nguyễn Minh Trí',      position:'',                   title:'Chuyên viên',   degree:'Đại học',  gender:'Nam', contract:'HĐ', year:2026},
 ];
 const ADMIN_POSITIONS = ['Trưởng phòng','Phó Trưởng phòng','Tổ trưởng công tác'];
 
@@ -428,6 +429,47 @@ async function fbSet(path,val){
 }
 
 function syncScheduleToCloud(){ fbSet('schedule', JSON.stringify(schedule)); }
+
+/* =====================================================
+   NHÂN SỰ (Staff Directory) — ĐỒNG BỘ FIREBASE
+   Trước đây staffList chỉ lưu trong localStorage của TỪNG trình duyệt —
+   thêm nhân viên mới qua tab "Nhân sự" không hề lan sang thiết bị khác,
+   và các trang khác (index.html, report.html, dashboard.html,
+   tai-lieu.html) có mảng STAFF/DUTY_STAFF hoàn toàn tách biệt, hard-code
+   riêng — nên nhân viên mới không xuất hiện ở đâu ngoài trang lịch trực
+   trên đúng trình duyệt đã thêm. Giờ mỗi bản ghi nhân sự ghi vào khóa
+   riêng staff2/<id> (giống mẫu regs2/rp2) và các trang khác đều gộp
+   thêm staff2 vào danh sách nhân viên hard-code có sẵn của mình. */
+function staffKey(s){ return String(s.id); }
+function fbSaveStaff(s){
+  const k=staffKey(s);
+  fbSet('staff2_deleted/'+k, 'null');
+  return fbSet('staff2/'+k, JSON.stringify(s));
+}
+function fbDeleteStaffByKey(id){
+  fbSet('staff2/'+id, 'null');
+  return fbSet('staff2_deleted/'+id, 'true');
+}
+function mergeStaffSources(baseArr, newObj, deletedObj){
+  const map={};
+  (Array.isArray(baseArr)?baseArr:[]).forEach(s=>{ if(s&&s.id!=null) map[s.id]=s; });
+  const newKeys=new Set(Object.keys(newObj||{}));
+  Object.entries(newObj||{}).forEach(([k,v])=>{
+    if(v==null){ delete map[k]; return; }
+    try{ map[k]=typeof v==='string'?JSON.parse(v):v; }catch(e){}
+  });
+  Object.keys(deletedObj||{}).forEach(k=>{ if(!newKeys.has(k)) delete map[k]; });
+  return Object.values(map).sort((a,b)=>a.id-b.id);
+}
+async function syncStaffFromCloud(){
+  if(!FB_URL) return;
+  const [newS, delS] = await Promise.all([fbGet('staff2'), fbGet('staff2_deleted')]);
+  let news={}; try{ news=JSON.parse(newS)||{}; }catch(e){}
+  let deleted={}; try{ deleted=JSON.parse(delS)||{}; }catch(e){}
+  staffList = mergeStaffSources(staffList, news, deleted);
+  nextStaffId = Math.max(...staffList.map(s=>s.id), 0) + 1;
+  persistStaff();
+}
 
 /* =====================================================
    ĐĂNG KÝ NGHỈ/TRỰC — MỖI BẢN GHI MỘT KHÓA RIÊNG
@@ -991,13 +1033,16 @@ function saveStaff(){
   const status=document.getElementById('sf-status').value;
   if(!name){ alert('Nhập họ tên!'); return; }
   if(!title){ alert('Nhập chức danh / ngạch!'); return; }
+  let record;
   if(editingStaffId){
     const idx=staffList.findIndex(x=>x.id===editingStaffId);
-    if(idx>=0) staffList[idx]={...staffList[idx], name, gender, dob, title, position, year, contract, status};
+    if(idx>=0){ staffList[idx]={...staffList[idx], name, gender, dob, title, position, year, contract, status}; record=staffList[idx]; }
   } else {
-    staffList.push({id:nextStaffId++, name, gender, dob, title, position, year, contract, status});
+    record={id:nextStaffId++, name, gender, dob, title, position, year, contract, status};
+    staffList.push(record);
   }
   persistStaff(); closeModal('modal-staff'); paintStaffTable(); populateSel();
+  if(record) fbSaveStaff(record); // đồng bộ lên Firebase để mọi thiết bị/trang khác đều thấy nhân viên mới
 }
 function openDelStaff(id){
   const s=staffById(id); if(!s) return; deletingStaffId=id;
@@ -1005,12 +1050,14 @@ function openDelStaff(id){
   openModal('modal-del');
 }
 function confirmDeleteStaff(){
+  const removedId=deletingStaffId;
   staffList = staffList.filter(x=>x.id!==deletingStaffId);
   Object.values(schedule).forEach(s=>{ s.morning=s.morning.filter(i=>i!==deletingStaffId); s.night=s.night.filter(i=>i!==deletingStaffId); });
   const removedRegs=regs.filter(r=>r.staffId===deletingStaffId);
   regs = regs.filter(r=>r.staffId!==deletingStaffId);
   persistStaff(); persistSchedule(); persistRegs();
   removedRegs.forEach(r=>fbDeleteRegByKey(regKey(r)));
+  fbDeleteStaffByKey(removedId);
   deletingStaffId=null; closeModal('modal-del'); paintStaffTable(); populateSel();
 }
 function openDetailStaff(id){
@@ -1459,13 +1506,19 @@ populateSel();
 (async function(){
   const sess = getSession();
   if(!sess){ window.location.href='index.html'; return; }
+  const toast = document.getElementById('sync-toast');
+  if(FB_URL){
+    if(toast) toast.style.display='block';
+    // Gộp nhân sự từ Firebase TRƯỚC KHI nhận diện người dùng — nếu không,
+    // nhân viên vừa được thêm trên thiết bị khác sẽ bị coi là "không tồn
+    // tại" và bị đá về trang đăng nhập ngay khi vào lịch trực lần đầu.
+    await syncStaffFromCloud();
+  }
   // Nhận diện theo TÊN trước, vì session có thể được ghi bởi report.html
   // với hệ ID nhân viên khác (tránh nhầm lịch trực người này sang người khác)
   const s = staffList.find(x=>x.name===sess.name) || staffById(sess.id);
   if(!s){ window.location.href='index.html'; return; }
   if(FB_URL){
-    const toast = document.getElementById('sync-toast');
-    if(toast) toast.style.display='block';
     await syncFromCloud();
     await syncNotifsFromCloud();
     if(toast) toast.style.display='none';
