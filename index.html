@@ -542,13 +542,13 @@ ul { list-style: none; }
       <span class="tag">Đội ngũ</span>
       <h2>Nhân sự Phòng CNTT</h2>
       <div class="divider"></div>
-      <p>32 cán bộ viên chức và người lao động với trình độ Thạc sĩ, Đại học, Cao đẳng — tâm huyết phục vụ sức khỏe người dân.</p>
+      <p><span id="stat-staff-intro">32</span> cán bộ viên chức và người lao động với trình độ Thạc sĩ, Đại học, Cao đẳng — tâm huyết phục vụ sức khỏe người dân.</p>
     </div>
     <div class="staff-search">
       <input type="text" id="staffSearch" placeholder="🔍  Tìm kiếm theo tên..." oninput="filterStaff()">
     </div>
     <div class="staff-filters" id="staffFilters">
-      <button class="active" onclick="setFilter('all',this)">Tất cả (32)</button>
+      <button class="active" onclick="setFilter('all',this)">Tất cả (<span id="stat-staff-filter-all">32</span>)</button>
       <button onclick="setFilter('leader',this)">Lãnh đạo</button>
       <button onclick="setFilter('group-leader',this)">Trưởng nhóm</button>
       <button onclick="setFilter('female',this)">Nữ</button>
@@ -569,7 +569,7 @@ ul { list-style: none; }
   <a href="lich-truc.html" style="display:inline-block;background:linear-gradient(135deg,var(--purple),var(--purple-l));color:#fff;padding:1rem 2.5rem;border-radius:12px;font-weight:700;font-size:1.05rem;box-shadow:0 4px 20px rgba(107,45,139,.3);transition:opacity .2s;" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
     🗓️ Xem & Đăng ký Lịch trực
   </a>
-  <p style="font-size:.8rem;color:var(--muted);margin-top:1rem;">Đăng nhập bằng họ tên trong danh sách 32 nhân sự Phòng CNTT</p>
+  <p style="font-size:.8rem;color:var(--muted);margin-top:1rem;">Đăng nhập bằng họ tên trong danh sách <span id="stat-staff-cta">32</span> nhân sự Phòng CNTT</p>
 </div>
 </section>
 
@@ -912,6 +912,9 @@ function updateStaffStats(){
   const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
   set('stat-staff-hero', STAFF.length);
   set('stat-staff-total', STAFF.length);
+  set('stat-staff-intro', STAFF.length);
+  set('stat-staff-filter-all', STAFF.length);
+  set('stat-staff-cta', STAFF.length);
   set('stat-staff-vc', STAFF.filter(s=>s.contract==='VC').length);
   set('stat-staff-ths', STAFF.filter(s=>s.degree==='Thạc sĩ').length);
 }
