@@ -450,9 +450,18 @@ function fbDeleteStaffByKey(id){
   fbSet('staff2/'+id, 'null');
   return fbSet('staff2_deleted/'+id, 'true');
 }
-function mergeStaffSources(baseArr, newObj, deletedObj){
+function baseStaffSeed(){
+  return BASE_STAFF.map(s=>({id:s.id, name:s.name, gender:s.gender, dob:'', title:s.title, position:s.position, year:s.year, contract:s.contract, status:'Đang trực'}));
+}
+function mergeStaffSources(localArr, newObj, deletedObj){
   const map={};
-  (Array.isArray(baseArr)?baseArr:[]).forEach(s=>{ if(s&&s.id!=null) map[s.id]=s; });
+  // Luôn bắt đầu từ BASE_STAFF (danh sách gốc mới nhất trong code) — nhờ
+  // vậy khi thêm nhân viên mới vào BASE_STAFF (qua code) thì các trình
+  // duyệt đã có staffList cũ trong localStorage (thiếu người mới) cũng tự
+  // "chữa lành" đúng, không bị kẹt lại số liệu cũ vĩnh viễn.
+  baseStaffSeed().forEach(s=>{ map[s.id]=s; });
+  // Giữ lại chỉnh sửa cục bộ đã có trước đó (vd. đổi ngày sinh, hợp đồng...)
+  (Array.isArray(localArr)?localArr:[]).forEach(s=>{ if(s&&s.id!=null) map[s.id]=s; });
   const newKeys=new Set(Object.keys(newObj||{}));
   Object.entries(newObj||{}).forEach(([k,v])=>{
     if(v==null){ delete map[k]; return; }

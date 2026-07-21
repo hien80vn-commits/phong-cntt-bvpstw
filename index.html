@@ -437,7 +437,7 @@ ul { list-style: none; }
     <h1>Phòng Công nghệ Thông tin</h1>
     <p>Đơn vị tiên phong ứng dụng công nghệ số trong y tế — chuyển đổi số, quản lý hạ tầng IT và bảo đảm an toàn thông tin cho toàn Bệnh viện.</p>
     <div class="hero-stats">
-      <div class="hero-stat"><span class="num">32</span><span class="lbl">Cán bộ nhân viên</span></div>
+      <div class="hero-stat"><span class="num" id="stat-staff-hero">32</span><span class="lbl">Cán bộ nhân viên</span></div>
       <div class="hero-stat"><span class="num">10</span><span class="lbl">Nhóm công tác</span></div>
       <div class="hero-stat"><span class="num">24/7</span><span class="lbl">Trực vận hành</span></div>
       <div class="hero-stat"><span class="num">2011</span><span class="lbl">Năm thành lập</span></div>
@@ -466,9 +466,9 @@ ul { list-style: none; }
         <p>Phòng đặt tại <strong>Tầng 3, 5, 6 Nhà E</strong>: Phòng Máy chủ (P.312), Phòng làm việc + Kho linh kiện (P.510), Phòng Sửa chữa + Kho thiết bị (Tầng 6).</p>
         <p>Thực hiện trực vận hành <strong>24/7</strong> nhằm đảm bảo khắc phục và xử lý kịp thời mọi sự cố phát sinh.</p>
         <div class="info-boxes">
-          <div class="info-box"><span class="n">32</span><span class="l">Nhân sự</span></div>
-          <div class="info-box"><span class="n">26</span><span class="l">Viên chức</span></div>
-          <div class="info-box"><span class="n">4</span><span class="l">Thạc sĩ</span></div>
+          <div class="info-box"><span class="n" id="stat-staff-total">32</span><span class="l">Nhân sự</span></div>
+          <div class="info-box"><span class="n" id="stat-staff-vc">26</span><span class="l">Viên chức</span></div>
+          <div class="info-box"><span class="n" id="stat-staff-ths">4</span><span class="l">Thạc sĩ</span></div>
           <div class="info-box"><span class="n">10</span><span class="l">Nhóm công tác</span></div>
         </div>
       </div>
@@ -746,7 +746,8 @@ document.addEventListener('DOMContentLoaded', () => {
   renderGroups();
   applyFilters();
   populateSelects();
-  syncStaffFromCloud().then(()=>{ applyFilters(); populateSelects(); }); // gộp nhân viên mới (nếu có) rồi vẽ lại
+  updateStaffStats();
+  syncStaffFromCloud().then(()=>{ applyFilters(); populateSelects(); updateStaffStats(); }); // gộp nhân viên mới (nếu có) rồi vẽ lại
   loadReports('daily');
   loadReports('weekly');
   loadReports('monthly');
@@ -907,6 +908,13 @@ function closeModalDirect(){ document.getElementById('modalOverlay').classList.r
 /* =====================================================
    POPULATE SELECTS
 ===================================================== */
+function updateStaffStats(){
+  const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
+  set('stat-staff-hero', STAFF.length);
+  set('stat-staff-total', STAFF.length);
+  set('stat-staff-vc', STAFF.filter(s=>s.contract==='VC').length);
+  set('stat-staff-ths', STAFF.filter(s=>s.degree==='Thạc sĩ').length);
+}
 function populateSelects(){
   const names = STAFF.map(s=>s.name);
   ['d-name','m-name','y-name'].forEach(id=>{
