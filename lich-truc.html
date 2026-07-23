@@ -161,6 +161,15 @@ button { font-family: var(--font); }
 .tbl-wrap { overflow-x: auto; }
 .tbl { width: 100%; border-collapse: collapse; font-size: .8rem; }
 .tbl th { text-align: left; padding: .5rem .6rem; color: var(--muted); font-weight: 600; border-bottom: 2px solid var(--border); background: var(--bg); white-space: nowrap; }
+/* BẢNG LƯỚI NGHỈ THEO NGÀY (Tổng hợp nghỉ theo tháng) */
+.lv-grid th, .lv-grid td { padding: .3rem .2rem; }
+.lv-grid td.lvcell { text-align: center; font-weight: 700; font-size: .64rem; border-radius: 4px; cursor: default; }
+.lv-grid td.phep { background: var(--leave-bg); color: var(--leave); }
+.lv-grid td.om { background: #FFEBEE; color: #C62828; }
+.lv-grid td.congtac { background: #E3F2FD; color: #1565C0; }
+.lv-grid td.hoc { background: #FFF3E0; color: #E65100; }
+.lv-grid td.sang { background: #E0F7FA; color: #00838F; }
+.lv-grid td.chieu { background: #F3E5F5; color: #6A1B9A; }
 .tbl td { padding: .5rem .6rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
 .tbl tr:hover td { background: var(--bg); }
 .avatar { width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: .68rem; font-weight: 700; color: #fff; background: linear-gradient(135deg,var(--purple-d),var(--purple-l)); flex-shrink: 0; }
@@ -839,6 +848,8 @@ function renderReg(c){
     <option value="night">Muốn trực đêm (16h30–5h30)</option>
     <option value="leave:phep">Nghỉ phép</option>
     <option value="leave:om">Nghỉ ốm</option>
+    <option value="leave:sang">Nghỉ buổi sáng (0.5 ngày)</option>
+    <option value="leave:chieu">Nghỉ buổi chiều (0.5 ngày)</option>
     <option value="leave:congtac">Đi công tác</option>
     <option value="leave:hoc">Đi học</option>
   </select></div>
@@ -855,8 +866,13 @@ function renderReg(c){
   paintRegs();
   renderRegLeaveSummary();
 }
-const LEAVE_SUB_LABELS={phep:'Nghỉ phép', om:'Nghỉ ốm', congtac:'Đi công tác', hoc:'Đi học'};
-const LEAVE_SUB_SHORT={phep:'Phép', om:'Ốm', congtac:'CT', hoc:'Học'};
+const LEAVE_SUB_LABELS={phep:'Nghỉ phép', om:'Nghỉ ốm', congtac:'Đi công tác', hoc:'Đi học', sang:'Nghỉ buổi sáng', chieu:'Nghỉ buổi chiều'};
+const LEAVE_SUB_SHORT={phep:'Phép', om:'Ốm', congtac:'CT', hoc:'Học', sang:'Sáng', chieu:'Chiều'};
+// Nghỉ buổi sáng/chiều chỉ tính 0.5 ngày, các loại còn lại tính 1 ngày
+const LEAVE_SUB_DAYS={phep:1, om:1, congtac:1, hoc:1, sang:0.5, chieu:0.5};
+function leaveDayValue(r){ const v=LEAVE_SUB_DAYS[r.sub]; return v!=null?v:1; }
+function sumLeaveDays(rs){ return rs.reduce((s,r)=>s+leaveDayValue(r),0); }
+function fmtDayNum(n){ return Number.isInteger(n)?String(n):n.toFixed(1); }
 
 // Gộp các ngày nghỉ liên tiếp cùng loại thành khoảng "từ ngày – đến ngày"
 function collapseLeaveRanges(rs){
@@ -932,6 +948,8 @@ function submitReg(){
   paintRegs(); renderRegLeaveSummary();
   alert(`Đã gửi đăng ký ${added} ngày${skipped?` (bỏ qua ${skipped} ngày đã đăng ký trước đó)`:''}!`);
 }
+// Hiển thị dạng bảng lưới theo ngày (giống bảng lịch trực theo tuần/tháng)
+// thay vì liệt kê chữ — mỗi cột là 1 ngày trong tháng, mỗi hàng là 1 người.
 function renderRegLeaveSummary(){
   const el=document.getElementById('reg-leave-summary'); if(!el) return;
   const month=(document.getElementById('reg-sum-month')||{}).value||new Date().toISOString().slice(0,7);
@@ -942,20 +960,36 @@ function renderRegLeaveSummary(){
   let leaveRegs=regs.filter(r=>r.type==='leave'&&r.date.startsWith(month));
   if(!canSeeAll) leaveRegs=leaveRegs.filter(r=>r.staffId===user.id);
   if(!leaveRegs.length){ el.innerHTML=`<p class="empty-txt">${canSeeAll?'Không có đăng ký nghỉ nào trong tháng này.':'Bạn không có ngày nghỉ nào trong tháng này.'}</p>`; return; }
+  const [yy,mm]=month.split('-').map(Number);
+  const dim=new Date(yy,mm,0).getDate();
   const byStaff={};
-  leaveRegs.forEach(r=>{ if(!byStaff[r.staffId]) byStaff[r.staffId]=[]; byStaff[r.staffId].push(r); });
+  leaveRegs.forEach(r=>{ (byStaff[r.staffId]=byStaff[r.staffId]||[]).push(r); });
   const rows=Object.entries(byStaff)
-    .map(([id,rs])=>({s:staffById(+id), rs}))
-    .sort((a,b)=>b.rs.length-a.rs.length)
-    .map(({s,rs})=>`<tr>
-      <td><b>${s?s.name:'?'}</b>${s&&s.position?`<br><span style="font-size:.72rem;color:var(--muted);">${s.position}</span>`:''}</td>
-      <td style="text-align:center;font-weight:700;color:var(--leave);">${rs.length}</td>
-      <td style="font-size:.78rem;">${fmtLeaveList(rs)}</td>
-    </tr>`).join('');
-  el.innerHTML=`<div class="tbl-wrap"><table class="tbl">
-    <thead><tr><th>Họ tên</th><th style="width:90px;">Số ngày nghỉ</th><th>Các ngày nghỉ (loại)</th></tr></thead>
-    <tbody>${rows}</tbody></table></div>
-  <p style="font-size:.75rem;color:var(--muted);margin-top:.4rem;">${canSeeAll?`Tổng: <b>${leaveRegs.length}</b> lượt nghỉ trong tháng`:`Bạn có <b>${leaveRegs.length}</b> ngày nghỉ trong tháng`} ${month.split('-')[1]}/${month.split('-')[0]} · Phép = nghỉ phép, Ốm = nghỉ ốm, CT = đi công tác, Học = đi học</p>`;
+    .map(([id,rs])=>({s:staffById(+id), rs, total:sumLeaveDays(rs)}))
+    .sort((a,b)=>b.total-a.total);
+  let head='<th style="min-width:150px;">Họ tên</th>';
+  for(let d=1;d<=dim;d++){
+    const dow=new Date(yy,mm-1,d).getDay();
+    const we=(dow===0||dow===6);
+    head+=`<th style="text-align:center;min-width:26px;padding:.35rem .15rem;${we?'color:var(--pink);':''}">${d}<br><span style="font-size:.58rem;font-weight:400;">${DOW_S[dow]}</span></th>`;
+  }
+  head+='<th style="text-align:center;min-width:50px;">Tổng</th>';
+  const bodyRows=rows.map(({s,rs,total})=>{
+    const byDate={}; rs.forEach(r=>{ byDate[+r.date.split('-')[2]]=r; });
+    let cells='';
+    for(let d=1;d<=dim;d++){
+      const r=byDate[d];
+      cells += r
+        ? `<td class="lvcell ${r.sub||'phep'}" title="${LEAVE_SUB_LABELS[r.sub]||'Nghỉ'}${r.note?' – '+r.note:''}">${LEAVE_SUB_SHORT[r.sub]||'N'}</td>`
+        : '<td></td>';
+    }
+    return `<tr><td><b>${s?s.name:'?'}</b>${s&&s.position?`<br><span style="font-size:.72rem;color:var(--muted);">${s.position}</span>`:''}</td>${cells}<td style="text-align:center;font-weight:700;color:var(--leave);">${fmtDayNum(total)}</td></tr>`;
+  }).join('');
+  const grandTotal=fmtDayNum(sumLeaveDays(leaveRegs));
+  el.innerHTML=`<div class="tbl-wrap"><table class="tbl lv-grid" style="min-width:${140+dim*28+60}px;">
+    <thead><tr>${head}</tr></thead>
+    <tbody>${bodyRows}</tbody></table></div>
+  <p style="font-size:.75rem;color:var(--muted);margin-top:.4rem;">${canSeeAll?`Tổng: <b>${grandTotal}</b> ngày nghỉ trong tháng`:`Bạn có <b>${grandTotal}</b> ngày nghỉ trong tháng`} ${month.split('-')[1]}/${month.split('-')[0]} · Phép/Ốm/CT/Học = 1 ngày, Sáng/Chiều = 0.5 ngày</p>`;
 }
 function paintRegs(){
   const el = document.getElementById('myregs'); if(!el) return;
@@ -1463,7 +1497,7 @@ function renderLeaveTable(){
   const sumRows=Object.entries(byStaff).map(([id,rs])=>{
     const s=staffById(+id);
     return `<tr><td><b>${s?s.name:'?'}</b>${s&&s.position?`<br><span style="font-size:.72rem;color:var(--muted);">${s.position}</span>`:''}</td>
-      <td style="text-align:center;font-weight:700;color:var(--leave);">${rs.length}</td>
+      <td style="text-align:center;font-weight:700;color:var(--leave);">${fmtDayNum(sumLeaveDays(rs))}</td>
       <td style="font-size:.78rem;">${fmtLeaveList(rs)}</td></tr>`;
   }).join('');
   const detRows=leaveRegs.sort((a,b)=>a.date.localeCompare(b.date)).map(r=>{
@@ -1471,7 +1505,7 @@ function renderLeaveTable(){
     return `<tr><td>${DOW_S[dt.getDay()]} ${p[2]}/${p[1]}/${p[0]}</td><td>${s?s.name:'?'}</td><td>${LEAVE_SUB_LABELS[r.sub]||'Nghỉ phép/ốm'}</td><td style="font-size:.78rem;color:var(--muted);">${r.note||'—'}</td></tr>`;
   }).join('');
   wrap.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.7rem;flex-wrap:wrap;gap:.5rem;">
-    <p style="font-size:.85rem;color:var(--muted);">Từ ${pf3}/${pf2}/${pf1} đến ${pt3}/${pt2}/${pt1} — <b>${leaveRegs.length} lượt nghỉ</b></p>
+    <p style="font-size:.85rem;color:var(--muted);">Từ ${pf3}/${pf2}/${pf1} đến ${pt3}/${pt2}/${pt1} — <b>${fmtDayNum(sumLeaveDays(leaveRegs))} ngày nghỉ</b></p>
     <button class="btn btn-sm btn-blue" onclick="printLeaveReport('${from}','${to}')">🖨️ In bảng này</button>
   </div>
   <p style="font-weight:700;font-size:.82rem;color:var(--purple-d);margin-bottom:.4rem;">Tổng hợp theo người</p>
@@ -1488,7 +1522,7 @@ function printLeaveReport(from, to){
   const rows=Object.entries(byStaff).map(([id,rs])=>{
     const s=staffById(+id);
     return `<tr><td>${s?s.name:'?'}</td><td>${s&&s.position?s.position:''}</td>
-      <td style="text-align:center;">${rs.length}</td>
+      <td style="text-align:center;">${fmtDayNum(sumLeaveDays(rs))}</td>
       <td>${fmtLeaveList(rs)}</td></tr>`;
   }).join('');
   const win=window.open('','_blank');
@@ -1502,7 +1536,7 @@ function printLeaveReport(from, to){
   .no-print{margin-bottom:.8rem;}@media print{.no-print{display:none;}}</style></head><body>
   <h3>Bệnh viện Phụ Sản Trung Ương — Phòng Công nghệ thông tin</h3>
   <h3>Tổng hợp nghỉ phép / ốm</h3>
-  <div class="sub">Từ ngày ${pf3}/${pf2}/${pf1} đến ngày ${pt3}/${pt2}/${pt1} — Tổng: ${leaveRegs.length} lượt</div>
+  <div class="sub">Từ ngày ${pf3}/${pf2}/${pf1} đến ngày ${pt3}/${pt2}/${pt1} — Tổng: ${fmtDayNum(sumLeaveDays(leaveRegs))} ngày</div>
   <div class="no-print"><button onclick="window.print()" style="padding:.4rem 1.2rem;cursor:pointer;">🖨️ In</button></div>
   <table><thead><tr><th>Họ tên</th><th>Chức vụ</th><th>Số ngày nghỉ</th><th>Các ngày nghỉ</th></tr></thead><tbody>${rows}</tbody></table>
   <div style="font-size:8pt;color:#666;margin-top:.8rem;text-align:right;">In ngày ${new Date().getDate()}/${new Date().getMonth()+1}/${new Date().getFullYear()}</div>
