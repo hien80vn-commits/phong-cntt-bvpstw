@@ -135,6 +135,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .ltag.bu{background:var(--teal-l);color:var(--teal);}
 .ltag.congtac{background:var(--teal-l);color:var(--teal);}
 .ltag.hoc{background:var(--orange-l);color:var(--orange);}
+.ltag.sang{background:var(--green-l);color:var(--green);}
+.ltag.chieu{background:var(--yellow-l);color:var(--yellow);}
 
 /* OVERDUE TABLE */
 .mtable{width:100%;border-collapse:collapse;font-size:.74rem;}
@@ -667,19 +669,19 @@ function renderLeave(regs){
   const thisMonth=(regs||[]).filter(r=>r.type==='leave'&&r.date&&r.date.startsWith(monthPfx));
   document.getElementById('leave-badge').textContent=thisMonth.length+' lượt';
 
-  const counts={phep:0,om:0,congtac:0,hoc:0};
+  const counts={phep:0,om:0,congtac:0,hoc:0,sang:0,chieu:0};
   thisMonth.forEach(r=>{ const sub=r.sub||'phep'; counts[sub]=(counts[sub]||0)+1; });
 
   // By person — tra tên qua DUTY_STAFF (đúng bảng ID mà lich-truc.html dùng để lưu staffId)
   const byP={};
   thisMonth.forEach(r=>{
     const name=dutyStaffName(r.staffId);
-    if(!byP[name]) byP[name]={phep:0,om:0,congtac:0,hoc:0};
+    if(!byP[name]) byP[name]={phep:0,om:0,congtac:0,hoc:0,sang:0,chieu:0};
     const sub=r.sub||'phep';
     byP[name][sub]=(byP[name][sub]||0)+1;
   });
   const rows=Object.entries(byP).sort((a,b)=>{
-    const total=c=>c.phep+c.om+c.congtac+c.hoc;
+    const total=c=>c.phep+c.om+c.congtac+c.hoc+c.sang*0.5+c.chieu*0.5;
     return total(b[1])-total(a[1]);
   });
 
@@ -696,6 +698,8 @@ function renderLeave(regs){
           ${c.om?`<span class="ltag om">Ốm ×${c.om}</span>`:''}
           ${c.congtac?`<span class="ltag congtac">CT ×${c.congtac}</span>`:''}
           ${c.hoc?`<span class="ltag hoc">Học ×${c.hoc}</span>`:''}
+          ${c.sang?`<span class="ltag sang">Sáng ×${c.sang}</span>`:''}
+          ${c.chieu?`<span class="ltag chieu">Chiều ×${c.chieu}</span>`:''}
         </div>`).join('')
       : '<div class="empty" style="padding:.5rem">Chưa có đăng ký nghỉ tháng này.</div>'
     }
