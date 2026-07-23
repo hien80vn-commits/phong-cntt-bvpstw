@@ -161,15 +161,28 @@ button { font-family: var(--font); }
 .tbl-wrap { overflow-x: auto; }
 .tbl { width: 100%; border-collapse: collapse; font-size: .8rem; }
 .tbl th { text-align: left; padding: .5rem .6rem; color: var(--muted); font-weight: 600; border-bottom: 2px solid var(--border); background: var(--bg); white-space: nowrap; }
-/* BẢNG LƯỚI NGHỈ THEO NGÀY (Tổng hợp nghỉ theo tháng) */
-.lv-grid th, .lv-grid td { padding: .3rem .2rem; }
-.lv-grid td.lvcell { text-align: center; font-weight: 700; font-size: .64rem; border-radius: 4px; cursor: default; }
+/* BẢNG LƯỚI NGHỈ THEO NGÀY (Tổng hợp nghỉ theo tháng) — table-layout:fixed
+   để các cột ngày tự co giãn vừa đúng chiều rộng khung, không cần cuộn ngang */
+.lv-grid { table-layout: fixed; }
+.lv-grid th, .lv-grid td { padding: .25rem .1rem; overflow: hidden; }
+.lv-grid th { white-space: normal; line-height: 1.3; font-size: .68rem; }
+.lv-grid td { white-space: normal; word-break: break-word; }
+.lv-grid .lv-name-col { width: 20%; text-align: left; padding-left: .4rem; }
+.lv-grid .lv-total-col { width: 42px; }
+.lv-grid td.lvcell { text-align: center; font-weight: 700; font-size: .62rem; border-radius: 4px; cursor: default; }
 .lv-grid td.phep { background: var(--leave-bg); color: var(--leave); }
 .lv-grid td.om { background: #FFEBEE; color: #C62828; }
 .lv-grid td.congtac { background: #E3F2FD; color: #1565C0; }
 .lv-grid td.hoc { background: #FFF3E0; color: #E65100; }
 .lv-grid td.sang { background: #E0F7FA; color: #00838F; }
 .lv-grid td.chieu { background: #F3E5F5; color: #6A1B9A; }
+/* Màn hình hẹp (điện thoại): ~31 cột ngày không thể vừa khung mà vẫn đọc
+   được — cho phép cuộn ngang thay vì ép chữ nhỏ tới mức không đọc nổi */
+@media (max-width: 700px) {
+  .lv-grid { table-layout: auto; width: max-content; min-width: 100%; }
+  .lv-grid .lv-name-col { width: auto; min-width: 110px; }
+  .lv-grid th, .lv-grid td.lvcell { min-width: 24px; }
+}
 .tbl td { padding: .5rem .6rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
 .tbl tr:hover td { background: var(--bg); }
 .avatar { width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: .68rem; font-weight: 700; color: #fff; background: linear-gradient(135deg,var(--purple-d),var(--purple-l)); flex-shrink: 0; }
@@ -868,6 +881,8 @@ function renderReg(c){
 }
 const LEAVE_SUB_LABELS={phep:'Nghỉ phép', om:'Nghỉ ốm', congtac:'Đi công tác', hoc:'Đi học', sang:'Nghỉ buổi sáng', chieu:'Nghỉ buổi chiều'};
 const LEAVE_SUB_SHORT={phep:'Phép', om:'Ốm', congtac:'CT', hoc:'Học', sang:'Sáng', chieu:'Chiều'};
+// Ký hiệu 1-2 ký tự dùng trong ô lưới ngày — để bảng luôn vừa khung, không cần cuộn ngang
+const LEAVE_SUB_CELL={phep:'P', om:'Ô', congtac:'CT', hoc:'H', sang:'S', chieu:'Ch'};
 // Nghỉ buổi sáng/chiều chỉ tính 0.5 ngày, các loại còn lại tính 1 ngày
 const LEAVE_SUB_DAYS={phep:1, om:1, congtac:1, hoc:1, sang:0.5, chieu:0.5};
 function leaveDayValue(r){ const v=LEAVE_SUB_DAYS[r.sub]; return v!=null?v:1; }
@@ -967,26 +982,27 @@ function renderRegLeaveSummary(){
   const rows=Object.entries(byStaff)
     .map(([id,rs])=>({s:staffById(+id), rs, total:sumLeaveDays(rs)}))
     .sort((a,b)=>b.total-a.total);
-  let head='<th style="min-width:150px;">Họ tên</th>';
+  let head='<th class="lv-name-col">Họ tên</th>';
   for(let d=1;d<=dim;d++){
     const dow=new Date(yy,mm-1,d).getDay();
     const we=(dow===0||dow===6);
-    head+=`<th style="text-align:center;min-width:26px;padding:.35rem .15rem;${we?'color:var(--pink);':''}">${d}<br><span style="font-size:.58rem;font-weight:400;">${DOW_S[dow]}</span></th>`;
+    head+=`<th style="text-align:center;${we?'color:var(--pink);':''}">${d}<br><span style="font-size:.55rem;font-weight:400;">${DOW_S[dow]}</span></th>`;
   }
-  head+='<th style="text-align:center;min-width:50px;">Tổng</th>';
+  head+='<th class="lv-total-col" style="text-align:center;">Tổng</th>';
+  const colgroup=`<colgroup><col class="lv-name-col">${'<col>'.repeat(dim)}<col class="lv-total-col"></colgroup>`;
   const bodyRows=rows.map(({s,rs,total})=>{
     const byDate={}; rs.forEach(r=>{ byDate[+r.date.split('-')[2]]=r; });
     let cells='';
     for(let d=1;d<=dim;d++){
       const r=byDate[d];
       cells += r
-        ? `<td class="lvcell ${r.sub||'phep'}" title="${LEAVE_SUB_LABELS[r.sub]||'Nghỉ'}${r.note?' – '+r.note:''}">${LEAVE_SUB_SHORT[r.sub]||'N'}</td>`
+        ? `<td class="lvcell ${r.sub||'phep'}" title="${LEAVE_SUB_LABELS[r.sub]||'Nghỉ'}${r.note?' – '+r.note:''}">${LEAVE_SUB_CELL[r.sub]||'N'}</td>`
         : '<td></td>';
     }
-    return `<tr><td><b>${s?s.name:'?'}</b>${s&&s.position?`<br><span style="font-size:.72rem;color:var(--muted);">${s.position}</span>`:''}</td>${cells}<td style="text-align:center;font-weight:700;color:var(--leave);">${fmtDayNum(total)}</td></tr>`;
+    return `<tr><td class="lv-name-col"><b>${s?s.name:'?'}</b>${s&&s.position?`<br><span style="font-size:.68rem;color:var(--muted);">${s.position}</span>`:''}</td>${cells}<td class="lv-total-col" style="text-align:center;font-weight:700;color:var(--leave);">${fmtDayNum(total)}</td></tr>`;
   }).join('');
   const grandTotal=fmtDayNum(sumLeaveDays(leaveRegs));
-  el.innerHTML=`<div class="tbl-wrap"><table class="tbl lv-grid" style="min-width:${140+dim*28+60}px;">
+  el.innerHTML=`<div class="tbl-wrap"><table class="tbl lv-grid">${colgroup}
     <thead><tr>${head}</tr></thead>
     <tbody>${bodyRows}</tbody></table></div>
   <p style="font-size:.75rem;color:var(--muted);margin-top:.4rem;">${canSeeAll?`Tổng: <b>${grandTotal}</b> ngày nghỉ trong tháng`:`Bạn có <b>${grandTotal}</b> ngày nghỉ trong tháng`} ${month.split('-')[1]}/${month.split('-')[0]} · Phép/Ốm/CT/Học = 1 ngày, Sáng/Chiều = 0.5 ngày</p>`;
