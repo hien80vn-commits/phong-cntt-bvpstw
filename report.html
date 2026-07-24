@@ -41,6 +41,10 @@ a{color:inherit;text-decoration:none}
   .nav-links.open{display:flex;}
   .nav-links a,.nav-links button{width:100%;text-align:left;}
   .hamburger{display:block;}
+  /* Welcome bar: badge ngày chèn cùng hàng với tên/vai trò làm cột chữ
+     bị bóp lại quá hẹp — xếp badge xuống dưới, mỗi phần chiếm trọn hàng */
+  .welcome-bar{flex-direction:column;align-items:stretch;}
+  .wb-badge{align-self:flex-start;margin-top:.4rem;}
 }
 
 /* LOGIN */
@@ -71,7 +75,7 @@ a{color:inherit;text-decoration:none}
 .welcome-bar .wb-left h2{font-size:1.1rem;font-weight:800;}
 .welcome-bar .wb-left p{font-size:.82rem;opacity:.85;margin-top:.2rem;}
 .wb-badge{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:.35rem 1rem;font-size:.78rem;font-weight:700;}
-.wb-route{background:rgba(255,255,255,.15);border-radius:10px;padding:.6rem 1rem;font-size:.8rem;margin-top:.6rem;display:flex;align-items:center;gap:.5rem;}
+.wb-route{background:rgba(255,255,255,.15);border-radius:10px;padding:.6rem 1rem;font-size:.8rem;margin-top:.6rem;line-height:1.5;}
 .wb-route.warn{background:rgba(249,168,37,.25);border:1px solid rgba(249,168,37,.5);}
 
 /* Section nav */
@@ -128,10 +132,13 @@ a{color:inherit;text-decoration:none}
 .no-data{text-align:center;color:var(--muted);padding:2.5rem;font-size:.88rem;}
 
 /* Inbox */
-.inbox-header{background:linear-gradient(135deg,var(--teal),#00695C);border-radius:var(--radius);padding:1.25rem 1.5rem;color:#fff;margin-bottom:1.5rem;display:flex;align-items:center;gap:.75rem;}
-.inbox-header .icon{font-size:1.5rem;}
+.inbox-header{background:linear-gradient(135deg,var(--teal),#00695C);border-radius:var(--radius);padding:1.25rem 1.5rem;color:#fff;margin-bottom:1.5rem;display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;}
+.inbox-header .icon{font-size:1.5rem;flex-shrink:0;}
 .inbox-header h3{font-size:1rem;font-weight:800;}
 .inbox-header p{font-size:.78rem;opacity:.82;}
+@media (max-width:600px){
+  .inbox-cta-btn{width:100%;margin-top:.4rem;}
+}
 .inbox-stats{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.5rem;}
 .inbox-stat{background:#fff;border-radius:10px;padding:.75rem 1.25rem;box-shadow:var(--shadow);border-top:3px solid var(--teal);text-align:center;flex:1;min-width:100px;}
 .inbox-stat .sn{font-size:1.5rem;font-weight:800;color:var(--teal);display:block;}
@@ -348,7 +355,7 @@ a{color:inherit;text-decoration:none}
 
     <!-- Welcome bar -->
     <div class="welcome-bar">
-      <div class="wb-left" style="flex:1">
+      <div class="wb-left" style="flex:1;min-width:0;">
         <h2 id="wb-name">Xin chào!</h2>
         <p id="wb-role"></p>
         <div id="wb-route" class="wb-route" style="display:none"></div>
@@ -372,11 +379,11 @@ a{color:inherit;text-decoration:none}
     <div id="section-inbox" class="section">
       <div class="inbox-header">
         <div class="icon">📥</div>
-        <div style="flex:1;">
+        <div style="flex:1;min-width:0;">
           <h3 id="inbox-title">Báo cáo đến</h3>
           <p id="inbox-desc"></p>
         </div>
-        <button onclick="goToWeeklySynth()" style="background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.6);color:#fff;padding:.55rem 1.1rem;border-radius:10px;font-family:var(--font);font-weight:700;font-size:.82rem;cursor:pointer;white-space:nowrap;transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,.3)'" onmouseout="this.style.background='rgba(255,255,255,.18)'">🧩 Tổng hợp báo cáo tuần/tháng</button>
+        <button class="inbox-cta-btn" onclick="goToWeeklySynth()" style="background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.6);color:#fff;padding:.55rem 1.1rem;border-radius:10px;font-family:var(--font);font-weight:700;font-size:.82rem;cursor:pointer;white-space:nowrap;transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,.3)'" onmouseout="this.style.background='rgba(255,255,255,.18)'">🧩 Tổng hợp báo cáo tuần/tháng</button>
       </div>
       <div class="inbox-stats" id="inbox-stats"></div>
       <div class="filter-bar">
@@ -806,7 +813,7 @@ a{color:inherit;text-decoration:none}
     <div id="section-personal" class="section">
       <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.25rem;flex-wrap:wrap;">
         <div class="icon">✏️</div>
-        <div style="flex:1">
+        <div style="flex:1;min-width:0;">
           <h3 style="margin:0;font-size:1.1rem;font-weight:800;color:var(--teal)">Việc cá nhân</h3>
           <p style="margin:0;font-size:.82rem;color:var(--muted)">Tự giao việc, ghi chú hàng ngày và theo dõi tiến độ</p>
         </div>
@@ -1490,11 +1497,11 @@ function enterApp(session){
       const lines=effGroups.map(n=>`${getGroupName(n)} (NT: ${getGroupLeaderName(n)})`).join(', ');
       routeEl.className='wb-route';
       routeEl.innerHTML=`📤 Thành viên: <strong>${lines}</strong>`;
-      routeEl.style.display='flex';
+      routeEl.style.display='block';
     } else {
       routeEl.className='wb-route warn';
       routeEl.innerHTML='⚠️ Chưa được phân nhóm – Báo cáo gửi thẳng đến <strong>Tổ trưởng</strong>';
-      routeEl.style.display='flex';
+      routeEl.style.display='block';
     }
   } else if(session.role==='leader'){
     const leadGroups=getLeadGroups(session.id);
@@ -1502,15 +1509,15 @@ function enterApp(session){
     let info=`👥 Nhóm trưởng: ${leadGroups.map(n=>getGroupName(n)).join(', ')}`;
     if(memberGroups.length) info+=` · Thành viên: ${memberGroups.map(n=>getGroupName(n)).join(', ')}`;
     info+=` · 📤 Báo cáo gửi lên <strong>Tổ trưởng</strong>`;
-    routeEl.className='wb-route'; routeEl.innerHTML=info; routeEl.style.display='flex';
+    routeEl.className='wb-route'; routeEl.innerHTML=info; routeEl.style.display='block';
   } else if(session.role==='to_truong'){
     routeEl.className='wb-route';
     routeEl.innerHTML=`📋 Nhận báo cáo từ 10 nhóm · 📤 Báo cáo tổng hợp gửi lên <strong>Phó Trưởng phòng & Trưởng phòng</strong>`;
-    routeEl.style.display='flex';
+    routeEl.style.display='block';
   } else if(session.role==='lanh_dao'){
     routeEl.className='wb-route';
     routeEl.innerHTML=`🏆 Nhận báo cáo tổng hợp từ <strong>Tổ trưởng công tác</strong>`;
-    routeEl.style.display='flex';
+    routeEl.style.display='block';
   }
 
   // Populate group select dropdowns in all 4 forms
