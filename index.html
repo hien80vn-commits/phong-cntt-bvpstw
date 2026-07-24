@@ -370,7 +370,11 @@ ul { list-style: none; }
    ========================================================= */
 @media (max-width: 768px) {
   .nav-links { display: none; }
-  .nav-links.open { display: flex; flex-direction: column; position: absolute; top: 100%; left: 0; right: 0; background: #fff; padding: 1rem; border-bottom: 2px solid var(--purple); z-index: 100; }
+  .nav-links.open { display: flex; flex-direction: column; align-items: stretch; position: absolute; top: 100%; left: 0; right: 0; background: #fff; padding: 1rem 1.5rem; border-bottom: 2px solid var(--purple); box-shadow: 0 8px 24px rgba(0,0,0,.08); z-index: 100; }
+  .nav-links a { width: 100%; }
+  .nav-user { width: 100%; padding-top: .6rem; margin-top: .4rem; border-top: 1px solid var(--border); }
+  .nav-user #nav-logged { width: 100%; justify-content: space-between; }
+  .nav-btn-login { width: 100%; }
   .hamburger { display: block; }
   .intro-grid { grid-template-columns: 1fr; }
   .info-boxes { grid-template-columns: repeat(2,1fr); }
@@ -414,14 +418,14 @@ ul { list-style: none; }
       <a href="report.html" class="protected-link" id="nav-baocao" style="background:var(--pink);color:#fff;">📋 Cổng báo cáo</a>
       <a href="tai-lieu.html" class="protected-link" id="nav-tailieu" style="background:var(--purple);color:#fff;">📚 Thư viện Tài liệu</a>
       <a href="dashboard.html" class="protected-link" id="nav-dashboard" style="background:linear-gradient(135deg,#1565C0,#0D47A1);color:#fff;">📊 Dashboard</a>
-    </div>
-    <div class="nav-user" id="nav-user-area">
-      <div id="nav-guest">
-        <button class="nav-btn-login" onclick="openLoginModal()">🔐 Đăng nhập</button>
-      </div>
-      <div id="nav-logged" style="display:none; align-items:center; gap:.6rem; display:none;">
-        <span class="nav-user-badge" id="nav-username"></span>
-        <button class="nav-btn-logout" onclick="doLogout()">Đăng xuất</button>
+      <div class="nav-user" id="nav-user-area">
+        <div id="nav-guest">
+          <button class="nav-btn-login" onclick="openLoginModal()">🔐 Đăng nhập</button>
+        </div>
+        <div id="nav-logged" style="display:none; align-items:center; gap:.6rem;">
+          <span class="nav-user-badge" id="nav-username"></span>
+          <button class="nav-btn-logout" onclick="doLogout()">Đăng xuất</button>
+        </div>
       </div>
     </div>
     <button class="hamburger" onclick="toggleMenu()" aria-label="Menu">
