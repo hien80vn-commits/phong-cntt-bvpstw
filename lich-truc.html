@@ -49,6 +49,8 @@ button { font-family: var(--font); }
 .nav-user.show { display: flex; }
 .nav-ubadge { background: rgba(107,45,139,.1); color: var(--purple-d); font-size: .78rem; font-weight: 600; padding: .35rem .8rem; border-radius: 999px; }
 .nav-logout { background: var(--pink); color: #fff; border: none; padding: .4rem .9rem; border-radius: 8px; font-size: .78rem; font-weight: 600; cursor: pointer; }
+.hamburger { display: none; background: none; border: none; cursor: pointer; padding: .5rem; flex-shrink: 0; }
+.hamburger span { display: block; width: 24px; height: 2px; background: var(--purple); margin: 5px 0; }
 
 /* HERO */
 .page-hero { background: linear-gradient(135deg, var(--purple-d) 0%, var(--purple) 50%, var(--purple-l) 100%); color: #fff; padding: 2.5rem 1.5rem; text-align: center; }
@@ -231,7 +233,12 @@ button { font-family: var(--font); }
 .footer p { font-size: .8rem; margin-bottom: .2rem; }
 
 @media (max-width: 768px) {
-  .nav-links { display: none; }
+  .nav-links { display: none; width: 100%; flex-direction: column; align-items: stretch; position: absolute; top: 100%; left: 0; right: 0; background: #fff; padding: 1rem 1.5rem; border-bottom: 2px solid var(--purple); box-shadow: 0 8px 24px rgba(0,0,0,.08); }
+  .nav-links.open { display: flex; }
+  .nav-links a { width: 100%; }
+  .nav-user { width: 100%; justify-content: space-between; padding-top: .5rem; margin-top: .5rem; border-top: 1px solid var(--border); }
+  .nav-user.show { display: flex; }
+  .hamburger { display: block; }
   .form-grid { grid-template-columns: 1fr; }
   .stats-row { grid-template-columns: repeat(2,1fr); }
 }
@@ -254,8 +261,8 @@ button { font-family: var(--font); }
         <span>Bệnh viện Phụ Sản Trung Ương</span>
       </div>
     </div>
-    <div class="nav-links">
-      <a href="index.html">Trang chủ</a>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html">🏠 Trang chủ</a>
       <a href="index.html#staff">Nhân sự</a>
       <a href="lich-truc.html" class="active">🗓️ Lịch trực</a>
       <a href="report.html" style="background:var(--pink);color:#fff;">📋 Cổng báo cáo</a>
@@ -267,6 +274,9 @@ button { font-family: var(--font); }
         <button class="nav-logout" onclick="doLogout()">Đăng xuất</button>
       </div>
     </div>
+    <button class="hamburger" onclick="toggleMenu()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </nav>
 
@@ -693,6 +703,9 @@ function doLogout(){
   user = null;
   clearSession();
   window.location.href = 'index.html';
+}
+function toggleMenu(){
+  document.getElementById('navLinks').classList.toggle('open');
 }
 
 /* ===== TABS ===== */
