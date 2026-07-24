@@ -159,6 +159,18 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .mtable td{padding:.45rem .65rem;border-bottom:1px solid var(--border);vertical-align:top;}
 .mtable tr:last-child td{border-bottom:none;}
 .mtable tr:hover td{background:#faf8fd;}
+/* Bảng nhiều cột chữ dài (tiêu đề, người thực hiện...) không thể ép vừa
+   màn hình điện thoại mà vẫn đọc được — chuyển mỗi hàng thành 1 thẻ dọc,
+   mỗi ô hiện kèm nhãn cột thay vì xếp cạnh nhau theo chiều ngang. */
+@media (max-width:600px){
+  .mtable thead{display:none;}
+  .mtable, .mtable tbody, .mtable tr, .mtable td{display:block;width:100%;}
+  .mtable tr{border:1px solid var(--border);border-radius:10px;padding:.5rem .75rem;margin-bottom:.75rem;}
+  .mtable tr:last-child{margin-bottom:0;}
+  .mtable td{border-bottom:1px dashed var(--border);padding:.45rem 0;}
+  .mtable td:last-child{border-bottom:none;}
+  .mtable td::before{content:attr(data-label);display:block;font-size:.62rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.02em;margin-bottom:.2rem;}
+}
 .pbar-wrap{height:5px;border-radius:999px;background:#e0e0e0;width:70px;display:inline-block;}
 .pbar-fill{height:100%;border-radius:999px;}
 
@@ -753,16 +765,16 @@ function renderOverdue(tasks){
       'Đang thực hiện':'background:var(--blue-l);color:var(--blue)',
     }[t.status]||'background:var(--green-l);color:var(--green)';
     return `<tr>
-      <td><strong>${t.title}</strong>${t.desc?`<br><span style="color:var(--muted);font-size:.68rem">${truncate(t.desc,55)}</span>`:''}</td>
-      <td>${t.assignedToName}<br><span style="color:var(--muted);font-size:.68rem">Giao bởi: ${t.assignedByName}</span></td>
-      <td style="${dlCls}">${t.deadline}<br>${dlTxt}</td>
-      <td>
+      <td data-label="Tiêu đề công việc"><strong>${t.title}</strong>${t.desc?`<br><span style="color:var(--muted);font-size:.68rem">${truncate(t.desc,55)}</span>`:''}</td>
+      <td data-label="Người thực hiện">${t.assignedToName}<br><span style="color:var(--muted);font-size:.68rem">Giao bởi: ${t.assignedByName}</span></td>
+      <td data-label="Deadline" style="${dlCls}">${t.deadline}<br>${dlTxt}</td>
+      <td data-label="Tiến độ">
         <div style="display:flex;align-items:center;gap:.4rem;">
           <div class="pbar-wrap"><div class="pbar-fill" style="width:${pct}%;height:100%;background:${barClr};border-radius:999px;"></div></div>
           <span style="font-size:.68rem;color:var(--muted)">${pct}%</span>
         </div>
       </td>
-      <td><span style="font-size:.69rem;padding:.12rem .5rem;border-radius:999px;font-weight:700;${stBg}">${t.status}</span></td>
+      <td data-label="Trạng thái"><span style="font-size:.69rem;padding:.12rem .5rem;border-radius:999px;font-weight:700;${stBg}">${t.status}</span></td>
     </tr>`;
   }).join('');
   document.getElementById('over-body').innerHTML=`<table class="mtable"><thead><tr><th>Tiêu đề công việc</th><th>Người thực hiện</th><th>Deadline</th><th>Tiến độ</th><th>Trạng thái</th></tr></thead><tbody>${rows}</tbody></table>`;
