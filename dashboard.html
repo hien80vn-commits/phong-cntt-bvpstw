@@ -154,17 +154,25 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .ltag.chieu{background:var(--yellow-l);color:var(--yellow);}
 
 /* OVERDUE TABLE */
-.mtable{width:100%;border-collapse:collapse;font-size:.74rem;}
+.mtable{width:100%;border-collapse:collapse;font-size:.74rem;table-layout:fixed;}
 .mtable th{background:var(--purple-l);color:var(--purple-d);font-weight:700;padding:.4rem .65rem;text-align:left;}
-.mtable td{padding:.45rem .65rem;border-bottom:1px solid var(--border);vertical-align:top;}
+.mtable td{padding:.45rem .65rem;border-bottom:1px solid var(--border);vertical-align:top;word-wrap:break-word;}
 .mtable tr:last-child td{border-bottom:none;}
 .mtable tr:hover td{background:#faf8fd;}
+/* Thu hẹp cột tiêu đề (chữ dài nhất) để nhường chỗ cho các cột còn lại
+   trên máy tính/iPad — table-layout:fixed để tỉ lệ này được áp dụng đúng */
+.mtable th:nth-child(1),.mtable td:nth-child(1){width:22%;}
+.mtable th:nth-child(2),.mtable td:nth-child(2){width:20%;}
+.mtable th:nth-child(3),.mtable td:nth-child(3){width:16%;}
+.mtable th:nth-child(4),.mtable td:nth-child(4){width:22%;}
+.mtable th:nth-child(5),.mtable td:nth-child(5){width:20%;}
 /* Bảng nhiều cột chữ dài (tiêu đề, người thực hiện...) không thể ép vừa
    màn hình điện thoại mà vẫn đọc được — chuyển mỗi hàng thành 1 thẻ dọc,
    mỗi ô hiện kèm nhãn cột thay vì xếp cạnh nhau theo chiều ngang. */
 @media (max-width:600px){
   .mtable thead{display:none;}
   .mtable, .mtable tbody, .mtable tr, .mtable td{display:block;width:100%;}
+  .mtable td:nth-child(1),.mtable td:nth-child(2),.mtable td:nth-child(3),.mtable td:nth-child(4),.mtable td:nth-child(5){width:100%;}
   .mtable tr{border:1px solid var(--border);border-radius:10px;padding:.5rem .75rem;margin-bottom:.75rem;}
   .mtable tr:last-child{margin-bottom:0;}
   .mtable td{border-bottom:1px dashed var(--border);padding:.45rem 0;}
