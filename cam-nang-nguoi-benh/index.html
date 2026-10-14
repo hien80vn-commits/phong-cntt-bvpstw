@@ -1,0 +1,469 @@
+<!doctype html>
+<title>Cẩm Nang Kế Hoạch Hóa Gia Đình</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap" rel="stylesheet">
+<style>
+  /* Layout: single-column scrolling booklet; sticky chapter rail on top (tabs on mobile),
+     each chapter a full card — cover, then 3 infographic chapters, then a video chapter, then contact. */
+  :root{
+    --bg:#F3F1EC;
+    --surface:#FFFFFF;
+    --ink:#1C2B39;
+    --muted:#5B6B78;
+    --accent:#6B2D8B;
+    --accent-2:#D63384;
+    --line:#E1DFD6;
+    --chip:#F3E8FA;
+    --font-display:'Source Serif 4', Georgia, 'Times New Roman', serif;
+    --font-body:'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#141A1F;
+      --surface:#1D262D;
+      --ink:#EDEFF1;
+      --muted:#9FB0BD;
+      --accent:#C296DE;
+      --accent-2:#F06FA0;
+      --line:#2B3740;
+      --chip:#2E2240;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#141A1F;
+    --surface:#1D262D;
+    --ink:#EDEFF1;
+    --muted:#9FB0BD;
+    --accent:#C296DE;
+    --accent-2:#F06FA0;
+    --line:#2B3740;
+    --chip:#2E2240;
+    color-scheme: dark;
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--font-body);
+    padding-left:max(16px, env(safe-area-inset-left,0px));
+    padding-right:max(16px, env(safe-area-inset-right,0px));
+  }
+  h1,h2,h3{font-family:var(--font-display); text-wrap:balance; margin:0}
+  p{margin:0; line-height:1.65}
+
+  .wrap{max-width:860px; margin:0 auto}
+
+  /* Sticky chapter nav */
+  .nav{
+    position:sticky;
+    top:env(safe-area-inset-top,0px);
+    z-index:10;
+    background:color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+    padding-block:10px;
+    margin-inline:calc(-1 * max(16px, env(safe-area-inset-left,0px))) calc(-1 * max(16px, env(safe-area-inset-right,0px)));
+    padding-inline:max(16px, env(safe-area-inset-left,0px)) max(16px, env(safe-area-inset-right,0px));
+  }
+  .nav-inner{
+    max-width:860px; margin:0 auto;
+    display:flex; gap:8px; overflow-x:auto;
+    scrollbar-width:none;
+  }
+  .nav-inner::-webkit-scrollbar{display:none}
+  .nav-btn{
+    flex:none;
+    font-family:var(--font-body);
+    font-size:13px; font-weight:600;
+    color:var(--muted);
+    background:transparent;
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:7px 14px;
+    cursor:pointer;
+    white-space:nowrap;
+    transition:background .15s, color .15s, border-color .15s;
+  }
+  .nav-btn:hover{border-color:var(--accent)}
+  .nav-btn.active{background:var(--accent); color:#fff; border-color:var(--accent)}
+  .nav-btn:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+
+  /* Cover */
+  .cover{
+    padding-block:56px 40px;
+    text-align:center;
+  }
+  .eyebrow{
+    display:inline-block;
+    font-size:12px; font-weight:700; letter-spacing:.09em; text-transform:uppercase;
+    color:var(--accent);
+    background:var(--chip);
+    padding:6px 14px;
+    border-radius:999px;
+    margin-bottom:18px;
+  }
+  .cover h1{
+    font-size:clamp(28px,5.5vw,44px);
+    font-weight:600;
+    line-height:1.15;
+    margin-bottom:14px;
+  }
+  .cover .sub{
+    color:var(--muted);
+    font-size:16px;
+    max-width:46ch;
+    margin:0 auto;
+  }
+  .cover .org{
+    margin-top:30px;
+    font-size:13px;
+    color:var(--muted);
+    display:flex; flex-direction:column; gap:2px;
+  }
+  .cover .org strong{color:var(--ink); font-weight:700}
+
+  .toc{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(150px,1fr));
+    gap:10px;
+    margin-top:36px;
+    text-align:left;
+  }
+  .toc a{
+    display:flex; align-items:center; gap:10px;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:14px 16px;
+    text-decoration:none;
+    color:var(--ink);
+    font-size:14px; font-weight:600;
+    transition:border-color .15s, transform .15s;
+  }
+  .toc a:hover{border-color:var(--accent); transform:translateY(-1px)}
+  .toc .n{
+    font-family:var(--font-display);
+    font-size:20px; font-weight:600;
+    color:var(--accent);
+    flex:none;
+  }
+
+  /* Chapters */
+  .chapter{
+    scroll-margin-top:68px;
+    padding-block:48px;
+    border-top:1px solid var(--line);
+  }
+  .chapter:first-of-type{border-top:none}
+  .chapter-head{
+    display:flex; align-items:baseline; gap:14px;
+    margin-bottom:22px;
+  }
+  .chapter-num{
+    font-family:var(--font-display);
+    font-size:15px; font-weight:600;
+    color:var(--accent-2);
+    flex:none;
+  }
+  .chapter h2{
+    font-size:clamp(20px,3.2vw,26px);
+    font-weight:600;
+  }
+  .chapter .desc{
+    color:var(--muted);
+    font-size:14.5px;
+    max-width:62ch;
+    margin-bottom:22px;
+  }
+
+  .sheet{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:16px;
+    overflow:hidden;
+  }
+  .sheet img{
+    display:block;
+    width:100%;
+    height:auto;
+  }
+
+  .video-sheet{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:14px;
+  }
+  .video-frame{
+    position:relative;
+    width:100%;
+    aspect-ratio:16/9;
+    background:#0B0F13;
+    border-radius:10px;
+    overflow:hidden;
+  }
+  .video-frame video{
+    width:100%; height:100%;
+    display:block;
+    object-fit:contain;
+    background:#0B0F13;
+  }
+  .video-meta{
+    display:flex; justify-content:space-between; align-items:center;
+    gap:12px; flex-wrap:wrap;
+    padding:12px 4px 4px;
+    font-size:13px;
+    color:var(--muted);
+  }
+
+  .tag-row{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px}
+  .tag{
+    font-size:12px; font-weight:600;
+    color:var(--accent);
+    background:var(--chip);
+    border-radius:999px;
+    padding:5px 11px;
+  }
+
+  /* Contact */
+  .contact{
+    padding-block:48px 72px;
+    border-top:1px solid var(--line);
+  }
+  .contact-card{
+    background:linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 60%, var(--accent-2)));
+    border-radius:18px;
+    padding:30px 26px;
+    color:#fff;
+  }
+  .contact-card h2{color:#fff; font-size:21px; margin-bottom:8px}
+  .contact-card p{color:rgba(255,255,255,.88); font-size:14px; margin-bottom:18px; max-width:52ch}
+  .contact-rows{display:flex; flex-direction:column; gap:10px}
+  .contact-row{
+    display:flex; align-items:center; gap:10px;
+    font-size:14.5px; font-weight:600;
+  }
+  .contact-row .ic{
+    flex:none; width:30px; height:30px;
+    border-radius:50%;
+    background:rgba(255,255,255,.18);
+    display:flex; align-items:center; justify-content:center;
+    font-size:15px;
+  }
+  .copy-btn{
+    margin-left:auto;
+    flex:none;
+    background:rgba(255,255,255,.18);
+    border:1px solid rgba(255,255,255,.4);
+    color:#fff;
+    font-size:12px; font-weight:700;
+    border-radius:999px;
+    padding:5px 12px;
+    cursor:pointer;
+  }
+  .copy-btn:hover{background:rgba(255,255,255,.3)}
+  .foot-note{
+    text-align:center;
+    font-size:12px;
+    color:var(--muted);
+    margin-top:28px;
+  }
+
+  @media (max-width:520px){
+    .cover{padding-block:40px 28px}
+    .chapter{padding-block:36px}
+    .contact-row{flex-wrap:wrap}
+    .copy-btn{margin-left:0}
+  }
+
+  [hidden]{display:none!important}
+</style>
+
+<nav class="nav">
+  <div class="nav-inner" id="navInner">
+    <button class="nav-btn active" data-target="bia">Trang bìa</button>
+    <button class="nav-btn" data-target="ch1">1. Sau phá thai</button>
+    <button class="nav-btn" data-target="ch2">2. Que cấy</button>
+    <button class="nav-btn" data-target="ch3">3. Thuốc hàng ngày</button>
+    <button class="nav-btn" data-target="ch4">4. Video hướng dẫn</button>
+    <button class="nav-btn" data-target="lienhe">Liên hệ</button>
+    <a class="nav-btn" href="../index.html" style="text-decoration:none; margin-left:auto;">← Trang chủ Phòng CNTT</a>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <section class="cover" id="bia">
+    <span class="eyebrow">Khoa Kế hoạch hóa gia đình</span>
+    <h1>Cẩm Nang Kế Hoạch Hóa Gia Đình</h1>
+    <p class="sub">Tài liệu giáo dục sức khỏe dành cho người bệnh — chăm sóc sau thủ thuật, các biện pháp tránh thai và hướng dẫn thủ tục tại bệnh viện.</p>
+    <div class="org">
+      <strong>Bệnh viện Phụ Sản Trung Ương</strong>
+      <span>Khoa Kế hoạch hóa gia đình · Tầng 2 nhà A</span>
+    </div>
+
+    <div class="toc">
+      <a href="#ch1"><span class="n">01</span> Những điều cần biết sau phá thai</a>
+      <a href="#ch2"><span class="n">02</span> Que cấy tránh thai</a>
+      <a href="#ch3"><span class="n">03</span> Thuốc tránh thai hàng ngày</a>
+      <a href="#ch4"><span class="n">04</span> Video: Hướng dẫn làm hồ sơ sinh</a>
+    </div>
+  </section>
+
+  <section class="chapter" id="ch1">
+    <div class="chapter-head">
+      <span class="chapter-num">01</span>
+      <h2>Những điều cần biết sau phá thai</h2>
+    </div>
+    <div class="tag-row">
+      <span class="tag">Chăm sóc sau thủ thuật</span>
+      <span class="tag">Dấu hiệu cần đến viện ngay</span>
+    </div>
+    <p class="desc">Hướng dẫn chăm sóc, theo dõi và các dấu hiệu bất thường cần đến cơ sở y tế ngay sau khi thực hiện thủ thuật.</p>
+    <div class="sheet">
+      <img src="sau-pha-thai.jpg" alt="Infographic: Những điều cần biết sau phá thai" loading="lazy">
+    </div>
+  </section>
+
+  <section class="chapter" id="ch2">
+    <div class="chapter-head">
+      <span class="chapter-num">02</span>
+      <h2>Que cấy tránh thai</h2>
+    </div>
+    <div class="tag-row">
+      <span class="tag">Biện pháp tránh thai dài hạn</span>
+      <span class="tag">Chống chỉ định · Tác dụng phụ</span>
+    </div>
+    <p class="desc">Khái niệm, hiệu quả, thời điểm cấy phù hợp, chống chỉ định và các tác dụng phụ có thể gặp khi sử dụng que cấy tránh thai.</p>
+    <div class="sheet">
+      <img src="que-cay.jpg" alt="Infographic: Que cấy tránh thai" loading="lazy">
+    </div>
+  </section>
+
+  <section class="chapter" id="ch3">
+    <div class="chapter-head">
+      <span class="chapter-num">03</span>
+      <h2>Thuốc tránh thai hàng ngày</h2>
+    </div>
+    <div class="tag-row">
+      <span class="tag">Thuốc phối hợp &amp; thuốc chỉ chứa progestin</span>
+      <span class="tag">Cách uống đúng</span>
+    </div>
+    <p class="desc">Phân loại thuốc, cách uống đúng theo từng loại, xử trí khi quên thuốc và các tác dụng phụ thường gặp.</p>
+    <div class="sheet">
+      <img src="thuoc-hang-ngay.jpg" alt="Infographic: Thuốc tránh thai hàng ngày" loading="lazy">
+    </div>
+  </section>
+
+  <section class="chapter" id="ch4">
+    <div class="chapter-head">
+      <span class="chapter-num">04</span>
+      <h2>Video: Hướng dẫn người bệnh làm hồ sơ sinh</h2>
+    </div>
+    <div class="tag-row">
+      <span class="tag">Thủ tục hành chính</span>
+      <span class="tag">Dành cho sản phụ</span>
+    </div>
+    <p class="desc">Video hướng dẫn trực quan các bước chuẩn bị và hoàn thiện hồ sơ sinh tại bệnh viện.</p>
+    <div class="video-sheet">
+      <div class="video-frame">
+        <video controls preload="metadata" playsinline poster="">
+          <source src="video-ho-so-sinh.mp4" type="video/mp4">
+          Trình duyệt của bạn không hỗ trợ phát video này.
+        </video>
+      </div>
+      <div class="video-meta">
+        <span>Thời lượng: khoảng 1 phút 16 giây</span>
+        <span>Bệnh viện Phụ Sản Trung Ương</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="contact" id="lienhe">
+    <div class="contact-card">
+      <h2>Cần tư vấn thêm?</h2>
+      <p>Khoa Kế hoạch hóa gia đình luôn sẵn sàng hỗ trợ. Vui lòng liên hệ theo thông tin dưới đây hoặc đến trực tiếp để được thăm khám và tư vấn.</p>
+      <div class="contact-rows">
+        <div class="contact-row">
+          <span class="ic">📍</span>
+          <span>Tầng 2, nhà A — Bệnh viện Phụ Sản Trung Ương</span>
+        </div>
+        <div class="contact-row">
+          <span class="ic">☎️</span>
+          <span id="phoneText">024 3936 0029</span>
+          <button class="copy-btn" id="copyBtn" type="button">Sao chép</button>
+        </div>
+      </div>
+    </div>
+    <p class="foot-note">Tài liệu chỉ mang tính chất tham khảo, không thay thế cho chẩn đoán và chỉ định của bác sĩ.</p>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  try{
+    var buttons = Array.prototype.slice.call(document.querySelectorAll('.nav-btn'));
+    var sections = buttons.map(function(b){ return document.getElementById(b.dataset.target); });
+
+    buttons.forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var el = document.getElementById(btn.dataset.target);
+        if(el){ el.scrollIntoView({behavior:'smooth', block:'start'}); }
+      });
+    });
+
+    if('IntersectionObserver' in window){
+      var io = new IntersectionObserver(function(entries){
+        entries.forEach(function(entry){
+          if(entry.isIntersecting){
+            var idx = sections.indexOf(entry.target);
+            if(idx > -1){
+              buttons.forEach(function(b){ b.classList.remove('active'); });
+              buttons[idx].classList.add('active');
+              var navInner = document.getElementById('navInner');
+              var activeBtn = buttons[idx];
+              if(navInner && activeBtn){
+                var left = activeBtn.offsetLeft - 16;
+                navInner.scrollTo({left: left, behavior:'smooth'});
+              }
+            }
+          }
+        });
+      }, {rootMargin:'-45% 0px -50% 0px', threshold:0});
+      sections.forEach(function(s){ if(s) io.observe(s); });
+    }
+
+    var copyBtn = document.getElementById('copyBtn');
+    var phoneText = document.getElementById('phoneText');
+    if(copyBtn && phoneText){
+      copyBtn.addEventListener('click', function(){
+        var text = phoneText.textContent;
+        function fallback(){
+          try{
+            var range = document.createRange();
+            range.selectNode(phoneText);
+            var sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+          }catch(e){}
+        }
+        if(navigator.clipboard && navigator.clipboard.writeText){
+          navigator.clipboard.writeText(text).then(function(){
+            copyBtn.textContent = 'Đã sao chép';
+            setTimeout(function(){ copyBtn.textContent = 'Sao chép'; }, 1800);
+          }).catch(fallback);
+        } else {
+          fallback();
+        }
+      });
+    }
+  }catch(e){ /* non-fatal: page still renders without JS niceties */ }
+})();
+</script>
