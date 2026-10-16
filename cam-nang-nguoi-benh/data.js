@@ -96,7 +96,9 @@ const TREE = [
   {
     id: '7', icon: '📋', title: 'Hướng dẫn các thủ tục khám và điều trị',
     subs: [
-      { id: '7.1', title: 'Các thủ tục liên quan khám bệnh', items: [] },
+      { id: '7.1', title: 'Các thủ tục liên quan khám bệnh', items: [
+        { title: 'Hướng dẫn người bệnh chuẩn bị siêu âm', video: 'video-chuan-bi-sieu-am.mp4' },
+      ]},
       { id: '7.2', title: 'Các thủ tục trong quá trình điều trị', items: [
         { title: 'Hướng dẫn người bệnh làm hồ sơ sinh', video: 'video-ho-so-sinh.mp4' },
       ]},
