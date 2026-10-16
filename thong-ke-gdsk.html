@@ -10,6 +10,7 @@
   --teal:#00897B;--teal-l:#E0F2F1;
   --red:#C62828;--red-l:#FFEBEE;
   --green:#2E7D32;--green-l:#E8F5E9;
+  --blue:#1565C0;--orange:#E65100;
   --text:#1a1a2e;--muted:#888;
   --border:#E8E0EF;--bg:#F7F3FA;
   --shadow:0 2px 12px rgba(107,45,139,.10);
@@ -55,8 +56,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:.9rem;margin-bottom:1.5rem;}
 .kpi{background:#fff;border-radius:var(--radius);padding:1.1rem 1.1rem .9rem;box-shadow:var(--shadow);border-top:4px solid var(--purple);}
 .kpi.g{border-top-color:var(--green);} .kpi.r{border-top-color:var(--red);} .kpi.t{border-top-color:var(--teal);}
+.kpi.b{border-top-color:var(--blue);} .kpi.o{border-top-color:var(--orange);}
 .kpi-num{font-size:1.9rem;font-weight:800;color:var(--purple);line-height:1;font-variant-numeric:tabular-nums;}
 .kpi.g .kpi-num{color:var(--green);} .kpi.r .kpi-num{color:var(--red);} .kpi.t .kpi-num{color:var(--teal);}
+.kpi.b .kpi-num{color:var(--blue);} .kpi.o .kpi-num{color:var(--orange);}
 .kpi-label{font-size:.74rem;color:var(--muted);font-weight:600;margin-top:.3rem;}
 
 .sec-label{font-size:.7rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:1.4rem 0 .65rem;display:flex;align-items:center;gap:.4rem;}
@@ -134,10 +137,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     </div>
 
     <div class="kpi-grid">
-      <div class="kpi"><div class="kpi-num" id="kpiTotal">–</div><div class="kpi-label">Tổng lượt phản hồi</div></div>
+      <div class="kpi b"><div class="kpi-num" id="kpiViews">–</div><div class="kpi-label">👁️ Tổng lượt xem</div></div>
+      <div class="kpi"><div class="kpi-num" id="kpiTotal">–</div><div class="kpi-label">Lượt phản hồi (bấm Hữu ích/Chưa)</div></div>
       <div class="kpi g"><div class="kpi-num" id="kpiYes">–</div><div class="kpi-label">👍 Hữu ích</div></div>
       <div class="kpi r"><div class="kpi-num" id="kpiNo">–</div><div class="kpi-label">👎 Chưa hữu ích</div></div>
-      <div class="kpi t"><div class="kpi-num" id="kpiRate">–</div><div class="kpi-label">Tỷ lệ hữu ích</div></div>
+      <div class="kpi t"><div class="kpi-num" id="kpiRate">–</div><div class="kpi-label">Tỷ lệ hữu ích (trong số có phản hồi)</div></div>
+      <div class="kpi o"><div class="kpi-num" id="kpiResponseRate">–</div><div class="kpi-label">Tỷ lệ chịu đánh giá (phản hồi/lượt xem)</div></div>
     </div>
 
     <div class="sec-label">Chi tiết theo nhánh nội dung</div>
@@ -197,41 +202,50 @@ async function loadStats(){
     document.getElementById('lastUpdated').textContent = 'Không thể kết nối tới Firebase. Thử tải lại.';
     return;
   }
-  let data = null;
+  let feedbackData = null, viewsData = null;
   try{
-    const res = await fetch(`${FB_URL}/feedback.json?auth=${token}`, { cache: 'no-store' });
-    data = await res.json();
+    const [fbRes, vwRes] = await Promise.all([
+      fetch(`${FB_URL}/feedback.json?auth=${token}`, { cache: 'no-store' }),
+      fetch(`${FB_URL}/views.json?auth=${token}`, { cache: 'no-store' }),
+    ]);
+    feedbackData = await fbRes.json();
+    viewsData = await vwRes.json();
   }catch(e){
     document.getElementById('lastUpdated').textContent = 'Lỗi khi tải dữ liệu. Thử tải lại.';
     return;
   }
-  data = data || {};
+  feedbackData = feedbackData || {};
+  viewsData = viewsData || {};
 
   const index = buildItemIndex();
-  const agg = {}; // key -> {yes, no}
-  let totalYes = 0, totalNo = 0;
+  const agg = {}; // key -> {views, yes, no}
+  const allKeys = new Set([...Object.keys(feedbackData), ...Object.keys(viewsData)]);
+  let totalYes = 0, totalNo = 0, totalViews = 0;
   rawRowsForExport = [{ header: true }];
 
-  Object.entries(data).forEach(([key, responses])=>{
+  allKeys.forEach(key=>{
     let yes = 0, no = 0;
-    Object.values(responses || {}).forEach(r=>{
+    Object.values(feedbackData[key] || {}).forEach(r=>{
       if(r && r.useful === true) yes++;
       else if(r && r.useful === false) no++;
     });
-    agg[key] = { yes, no };
-    totalYes += yes; totalNo += no;
+    const views = Object.keys(viewsData[key] || {}).length;
+    agg[key] = { views, yes, no };
+    totalYes += yes; totalNo += no; totalViews += views;
     const info = index[key];
     const title = info ? info.item.title : key;
     const branchLabel = info ? `${info.branch.id}. ${info.branch.title}` : '';
     const subLabel = info ? `${info.sub.id} ${info.sub.title}` : '';
-    rawRowsForExport.push({ branchLabel, subLabel, title, yes, no });
+    rawRowsForExport.push({ branchLabel, subLabel, title, views, yes, no });
   });
 
-  const total = totalYes + totalNo;
-  document.getElementById('kpiTotal').textContent = total;
+  const totalFeedback = totalYes + totalNo;
+  document.getElementById('kpiViews').textContent = totalViews;
+  document.getElementById('kpiTotal').textContent = totalFeedback;
   document.getElementById('kpiYes').textContent = totalYes;
   document.getElementById('kpiNo').textContent = totalNo;
-  document.getElementById('kpiRate').textContent = total ? Math.round(totalYes/total*100) + '%' : '—';
+  document.getElementById('kpiRate').textContent = totalFeedback ? Math.round(totalYes/totalFeedback*100) + '%' : '—';
+  document.getElementById('kpiResponseRate').textContent = totalViews ? Math.round(totalFeedback/totalViews*100) + '%' : '—';
 
   renderBranches(index, agg);
 
@@ -262,11 +276,11 @@ function renderBranches(index, agg){
   }
 
   container.innerHTML = branchHasData.map(({branch, subsWithItems})=>{
-    let branchYes=0, branchNo=0;
+    let branchViews=0, branchYes=0, branchNo=0;
     const rows = subsWithItems.flatMap(({sub, items})=>{
       return items.map(({it, key})=>{
-        const a = agg[key] || {yes:0, no:0};
-        branchYes += a.yes; branchNo += a.no;
+        const a = agg[key] || {views:0, yes:0, no:0};
+        branchViews += a.views; branchYes += a.yes; branchNo += a.no;
         const total = a.yes + a.no;
         const pctYes = total ? (a.yes/total*100) : 0;
         const pctNo = total ? (a.no/total*100) : 0;
@@ -274,7 +288,7 @@ function renderBranches(index, agg){
         <div class="item-stat">
           <div class="item-stat-top">
             <div class="item-stat-title">${esc(sub.id)} — ${esc(it.title)}</div>
-            <div class="item-stat-count">${total ? `${a.yes}/${total} hữu ích` : 'Chưa có phản hồi'}</div>
+            <div class="item-stat-count">👁️ ${a.views} lượt xem${total ? ` · ${a.yes}/${total} hữu ích` : ''}</div>
           </div>
           ${total ? `
           <div class="bar-track">
@@ -282,7 +296,7 @@ function renderBranches(index, agg){
             <div class="bar-no" style="width:${pctNo}%"></div>
           </div>
           <div class="bar-legend"><span class="y">${a.yes} hữu ích</span><span class="n">${a.no} chưa hữu ích</span></div>
-          ` : `<div class="no-data">Chưa được quét/đánh giá</div>`}
+          ` : `<div class="no-data">${a.views ? 'Đã có người xem nhưng chưa đánh giá' : 'Chưa được quét/xem'}</div>`}
         </div>`;
       });
     }).join('');
@@ -292,7 +306,7 @@ function renderBranches(index, agg){
     <div class="branch-block">
       <div class="branch-hdr">
         <h3>${branch.icon} ${esc(branch.id)}. ${esc(branch.title)}</h3>
-        <div class="bsum">${branchTotal ? `${branchYes} hữu ích / ${branchNo} chưa hữu ích` : 'Chưa có phản hồi'}</div>
+        <div class="bsum">👁️ ${branchViews} lượt xem${branchTotal ? ` · ${branchYes} hữu ích / ${branchNo} chưa hữu ích` : ''}</div>
       </div>
       ${rows}
     </div>`;
@@ -306,10 +320,10 @@ function esc(str){
 function exportCsv(){
   const rows = rawRowsForExport.slice(1); // bỏ header marker
   if(!rows.length){ alert('Chưa có dữ liệu để xuất.'); return; }
-  const header = ['Nhánh','Tiểu mục','Nội dung','Hữu ích','Chưa hữu ích'];
+  const header = ['Nhánh','Tiểu mục','Nội dung','Lượt xem','Hữu ích','Chưa hữu ích'];
   const lines = [header.join(',')];
   rows.forEach(r=>{
-    const vals = [r.branchLabel, r.subLabel, r.title, r.yes, r.no].map(v=>{
+    const vals = [r.branchLabel, r.subLabel, r.title, r.views, r.yes, r.no].map(v=>{
       const s = String(v==null?'':v).replace(/"/g,'""');
       return /[",\n]/.test(s) ? `"${s}"` : s;
     });

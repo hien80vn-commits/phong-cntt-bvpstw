@@ -217,6 +217,26 @@ async function sendFeedback(itemKey, useful){
   }catch(e){ return false; }
 }
 
+/* Đếm LƯỢT XEM — ghi tự động ngay khi mở ảnh/video, không cần bệnh nhân
+   làm gì thêm. Tách riêng khỏi khảo sát "hữu ích?" (vốn chỉ ai chủ động
+   bấm mới có), để Phòng CNTT biết được mức độ truy cập thực tế.
+   Chống đếm trùng trong cùng 1 phiên trình duyệt (mở lại cùng 1 bài). */
+function viewedSet(){
+  try{ return JSON.parse(sessionStorage.getItem('gdsk_viewed')||'[]'); }catch(e){ return []; }
+}
+async function logView(itemKey){
+  try{
+    const seen = viewedSet();
+    if(seen.includes(itemKey)) return;
+    seen.push(itemKey);
+    try{ sessionStorage.setItem('gdsk_viewed', JSON.stringify(seen)); }catch(e){}
+    const token = await ensureFbAuth();
+    if(!token) return;
+    const url = `${FB_URL}/views/${encodeURIComponent(itemKey)}.json?auth=${token}`;
+    await fetch(url, { method:'POST', body: JSON.stringify({ ts: Date.now() }) });
+  }catch(e){ /* không chặn trải nghiệm xem nội dung nếu ghi nhận lỗi */ }
+}
+
 /* =====================================================
    ROUTER — hash dạng #/<branch>/<sub>  (vd: #/4  hoặc  #/4/2)
    Cho phép mã QR chuyên khoa dẫn thẳng vào 1 nhánh (bỏ qua bước chọn nhánh).
@@ -356,6 +376,7 @@ function openViewer(key, title, type, src){
     mediaBox.innerHTML = `<video controls playsinline src="${src}"></video>`;
   }
   overlay.classList.add('open');
+  logView(key);
 }
 function closeViewer(){
   overlay.classList.remove('open');
