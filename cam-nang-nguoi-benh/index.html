@@ -64,6 +64,14 @@ button { font-family: var(--font); cursor: pointer; }
 .tap-note { display: inline-flex; align-items: center; gap: .4rem; background: rgba(107,45,139,.08); color: var(--purple-d); font-size: .78rem; font-weight: 600; padding: .35rem .8rem; border-radius: 999px; margin-top: .6rem; }
 
 /* BRANCH GRID (cấp 1) */
+.featured { display:flex; flex-direction:column; gap:.7rem; margin-bottom:1.2rem; }
+.featured-card { display:flex; align-items:center; gap:1rem; width:100%; text-align:left; border:0; color:#fff;
+  background:linear-gradient(135deg,var(--purple),var(--pink)); border-radius:var(--radius); padding:1rem 1.2rem; box-shadow:var(--shadow); }
+.featured-card .f-icon { font-size:2.2rem; flex-shrink:0; }
+.featured-card .f-badge { display:inline-block; background:#fff; color:var(--pink); font-size:.7rem; font-weight:800; padding:.1rem .55rem; border-radius:99px; margin-bottom:.25rem; }
+.featured-card h3 { font-size:1.05rem; font-weight:700; line-height:1.35; }
+.featured-card p { font-size:.85rem; opacity:.92; }
+.featured-card .f-go { margin-left:auto; font-size:1.4rem; flex-shrink:0; }
 .branch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap: 1rem; }
 .branch-card {
   background: var(--card); border-radius: var(--radius); padding: 1.4rem;
@@ -283,6 +291,12 @@ function renderBranches(){
       <h1>Thư viện Điện tử Giáo dục Sức khỏe</h1>
       <p>Chọn chủ đề quan tâm bên dưới. Mỗi mục chỉ cần 2–3 lần chạm là đến đúng nội dung cần xem.</p>
     </div>
+    ${(typeof FEATURED!=='undefined' && FEATURED.length) ? `<div class="featured">${FEATURED.map(f=>`
+      <button class="featured-card" onclick="location.hash='${esc(f.href)}'">
+        <div class="f-icon">${f.icon}</div>
+        <div><span class="f-badge">${esc(f.badge)}</span><h3>${esc(f.title)}</h3><p>${esc(f.desc)}</p></div>
+        <div class="f-go">→</div>
+      </button>`).join('')}</div>` : ''}
     <div class="branch-grid">
       ${TREE.map(b => `
         <button class="branch-card" onclick="location.hash='/${b.id}'">
