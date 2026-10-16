@@ -1,469 +1,390 @@
-<!doctype html>
-<title>Cẩm Nang Kế Hoạch Hóa Gia Đình</title>
-<meta name="claude:viewport-fit-sides" content="cover">
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thư viện Điện tử Giáo dục Sức khỏe — BVPSTW</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  /* Layout: single-column scrolling booklet; sticky chapter rail on top (tabs on mobile),
-     each chapter a full card — cover, then 3 infographic chapters, then a video chapter, then contact. */
-  :root{
-    --bg:#F3F1EC;
-    --surface:#FFFFFF;
-    --ink:#1C2B39;
-    --muted:#5B6B78;
-    --accent:#6B2D8B;
-    --accent-2:#D63384;
-    --line:#E1DFD6;
-    --chip:#F3E8FA;
-    --font-display:'Source Serif 4', Georgia, 'Times New Roman', serif;
-    --font-body:'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    color-scheme: light;
-  }
-  @media (prefers-color-scheme: dark){
-    :root:not([data-theme="light"]){
-      --bg:#141A1F;
-      --surface:#1D262D;
-      --ink:#EDEFF1;
-      --muted:#9FB0BD;
-      --accent:#C296DE;
-      --accent-2:#F06FA0;
-      --line:#2B3740;
-      --chip:#2E2240;
-      color-scheme: dark;
-    }
-  }
-  :root[data-theme="dark"]{
-    --bg:#141A1F;
-    --surface:#1D262D;
-    --ink:#EDEFF1;
-    --muted:#9FB0BD;
-    --accent:#C296DE;
-    --accent-2:#F06FA0;
-    --line:#2B3740;
-    --chip:#2E2240;
-    color-scheme: dark;
-  }
+/* =========================================================
+   Cây dữ liệu GDSK — điều hướng 3 cấp (Nhánh -> Tiểu mục -> Nội dung)
+   theo quy tắc "tối đa 2-3 lần chạm". Điều hướng bằng URL hash để hỗ trợ
+   mã QR dẫn thẳng vào từng khoa (#/4, #/6...) mà vẫn dùng chung 1 trang.
+   ========================================================= */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --purple:   #6B2D8B;
+  --purple-d: #4A1D62;
+  --purple-l: #9B59C0;
+  --pink:     #D63384;
+  --teal:     #00897B;
+  --bg:       #F8F4FC;
+  --card:     #FFFFFF;
+  --text:     #1A1A2E;
+  --muted:    #6B7280;
+  --border:   #E5E0ED;
+  --shadow:   0 4px 24px rgba(107,45,139,.12);
+  --radius:   14px;
+  --font:     'Be Vietnam Pro', sans-serif;
+}
+html { scroll-behavior: smooth; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh; }
+a { color: inherit; text-decoration: none; }
+img { max-width: 100%; display: block; }
+button { font-family: var(--font); cursor: pointer; }
 
-  *{box-sizing:border-box}
-  body{
-    margin:0;
-    background:var(--bg);
-    color:var(--ink);
-    font-family:var(--font-body);
-    padding-left:max(16px, env(safe-area-inset-left,0px));
-    padding-right:max(16px, env(safe-area-inset-right,0px));
-  }
-  h1,h2,h3{font-family:var(--font-display); text-wrap:balance; margin:0}
-  p{margin:0; line-height:1.65}
+/* NAV */
+.nav {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(255,255,255,.97); backdrop-filter: blur(10px);
+  border-bottom: 2px solid var(--purple);
+}
+.nav-inner { max-width: 960px; margin: auto; display: flex; align-items: center; justify-content: space-between; padding: .75rem 1.25rem; gap: 1rem; flex-wrap: wrap; }
+.nav-brand { display: flex; align-items: center; gap: .65rem; }
+.nav-logo { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg,var(--purple),var(--pink)); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: 1.3rem; flex-shrink: 0; }
+.nav-title strong { display: block; font-size: .92rem; color: var(--purple-d); }
+.nav-title span { font-size: .72rem; color: var(--muted); }
+.nav-home { font-size: .82rem; font-weight: 600; color: var(--purple); padding: .4rem .9rem; border: 2px solid var(--border); border-radius: 999px; transition: .2s; }
+.nav-home:hover { border-color: var(--purple); }
 
-  .wrap{max-width:860px; margin:0 auto}
+.wrap { max-width: 960px; margin: auto; padding: 1.75rem 1.25rem 4rem; }
 
-  /* Sticky chapter nav */
-  .nav{
-    position:sticky;
-    top:env(safe-area-inset-top,0px);
-    z-index:10;
-    background:color-mix(in srgb, var(--bg) 88%, transparent);
-    backdrop-filter:blur(8px);
-    border-bottom:1px solid var(--line);
-    padding-block:10px;
-    margin-inline:calc(-1 * max(16px, env(safe-area-inset-left,0px))) calc(-1 * max(16px, env(safe-area-inset-right,0px)));
-    padding-inline:max(16px, env(safe-area-inset-left,0px)) max(16px, env(safe-area-inset-right,0px));
-  }
-  .nav-inner{
-    max-width:860px; margin:0 auto;
-    display:flex; gap:8px; overflow-x:auto;
-    scrollbar-width:none;
-  }
-  .nav-inner::-webkit-scrollbar{display:none}
-  .nav-btn{
-    flex:none;
-    font-family:var(--font-body);
-    font-size:13px; font-weight:600;
-    color:var(--muted);
-    background:transparent;
-    border:1px solid var(--line);
-    border-radius:999px;
-    padding:7px 14px;
-    cursor:pointer;
-    white-space:nowrap;
-    transition:background .15s, color .15s, border-color .15s;
-  }
-  .nav-btn:hover{border-color:var(--accent)}
-  .nav-btn.active{background:var(--accent); color:#fff; border-color:var(--accent)}
-  .nav-btn:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+/* BREADCRUMB */
+.crumb { display: flex; align-items: center; flex-wrap: wrap; gap: .4rem; font-size: .85rem; color: var(--muted); margin-bottom: 1.5rem; }
+.crumb button { background: none; border: none; color: var(--purple); font-weight: 700; font-size: .85rem; padding: 0; }
+.crumb button:hover { text-decoration: underline; }
+.crumb .sep { color: var(--border); }
+.crumb .cur { color: var(--text); font-weight: 600; }
 
-  /* Cover */
-  .cover{
-    padding-block:56px 40px;
-    text-align:center;
-  }
-  .eyebrow{
-    display:inline-block;
-    font-size:12px; font-weight:700; letter-spacing:.09em; text-transform:uppercase;
-    color:var(--accent);
-    background:var(--chip);
-    padding:6px 14px;
-    border-radius:999px;
-    margin-bottom:18px;
-  }
-  .cover h1{
-    font-size:clamp(28px,5.5vw,44px);
-    font-weight:600;
-    line-height:1.15;
-    margin-bottom:14px;
-  }
-  .cover .sub{
-    color:var(--muted);
-    font-size:16px;
-    max-width:46ch;
-    margin:0 auto;
-  }
-  .cover .org{
-    margin-top:30px;
-    font-size:13px;
-    color:var(--muted);
-    display:flex; flex-direction:column; gap:2px;
-  }
-  .cover .org strong{color:var(--ink); font-weight:700}
+/* HEADER BLOCK */
+.view-head { margin-bottom: 1.75rem; }
+.view-head h1 { font-size: clamp(1.3rem, 3vw, 1.9rem); font-weight: 800; color: var(--purple-d); }
+.view-head p { color: var(--muted); font-size: .9rem; margin-top: .4rem; max-width: 60ch; }
+.tap-note { display: inline-flex; align-items: center; gap: .4rem; background: rgba(107,45,139,.08); color: var(--purple-d); font-size: .78rem; font-weight: 600; padding: .35rem .8rem; border-radius: 999px; margin-top: .6rem; }
 
-  .toc{
-    display:grid;
-    grid-template-columns:repeat(auto-fit, minmax(150px,1fr));
-    gap:10px;
-    margin-top:36px;
-    text-align:left;
-  }
-  .toc a{
-    display:flex; align-items:center; gap:10px;
-    background:var(--surface);
-    border:1px solid var(--line);
-    border-radius:12px;
-    padding:14px 16px;
-    text-decoration:none;
-    color:var(--ink);
-    font-size:14px; font-weight:600;
-    transition:border-color .15s, transform .15s;
-  }
-  .toc a:hover{border-color:var(--accent); transform:translateY(-1px)}
-  .toc .n{
-    font-family:var(--font-display);
-    font-size:20px; font-weight:600;
-    color:var(--accent);
-    flex:none;
-  }
+/* BRANCH GRID (cấp 1) */
+.branch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap: 1rem; }
+.branch-card {
+  background: var(--card); border-radius: var(--radius); padding: 1.4rem;
+  box-shadow: var(--shadow); border-top: 4px solid var(--purple);
+  display: flex; gap: 1rem; align-items: flex-start;
+  transition: transform .15s, box-shadow .15s; text-align: left; border-width: 0; border-top-width: 4px; width: 100%;
+}
+.branch-card:hover { transform: translateY(-3px); box-shadow: 0 10px 32px rgba(107,45,139,.2); }
+.branch-icon { font-size: 1.9rem; flex-shrink: 0; width: 46px; height: 46px; border-radius: 12px; background: var(--bg); display: flex; align-items: center; justify-content: center; }
+.branch-body h3 { font-size: 1rem; font-weight: 700; color: var(--purple-d); margin-bottom: .3rem; }
+.branch-body p { font-size: .78rem; color: var(--muted); }
 
-  /* Chapters */
-  .chapter{
-    scroll-margin-top:68px;
-    padding-block:48px;
-    border-top:1px solid var(--line);
-  }
-  .chapter:first-of-type{border-top:none}
-  .chapter-head{
-    display:flex; align-items:baseline; gap:14px;
-    margin-bottom:22px;
-  }
-  .chapter-num{
-    font-family:var(--font-display);
-    font-size:15px; font-weight:600;
-    color:var(--accent-2);
-    flex:none;
-  }
-  .chapter h2{
-    font-size:clamp(20px,3.2vw,26px);
-    font-weight:600;
-  }
-  .chapter .desc{
-    color:var(--muted);
-    font-size:14.5px;
-    max-width:62ch;
-    margin-bottom:22px;
-  }
+/* SUB LIST (cấp 2) */
+.sub-list { display: flex; flex-direction: column; gap: .85rem; }
+.sub-card {
+  background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 1.1rem 1.3rem; display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem; border-left: 4px solid var(--purple-l); width: 100%; border-width: 0; border-left-width: 4px; text-align: left;
+}
+.sub-card h3 { font-size: .95rem; font-weight: 700; color: var(--text); }
+.sub-card .count { font-size: .75rem; color: var(--muted); margin-top: .2rem; }
+.sub-arrow { font-size: 1.1rem; color: var(--purple); flex-shrink: 0; }
 
-  .sheet{
-    background:var(--surface);
-    border:1px solid var(--line);
-    border-radius:16px;
-    overflow:hidden;
-  }
-  .sheet img{
-    display:block;
-    width:100%;
-    height:auto;
-  }
+/* ITEM LIST (cấp 3) */
+.item-list { display: flex; flex-direction: column; gap: .75rem; }
+.item-row {
+  background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 1rem 1.2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+}
+.item-title { font-size: .9rem; font-weight: 600; color: var(--text); flex: 1; min-width: 180px; }
+.item-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+.act-btn {
+  display: inline-flex; align-items: center; gap: .4rem;
+  background: var(--bg); border: 2px solid var(--border); color: var(--purple-d);
+  font-size: .8rem; font-weight: 700; padding: .5rem 1rem; border-radius: 999px; transition: .2s;
+}
+.act-btn.img { }
+.act-btn.vid { }
+.act-btn:hover { background: var(--purple); border-color: var(--purple); color: #fff; }
+.soon-tag { font-size: .76rem; font-weight: 700; color: var(--muted); background: var(--bg); padding: .4rem .9rem; border-radius: 999px; }
+.empty-state { text-align: center; padding: 2.5rem 1rem; color: var(--muted); background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); }
+.empty-state .ic { font-size: 2rem; margin-bottom: .5rem; }
+.empty-state p { font-size: .88rem; }
 
-  .video-sheet{
-    background:var(--surface);
-    border:1px solid var(--line);
-    border-radius:16px;
-    padding:14px;
-  }
-  .video-frame{
-    position:relative;
-    width:100%;
-    aspect-ratio:16/9;
-    background:#0B0F13;
-    border-radius:10px;
-    overflow:hidden;
-  }
-  .video-frame video{
-    width:100%; height:100%;
-    display:block;
-    object-fit:contain;
-    background:#0B0F13;
-  }
-  .video-meta{
-    display:flex; justify-content:space-between; align-items:center;
-    gap:12px; flex-wrap:wrap;
-    padding:12px 4px 4px;
-    font-size:13px;
-    color:var(--muted);
-  }
+/* VIEWER MODAL */
+.viewer-overlay {
+  position: fixed; inset: 0; background: rgba(20,10,28,.78); z-index: 999;
+  display: flex; align-items: center; justify-content: center; padding: 1rem;
+  opacity: 0; pointer-events: none; transition: opacity .2s;
+}
+.viewer-overlay.open { opacity: 1; pointer-events: all; }
+.viewer-box { background: #fff; border-radius: 18px; max-width: 560px; width: 100%; max-height: 92vh; overflow: auto; }
+.viewer-top { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.2rem; border-bottom: 1px solid var(--border); }
+.viewer-top h3 { font-size: .95rem; font-weight: 700; color: var(--purple-d); padding-right: 1rem; }
+.viewer-close { background: var(--bg); border: none; width: 34px; height: 34px; border-radius: 50%; font-size: 1rem; flex-shrink: 0; }
+.viewer-media { background: #0B0F13; display: flex; align-items: center; justify-content: center; }
+.viewer-media img { width: 100%; height: auto; }
+.viewer-media video { width: 100%; max-height: 70vh; display: block; }
+.viewer-feedback { padding: 1.1rem 1.2rem 1.3rem; text-align: center; }
+.viewer-feedback p { font-size: .85rem; font-weight: 600; color: var(--text); margin-bottom: .7rem; }
+.fb-btns { display: flex; gap: .7rem; justify-content: center; }
+.fb-btn { background: var(--bg); border: 2px solid var(--border); border-radius: 999px; padding: .5rem 1.2rem; font-size: .85rem; font-weight: 700; color: var(--text); transition: .2s; }
+.fb-btn:hover { border-color: var(--purple); }
+.fb-btn.sent { background: var(--purple); border-color: var(--purple); color: #fff; }
+.fb-thanks { font-size: .8rem; color: var(--teal); font-weight: 700; margin-top: .6rem; display: none; }
+.fb-thanks.show { display: block; }
 
-  .tag-row{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px}
-  .tag{
-    font-size:12px; font-weight:600;
-    color:var(--accent);
-    background:var(--chip);
-    border-radius:999px;
-    padding:5px 11px;
-  }
+/* FOOTER */
+.footer { text-align: center; color: var(--muted); font-size: .78rem; padding: 2rem 1.25rem 1rem; }
 
-  /* Contact */
-  .contact{
-    padding-block:48px 72px;
-    border-top:1px solid var(--line);
-  }
-  .contact-card{
-    background:linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 60%, var(--accent-2)));
-    border-radius:18px;
-    padding:30px 26px;
-    color:#fff;
-  }
-  .contact-card h2{color:#fff; font-size:21px; margin-bottom:8px}
-  .contact-card p{color:rgba(255,255,255,.88); font-size:14px; margin-bottom:18px; max-width:52ch}
-  .contact-rows{display:flex; flex-direction:column; gap:10px}
-  .contact-row{
-    display:flex; align-items:center; gap:10px;
-    font-size:14.5px; font-weight:600;
-  }
-  .contact-row .ic{
-    flex:none; width:30px; height:30px;
-    border-radius:50%;
-    background:rgba(255,255,255,.18);
-    display:flex; align-items:center; justify-content:center;
-    font-size:15px;
-  }
-  .copy-btn{
-    margin-left:auto;
-    flex:none;
-    background:rgba(255,255,255,.18);
-    border:1px solid rgba(255,255,255,.4);
-    color:#fff;
-    font-size:12px; font-weight:700;
-    border-radius:999px;
-    padding:5px 12px;
-    cursor:pointer;
-  }
-  .copy-btn:hover{background:rgba(255,255,255,.3)}
-  .foot-note{
-    text-align:center;
-    font-size:12px;
-    color:var(--muted);
-    margin-top:28px;
-  }
-
-  @media (max-width:520px){
-    .cover{padding-block:40px 28px}
-    .chapter{padding-block:36px}
-    .contact-row{flex-wrap:wrap}
-    .copy-btn{margin-left:0}
-  }
-
-  [hidden]{display:none!important}
+@media (max-width: 560px) {
+  .branch-grid { grid-template-columns: 1fr; }
+  .item-row { flex-direction: column; align-items: flex-start; }
+}
 </style>
+</head>
+<body>
 
 <nav class="nav">
-  <div class="nav-inner" id="navInner">
-    <button class="nav-btn active" data-target="bia">Trang bìa</button>
-    <button class="nav-btn" data-target="ch1">1. Sau phá thai</button>
-    <button class="nav-btn" data-target="ch2">2. Que cấy</button>
-    <button class="nav-btn" data-target="ch3">3. Thuốc hàng ngày</button>
-    <button class="nav-btn" data-target="ch4">4. Video hướng dẫn</button>
-    <button class="nav-btn" data-target="lienhe">Liên hệ</button>
-    <a class="nav-btn" href="../index.html" style="text-decoration:none; margin-left:auto;">← Trang chủ Phòng CNTT</a>
-  </div>
-</nav>
-
-<div class="wrap">
-
-  <section class="cover" id="bia">
-    <span class="eyebrow">Khoa Kế hoạch hóa gia đình</span>
-    <h1>Cẩm Nang Kế Hoạch Hóa Gia Đình</h1>
-    <p class="sub">Tài liệu giáo dục sức khỏe dành cho người bệnh — chăm sóc sau thủ thuật, các biện pháp tránh thai và hướng dẫn thủ tục tại bệnh viện.</p>
-    <div class="org">
-      <strong>Bệnh viện Phụ Sản Trung Ương</strong>
-      <span>Khoa Kế hoạch hóa gia đình · Tầng 2 nhà A</span>
-    </div>
-
-    <div class="toc">
-      <a href="#ch1"><span class="n">01</span> Những điều cần biết sau phá thai</a>
-      <a href="#ch2"><span class="n">02</span> Que cấy tránh thai</a>
-      <a href="#ch3"><span class="n">03</span> Thuốc tránh thai hàng ngày</a>
-      <a href="#ch4"><span class="n">04</span> Video: Hướng dẫn làm hồ sơ sinh</a>
-    </div>
-  </section>
-
-  <section class="chapter" id="ch1">
-    <div class="chapter-head">
-      <span class="chapter-num">01</span>
-      <h2>Những điều cần biết sau phá thai</h2>
-    </div>
-    <div class="tag-row">
-      <span class="tag">Chăm sóc sau thủ thuật</span>
-      <span class="tag">Dấu hiệu cần đến viện ngay</span>
-    </div>
-    <p class="desc">Hướng dẫn chăm sóc, theo dõi và các dấu hiệu bất thường cần đến cơ sở y tế ngay sau khi thực hiện thủ thuật.</p>
-    <div class="sheet">
-      <img src="sau-pha-thai.jpg" alt="Infographic: Những điều cần biết sau phá thai" loading="lazy">
-    </div>
-  </section>
-
-  <section class="chapter" id="ch2">
-    <div class="chapter-head">
-      <span class="chapter-num">02</span>
-      <h2>Que cấy tránh thai</h2>
-    </div>
-    <div class="tag-row">
-      <span class="tag">Biện pháp tránh thai dài hạn</span>
-      <span class="tag">Chống chỉ định · Tác dụng phụ</span>
-    </div>
-    <p class="desc">Khái niệm, hiệu quả, thời điểm cấy phù hợp, chống chỉ định và các tác dụng phụ có thể gặp khi sử dụng que cấy tránh thai.</p>
-    <div class="sheet">
-      <img src="que-cay.jpg" alt="Infographic: Que cấy tránh thai" loading="lazy">
-    </div>
-  </section>
-
-  <section class="chapter" id="ch3">
-    <div class="chapter-head">
-      <span class="chapter-num">03</span>
-      <h2>Thuốc tránh thai hàng ngày</h2>
-    </div>
-    <div class="tag-row">
-      <span class="tag">Thuốc phối hợp &amp; thuốc chỉ chứa progestin</span>
-      <span class="tag">Cách uống đúng</span>
-    </div>
-    <p class="desc">Phân loại thuốc, cách uống đúng theo từng loại, xử trí khi quên thuốc và các tác dụng phụ thường gặp.</p>
-    <div class="sheet">
-      <img src="thuoc-hang-ngay.jpg" alt="Infographic: Thuốc tránh thai hàng ngày" loading="lazy">
-    </div>
-  </section>
-
-  <section class="chapter" id="ch4">
-    <div class="chapter-head">
-      <span class="chapter-num">04</span>
-      <h2>Video: Hướng dẫn người bệnh làm hồ sơ sinh</h2>
-    </div>
-    <div class="tag-row">
-      <span class="tag">Thủ tục hành chính</span>
-      <span class="tag">Dành cho sản phụ</span>
-    </div>
-    <p class="desc">Video hướng dẫn trực quan các bước chuẩn bị và hoàn thiện hồ sơ sinh tại bệnh viện.</p>
-    <div class="video-sheet">
-      <div class="video-frame">
-        <video controls preload="metadata" playsinline poster="">
-          <source src="video-ho-so-sinh.mp4" type="video/mp4">
-          Trình duyệt của bạn không hỗ trợ phát video này.
-        </video>
-      </div>
-      <div class="video-meta">
-        <span>Thời lượng: khoảng 1 phút 16 giây</span>
+  <div class="nav-inner">
+    <div class="nav-brand">
+      <div class="nav-logo">🏥</div>
+      <div class="nav-title">
+        <strong>Thư viện Điện tử GDSK</strong>
         <span>Bệnh viện Phụ Sản Trung Ương</span>
       </div>
     </div>
-  </section>
+    <a class="nav-home" href="../index.html">← Trang chủ Phòng CNTT</a>
+  </div>
+</nav>
 
-  <section class="contact" id="lienhe">
-    <div class="contact-card">
-      <h2>Cần tư vấn thêm?</h2>
-      <p>Khoa Kế hoạch hóa gia đình luôn sẵn sàng hỗ trợ. Vui lòng liên hệ theo thông tin dưới đây hoặc đến trực tiếp để được thăm khám và tư vấn.</p>
-      <div class="contact-rows">
-        <div class="contact-row">
-          <span class="ic">📍</span>
-          <span>Tầng 2, nhà A — Bệnh viện Phụ Sản Trung Ương</span>
-        </div>
-        <div class="contact-row">
-          <span class="ic">☎️</span>
-          <span id="phoneText">024 3936 0029</span>
-          <button class="copy-btn" id="copyBtn" type="button">Sao chép</button>
-        </div>
-      </div>
-    </div>
-    <p class="foot-note">Tài liệu chỉ mang tính chất tham khảo, không thay thế cho chẩn đoán và chỉ định của bác sĩ.</p>
-  </section>
+<div class="wrap" id="app"></div>
 
+<div class="footer">
+  Tài liệu chỉ mang tính chất tham khảo, không thay thế cho chẩn đoán và chỉ định của bác sĩ.<br>
+  Khoa liên quan vui lòng liên hệ Phòng Điều dưỡng / Phòng CNTT để cập nhật nội dung.
 </div>
 
+<!-- VIEWER -->
+<div class="viewer-overlay" id="viewerOverlay">
+  <div class="viewer-box">
+    <div class="viewer-top">
+      <h3 id="viewerTitle"></h3>
+      <button class="viewer-close" id="viewerClose">✕</button>
+    </div>
+    <div class="viewer-media" id="viewerMedia"></div>
+    <div class="viewer-feedback">
+      <p>Thông tin này có hữu ích không?</p>
+      <div class="fb-btns">
+        <button class="fb-btn" id="fbYes">👍 Hữu ích</button>
+        <button class="fb-btn" id="fbNo">👎 Chưa hữu ích</button>
+      </div>
+      <div class="fb-thanks" id="fbThanks">Cảm ơn bạn đã phản hồi!</div>
+    </div>
+  </div>
+</div>
+
+<script src="data.js"></script>
 <script>
-(function(){
+/* =====================================================
+   FIREBASE (dùng chung project sẵn có của Phòng CNTT — miễn phí)
+   Chỉ dùng để ghi nhận khảo sát "hữu ích?", không đọc dữ liệu nhạy cảm.
+===================================================== */
+const FB_URL = 'https://cntt-bvpstw-default-rtdb.asia-southeast1.firebasedatabase.app';
+const FB_API_KEY = 'AIzaSyCyOHEBJihvzhHmK4FhKZe4NyCtbowHG-Q';
+let _fbAuthPromise = null;
+async function ensureFbAuth(){
   try{
-    var buttons = Array.prototype.slice.call(document.querySelectorAll('.nav-btn'));
-    var sections = buttons.map(function(b){ return document.getElementById(b.dataset.target); });
+    const cached = JSON.parse(sessionStorage.getItem('gdsk_fb_auth')||'null');
+    if(cached && cached.expiry > Date.now()) return cached.token;
+  }catch(e){}
+  if(_fbAuthPromise) return _fbAuthPromise;
+  _fbAuthPromise = fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${FB_API_KEY}`,{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({returnSecureToken:true})
+  }).then(r=>r.json()).then(data=>{
+    if(!data.idToken) return null;
+    const expiry = Date.now() + (parseInt(data.expiresIn||'3600',10)*1000) - 60000;
+    try{ sessionStorage.setItem('gdsk_fb_auth', JSON.stringify({token:data.idToken, expiry})); }catch(e){}
+    return data.idToken;
+  }).catch(()=>null).finally(()=>{ _fbAuthPromise=null; });
+  return _fbAuthPromise;
+}
+async function sendFeedback(itemKey, useful){
+  try{
+    const token = await ensureFbAuth();
+    if(!token) return false;
+    const url = `${FB_URL}/feedback/${encodeURIComponent(itemKey)}.json?auth=${token}`;
+    await fetch(url, { method:'POST', body: JSON.stringify({ useful, ts: Date.now() }) });
+    return true;
+  }catch(e){ return false; }
+}
 
-    buttons.forEach(function(btn){
-      btn.addEventListener('click', function(){
-        var el = document.getElementById(btn.dataset.target);
-        if(el){ el.scrollIntoView({behavior:'smooth', block:'start'}); }
-      });
-    });
+/* =====================================================
+   ROUTER — hash dạng #/<branch>/<sub>  (vd: #/4  hoặc  #/4/2)
+   Cho phép mã QR chuyên khoa dẫn thẳng vào 1 nhánh (bỏ qua bước chọn nhánh).
+===================================================== */
+const app = document.getElementById('app');
 
-    if('IntersectionObserver' in window){
-      var io = new IntersectionObserver(function(entries){
-        entries.forEach(function(entry){
-          if(entry.isIntersecting){
-            var idx = sections.indexOf(entry.target);
-            if(idx > -1){
-              buttons.forEach(function(b){ b.classList.remove('active'); });
-              buttons[idx].classList.add('active');
-              var navInner = document.getElementById('navInner');
-              var activeBtn = buttons[idx];
-              if(navInner && activeBtn){
-                var left = activeBtn.offsetLeft - 16;
-                navInner.scrollTo({left: left, behavior:'smooth'});
-              }
-            }
-          }
-        });
-      }, {rootMargin:'-45% 0px -50% 0px', threshold:0});
-      sections.forEach(function(s){ if(s) io.observe(s); });
-    }
+function esc(str){
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
 
-    var copyBtn = document.getElementById('copyBtn');
-    var phoneText = document.getElementById('phoneText');
-    if(copyBtn && phoneText){
-      copyBtn.addEventListener('click', function(){
-        var text = phoneText.textContent;
-        function fallback(){
-          try{
-            var range = document.createRange();
-            range.selectNode(phoneText);
-            var sel = window.getSelection();
-            sel.removeAllRanges();
-            sel.addRange(range);
-          }catch(e){}
-        }
-        if(navigator.clipboard && navigator.clipboard.writeText){
-          navigator.clipboard.writeText(text).then(function(){
-            copyBtn.textContent = 'Đã sao chép';
-            setTimeout(function(){ copyBtn.textContent = 'Sao chép'; }, 1800);
-          }).catch(fallback);
-        } else {
-          fallback();
-        }
-      });
-    }
-  }catch(e){ /* non-fatal: page still renders without JS niceties */ }
-})();
+function parseHash(){
+  const raw = (location.hash || '').replace(/^#\/?/, '');
+  const parts = raw.split('/').filter(Boolean);
+  return { branchId: parts[0] || null, subId: parts[1] || null };
+}
+
+function findBranch(id){ return TREE.find(b => b.id === id); }
+function findSub(branch, subId){ return branch && branch.subs.find(s => s.id === subId); }
+
+function render(){
+  const { branchId, subId } = parseHash();
+  if(!branchId){ renderBranches(); return; }
+  const branch = findBranch(branchId);
+  if(!branch){ renderBranches(); return; }
+  if(!subId){ renderSubs(branch); return; }
+  const sub = findSub(branch, subId);
+  if(!sub){ renderSubs(branch); return; }
+  renderItems(branch, sub);
+}
+
+function crumbHtml(parts){
+  // parts: [{label, href}] cuối cùng là trang hiện tại (không link)
+  return `<div class="crumb">` + parts.map((p,i)=>{
+    const isLast = i === parts.length-1;
+    const sep = i>0 ? '<span class="sep">›</span>' : '';
+    if(isLast) return sep + `<span class="cur">${p.label}</span>`;
+    return sep + `<button onclick="location.hash='${p.href}'">${p.label}</button>`;
+  }).join('') + `</div>`;
+}
+
+function renderBranches(){
+  app.innerHTML = `
+    <div class="view-head">
+      <h1>Thư viện Điện tử Giáo dục Sức khỏe</h1>
+      <p>Chọn chủ đề quan tâm bên dưới. Mỗi mục chỉ cần 2–3 lần chạm là đến đúng nội dung cần xem.</p>
+    </div>
+    <div class="branch-grid">
+      ${TREE.map(b => `
+        <button class="branch-card" onclick="location.hash='/${b.id}'">
+          <div class="branch-icon">${b.icon}</div>
+          <div class="branch-body">
+            <h3>${b.id}. ${b.title}</h3>
+            <p>${b.subs.length} tiểu mục</p>
+          </div>
+        </button>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderSubs(branch){
+  app.innerHTML = `
+    ${crumbHtml([{label:'Trang đích', href:'/'}, {label:`${branch.id}. ${branch.title}`}])}
+    <div class="view-head">
+      <h1>${branch.icon} ${branch.title}</h1>
+      <span class="tap-note">👆 Chạm để xem nội dung — còn 1 bước nữa</span>
+    </div>
+    <div class="sub-list">
+      ${branch.subs.map(s => {
+        const n = s.items.length;
+        const countLabel = n ? `${n} nội dung` : 'Đang xây dựng';
+        return `
+        <button class="sub-card" onclick="location.hash='/${branch.id}/${s.id}'">
+          <div>
+            <h3>${s.id} ${s.title}</h3>
+            <div class="count">${countLabel}</div>
+          </div>
+          <div class="sub-arrow">→</div>
+        </button>`;
+      }).join('')}
+    </div>
+  `;
+}
+
+function renderItems(branch, sub){
+  const hasItems = sub.items.length > 0;
+  app.innerHTML = `
+    ${crumbHtml([{label:'Trang đích', href:'/'}, {label:`${branch.id}. ${branch.title}`, href:`/${branch.id}`}, {label:`${sub.id} ${sub.title}`}])}
+    <div class="view-head">
+      <h1>${sub.title}</h1>
+    </div>
+    ${hasItems ? `
+    <div class="item-list">
+      ${sub.items.map((it, idx) => {
+        const key = `${branch.id}_${sub.id}_${idx}`;
+        const hasMedia = it.img || it.video;
+        const actions = [];
+        if(it.img) actions.push(`<button class="act-btn img" data-key="${esc(key)}" data-title="${esc(it.title)}" data-type="image" data-src="${esc(it.img)}">🖼️ Xem hình</button>`);
+        if(it.video) actions.push(`<button class="act-btn vid" data-key="${esc(key)}" data-title="${esc(it.title)}" data-type="video" data-src="${esc(it.video)}">🎬 Xem Clip</button>`);
+        return `
+        <div class="item-row">
+          <div class="item-title">${esc(it.title)}</div>
+          <div class="item-actions">
+            ${hasMedia ? actions.join('') : '<span class="soon-tag">Sắp cập nhật</span>'}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+    ` : `
+    <div class="empty-state">
+      <div class="ic">🛠️</div>
+      <p>Nội dung tiểu mục này đang được Phòng Điều dưỡng biên soạn.<br>Vui lòng quay lại sau.</p>
+    </div>
+    `}
+  `;
+}
+
+/* =====================================================
+   VIEWER (lightbox ảnh / video + khảo sát hữu ích)
+===================================================== */
+let currentFeedbackKey = null;
+const overlay = document.getElementById('viewerOverlay');
+const mediaBox = document.getElementById('viewerMedia');
+const titleBox = document.getElementById('viewerTitle');
+const fbYes = document.getElementById('fbYes');
+const fbNo = document.getElementById('fbNo');
+const fbThanks = document.getElementById('fbThanks');
+
+function openViewer(key, title, type, src){
+  currentFeedbackKey = key;
+  titleBox.textContent = title;
+  fbYes.classList.remove('sent'); fbNo.classList.remove('sent');
+  fbThanks.classList.remove('show');
+  if(type === 'image'){
+    mediaBox.innerHTML = `<img src="${src}" alt="${title}">`;
+  } else {
+    mediaBox.innerHTML = `<video controls playsinline src="${src}"></video>`;
+  }
+  overlay.classList.add('open');
+}
+function closeViewer(){
+  overlay.classList.remove('open');
+  mediaBox.innerHTML = '';
+  const v = mediaBox.querySelector('video');
+  if(v) v.pause();
+}
+document.getElementById('viewerClose').addEventListener('click', closeViewer);
+overlay.addEventListener('click', (e)=>{ if(e.target === overlay) closeViewer(); });
+
+app.addEventListener('click', (e)=>{
+  const btn = e.target.closest('.act-btn');
+  if(!btn) return;
+  openViewer(btn.dataset.key, btn.dataset.title, btn.dataset.type, btn.dataset.src);
+});
+
+fbYes.addEventListener('click', async ()=>{
+  fbYes.classList.add('sent'); fbNo.classList.remove('sent');
+  fbThanks.classList.add('show');
+  if(currentFeedbackKey) sendFeedback(currentFeedbackKey, true);
+});
+fbNo.addEventListener('click', async ()=>{
+  fbNo.classList.add('sent'); fbYes.classList.remove('sent');
+  fbThanks.classList.add('show');
+  if(currentFeedbackKey) sendFeedback(currentFeedbackKey, false);
+});
+
+window.addEventListener('hashchange', render);
+document.addEventListener('DOMContentLoaded', render);
 </script>
+</body>
+</html>
