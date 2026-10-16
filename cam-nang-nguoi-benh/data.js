@@ -110,5 +110,6 @@ const TREE = [
 /* Mục NỔI BẬT ở trang đích (banner phía trên 7 nhánh).
    Muốn đổi/gỡ: sửa hoặc đặt FEATURED = []. href là đường dẫn hash trong cây dữ liệu. */
 const FEATURED = [
+  { icon: '🩻', badge: 'Video mới', title: 'Hướng dẫn người bệnh chuẩn bị siêu âm', desc: 'Xem clip hướng dẫn cần chuẩn bị gì trước khi siêu âm', href: '/7/7.1' },
   { icon: '🎬', badge: 'Video mới', title: 'Hướng dẫn người bệnh làm hồ sơ sinh', desc: 'Xem clip hướng dẫn từng bước thủ tục làm hồ sơ sinh', href: '/7/7.2' },
 ];
