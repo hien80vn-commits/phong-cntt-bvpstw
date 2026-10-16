@@ -13,6 +13,7 @@ const TREE = [
         { title: 'Chế độ dinh dưỡng & Vận động' },
         { title: 'Lịch khám thai & Các mốc xét nghiệm, siêu âm quan trọng' },
         { title: 'Dấu hiệu nguy hiểm cần đến viện ngay (Dọa sảy, Tiền sản giật...)' },
+        { title: 'Nghiệm pháp dung nạp đường huyết (OGTT)', video: 'video-nghiem-phap-duong-huyet.mp4' },
       ]},
       { id: '1.2', title: 'Chuyển dạ & Sinh nở', items: [
         { title: 'Dấu hiệu chuyển dạ & Đi viện cần chuẩn bị gì?' },
@@ -110,6 +111,7 @@ const TREE = [
 /* Mục NỔI BẬT ở trang đích (banner phía trên 7 nhánh).
    Muốn đổi/gỡ: sửa hoặc đặt FEATURED = []. href là đường dẫn hash trong cây dữ liệu. */
 const FEATURED = [
+  { icon: '🩸', badge: 'Video mới', title: 'Nghiệm pháp dung nạp đường huyết', desc: 'Xem clip hướng dẫn thực hiện nghiệm pháp dung nạp đường huyết khi mang thai', href: '/1/1.1' },
   { icon: '🩻', badge: 'Video mới', title: 'Hướng dẫn người bệnh chuẩn bị siêu âm', desc: 'Xem clip hướng dẫn cần chuẩn bị gì trước khi siêu âm', href: '/7/7.1' },
   { icon: '🎬', badge: 'Video mới', title: 'Hướng dẫn người bệnh làm hồ sơ sinh', desc: 'Xem clip hướng dẫn từng bước thủ tục làm hồ sơ sinh', href: '/7/7.2' },
 ];
