@@ -100,8 +100,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       </div>
     </div>
     <div class="nav-links" id="navLinks">
-      <a href="index.html">🏠 Trang chủ</a>
-      <a href="cam-nang-nguoi-benh/index.html">📖 Thư viện GDSK</a>
+      <a id="lnkHome" href="index.html">🏠 Trang chủ</a>
+      <a id="lnkLib" href="cam-nang-nguoi-benh/index.html">📖 Thư viện GDSK</a>
       <a href="dashboard.html">📊 Dashboard</a>
       <a href="thong-ke-gdsk.html" class="active">📈 Thống kê GDSK</a>
       <button class="red" id="btn-logout" onclick="logout()" style="display:none">Đăng xuất</button>
@@ -116,7 +116,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <div style="font-size:3rem;margin-bottom:1rem">🔒</div>
   <h2>Không có quyền truy cập</h2>
   <p style="color:var(--muted);margin-bottom:1.5rem">Vui lòng đăng nhập ở Trang chủ bằng tài khoản nhân sự Phòng CNTT để xem thống kê.</p>
-  <a href="index.html" class="refresh-btn" style="display:inline-block;">← Về trang chủ để đăng nhập</a>
+  <a id="lnkLogin" href="index.html" class="refresh-btn" style="display:inline-block;">← Về trang chủ để đăng nhập</a>
 </div>
 
 <div id="stats-main" style="display:none">
@@ -150,18 +150,23 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
 </div>
 
+<script src="cam-nang-nguoi-benh/gdsk-config.js"></script>
 <script src="cam-nang-nguoi-benh/data.js"></script>
 <script>
 /* ===== AUTH (dùng chung cơ chế với index.html / dashboard.html) ===== */
-function getSession(){ try{return JSON.parse(sessionStorage.getItem('cntt_session'))||null;}catch(e){return null;} }
-function logout(){ sessionStorage.removeItem('cntt_session'); location.href='index.html'; }
+function getSession(){
+  if(!GDSK_CONFIG.STATS_SESSION_KEY) return {}; // không bật kiểm tra đăng nhập
+  try{return JSON.parse(sessionStorage.getItem(GDSK_CONFIG.STATS_SESSION_KEY))||null;}catch(e){return null;}
+}
+function logout(){ if(GDSK_CONFIG.STATS_SESSION_KEY) sessionStorage.removeItem(GDSK_CONFIG.STATS_SESSION_KEY); location.href=GDSK_CONFIG.STATS_LOGIN_URL; }
 function toggleMenu(){ document.getElementById('navLinks').classList.toggle('open'); }
 
 /* ===== FIREBASE (project có sẵn — chỉ đọc, không ghi) ===== */
-const FB_URL = 'https://cntt-bvpstw-default-rtdb.asia-southeast1.firebasedatabase.app';
-const FB_API_KEY = 'AIzaSyCyOHEBJihvzhHmK4FhKZe4NyCtbowHG-Q';
+const FB_URL = GDSK_CONFIG.FB_URL;
+const FB_API_KEY = GDSK_CONFIG.FB_API_KEY;
 let _fbAuthPromise = null;
 async function ensureFbAuth(){
+  if(!FB_URL || !FB_API_KEY) return null;
   try{
     const cached = JSON.parse(sessionStorage.getItem('gdsk_fb_auth')||'null');
     if(cached && cached.expiry > Date.now()) return cached.token;
@@ -185,8 +190,8 @@ function buildItemIndex(){
   TREE.forEach(branch=>{
     branch.subs.forEach(sub=>{
       sub.items.forEach((it, idx)=>{
-        const key = `${branch.id}_${sub.id}_${idx}`;
-        map[key] = { branch, sub, item: it, hasMedia: !!(it.img || it.video) };
+        const key = gdskItemKey(branch, sub, it, idx);
+        map[key] = { branch, sub, item: it, hasMedia: !!(it.img || it.video || it.article) };
       });
     });
   });
@@ -342,13 +347,16 @@ function exportCsv(){
 }
 
 document.addEventListener('DOMContentLoaded', ()=>{
+  document.getElementById('lnkHome').href = GDSK_CONFIG.STATS_HOME_URL;
+  document.getElementById('lnkLib').href = GDSK_CONFIG.STATS_TO_LIBRARY_URL;
+  document.getElementById('lnkLogin').href = GDSK_CONFIG.STATS_LOGIN_URL;
   const s = getSession();
   if(!s){
     document.getElementById('access-denied').style.display='block';
     return;
   }
   document.getElementById('stats-main').style.display='block';
-  document.getElementById('btn-logout').style.display='inline-block';
+  if(GDSK_CONFIG.STATS_SESSION_KEY) document.getElementById('btn-logout').style.display='inline-block';
   loadStats();
 });
 </script>
