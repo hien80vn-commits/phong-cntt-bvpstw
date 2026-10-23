@@ -120,10 +120,15 @@ details.branch[open] > summary { border-bottom:1px solid var(--border); border-r
 <body>
 
 <!-- ĐĂNG NHẬP -->
-<div id="login" class="login-wrap">
+<div id="denied" class="login-wrap" hidden>
+  <div class="login-card"><h1>🔒 Không có quyền truy cập</h1><p class="sub" id="deniedMsg"></p>
+    <a class="btn primary" id="deniedLink" href="../index.html" style="display:inline-block;text-decoration:none">← Về trang chủ Phòng CNTT để đăng nhập</a></div>
+</div>
+
+<div id="login" class="login-wrap" hidden>
   <div class="login-card">
     <h1>🔐 Quản trị Thư viện GDSK</h1>
-    <p class="sub">Dành cho cán bộ được phân quyền cập nhật nội dung. Đăng nhập bằng khóa truy cập (token) của kho dữ liệu.</p>
+    <p class="sub" id="whoami">Dành cho cán bộ được phân quyền cập nhật nội dung. Đăng nhập bằng khóa truy cập (token) của kho dữ liệu.</p>
     <details class="how">
       <summary>Chưa có khóa truy cập? Cách tạo (làm 1 lần)</summary>
       <ol>
@@ -606,7 +611,7 @@ async function doPublish(){
   if(!ok) return;
   const prog = $('#btnPublish'); const old = prog.textContent; prog.disabled = true;
   try{
-    await Store.publish({ upload, texts, deletes, message:`Quản trị GDSK: cập nhật thư viện (${new Date().toLocaleString('vi-VN')})` }, t=>{ prog.textContent = t.length>40? t.slice(0,38)+'…' : t; });
+    await Store.publish({ upload, texts, deletes, message:`Quản trị GDSK: cập nhật thư viện${gh.editor?' — '+gh.editor:''} (${new Date().toLocaleString('vi-VN')})` }, t=>{ prog.textContent = t.length>40? t.slice(0,38)+'…' : t; });
     toast('✅ Đã xuất bản. Trang thư viện sẽ cập nhật sau 1–2 phút.');
     pending.files.clear(); pending.articles.clear();
     await reloadFromRemote();
@@ -631,7 +636,7 @@ function readSession(){
   try{ return JSON.parse(sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY) || 'null'); }catch(e){ return null; }
 }
 async function connect(token, owner, repo, branch, remember){
-  gh = { token, owner, repo, branch, base: CFG.GH_BASE || 'cam-nang-nguoi-benh' };
+  gh = { token, owner, repo, branch, base: CFG.GH_BASE || 'cam-nang-nguoi-benh', editor: adminSess ? adminSess.name : '' };
   try{
     await reloadFromRemote();
     saveSession(remember);
@@ -667,10 +672,22 @@ $('#btnLogout').addEventListener('click', async ()=>{
   gh = null; location.reload();
 });
 
+let adminSess = null;
+function deny(msg){
+  $('#login').hidden = true; $('#adminApp').hidden = true; $('#denied').hidden = false;
+  $('#deniedMsg').textContent = msg; $('#deniedLink').href = CFG.ADMIN_LOGIN_URL || '../index.html';
+}
 (async function init(){
+  if(CFG.ADMIN_SESSION_KEY){
+    try{ adminSess = JSON.parse(sessionStorage.getItem(CFG.ADMIN_SESSION_KEY)) || null; }catch(e){ adminSess = null; }
+    if(!adminSess){ deny('Vui lòng đăng nhập tài khoản Phòng CNTT ở Trang chủ, sau đó mở lại trang quản trị.'); return; }
+    if(!gdskIsAdmin(adminSess)){ deny(`Tài khoản ${adminSess.name} (${adminSess.position||adminSess.role}) chưa được cấp quyền quản trị Thư viện. Liên hệ Trưởng phòng / Tổ trưởng để được cấp quyền.`); return; }
+    $('#whoami').textContent = `Xin chào ${adminSess.name}. Nhập khóa truy cập (token) của kho dữ liệu để bắt đầu chỉnh sửa.`;
+  }
+  $('#login').hidden = false;
   const s = readSession();
   $('#inOwner').value = (s&&s.owner) || CFG.GH_OWNER || ''; $('#inRepo').value = (s&&s.repo) || CFG.GH_REPO || ''; $('#inBranch').value = (s&&s.branch) || CFG.GH_BRANCH || 'main';
-  if(s && s.token){
+  if(s && s.token){ $('#login').hidden = false;
     $('#inRemember').checked = !!localStorage.getItem(TOKEN_KEY);
     const m = await connect(s.token, s.owner, s.repo, s.branch, $('#inRemember').checked);
     if(m){ $('#loginErr').textContent = m; $('#loginErr').hidden = false; }

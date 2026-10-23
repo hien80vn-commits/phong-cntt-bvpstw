@@ -22,6 +22,21 @@ const GDSK_CONFIG = {
   STATS_HOME_URL: 'index.html',
 };
 
+/* --- PHÂN QUYỀN TRANG QUẢN TRỊ bằng đăng nhập của Phòng CNTT ---
+   Chỉ tài khoản có vai trò trong ADMIN_ROLES (hoặc có id trong ADMIN_USER_IDS) mới mở được quan-tri.html.
+   Vai trò theo đăng nhập hiện có: lanh_dao (Trưởng/Phó phòng), to_truong, leader (Trưởng nhóm), staff.
+   ADMIN_SESSION_KEY = null → bỏ kiểm tra này (chỉ còn token GitHub). */
+Object.assign(GDSK_CONFIG, {
+  ADMIN_SESSION_KEY: 'cntt_session',
+  ADMIN_ROLES: ['lanh_dao', 'to_truong'],
+  ADMIN_USER_IDS: [],               // thêm id nhân viên được cấp quyền riêng, ví dụ [14, 20]
+  ADMIN_LOGIN_URL: '../index.html',
+});
+function gdskIsAdmin(sess){
+  if(!sess) return false;
+  return GDSK_CONFIG.ADMIN_ROLES.includes(sess.role) || GDSK_CONFIG.ADMIN_USER_IDS.includes(sess.id);
+}
+
 /* --- TRANG QUẢN TRỊ (quan-tri.html): nội dung được lưu thẳng vào kho GitHub --- */
 Object.assign(GDSK_CONFIG, {
   GH_OWNER: 'hien80vn-commits',

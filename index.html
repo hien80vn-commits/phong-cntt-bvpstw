@@ -419,6 +419,7 @@ ul { list-style: none; }
       <a href="report.html" class="protected-link" id="nav-baocao" style="background:var(--pink);color:#fff;">📋 Cổng báo cáo</a>
       <a href="tai-lieu.html" class="protected-link" id="nav-tailieu" style="background:var(--purple);color:#fff;">📚 Thư viện Tài liệu</a>
       <a href="dashboard.html" class="protected-link" id="nav-dashboard" style="background:linear-gradient(135deg,#1565C0,#0D47A1);color:#fff;">📊 Dashboard</a>
+      <a href="cam-nang-nguoi-benh/quan-tri.html" class="protected-link" id="nav-quantrigdsk" style="display:none;background:linear-gradient(135deg,var(--purple),var(--purple-l));color:#fff;">🛠️ Quản trị Thư viện</a>
       <a href="thong-ke-gdsk.html" class="protected-link" id="nav-thongkegdsk" style="background:linear-gradient(135deg,var(--teal),#26A69A);color:#fff;">📈 Thống kê GDSK</a>
       <div class="nav-user" id="nav-user-area">
         <div id="nav-guest">
@@ -656,6 +657,7 @@ ul { list-style: none; }
 <!-- ===================== TOAST ===================== -->
 <div class="toast" id="toast"></div>
 
+<script src="cam-nang-nguoi-benh/gdsk-config.js"></script>
 <script>
 /* =====================================================
    DATA
@@ -1165,6 +1167,7 @@ function applyAuthState(){
     logged.style.display='flex';
     document.getElementById('nav-username').textContent='👤 '+sess.name;
     links.forEach(l=>l.style.display='inline-block');
+    const qt=document.getElementById('nav-quantrigdsk'); if(qt && !gdskIsAdmin(sess)) qt.style.display='none';
   } else {
     guest.style.display='block';
     logged.style.display='none';
