@@ -259,7 +259,12 @@ async function logView(itemKey){
     const token = await ensureFbAuth();
     if(!token) return;
     const url = `${FB_URL}/views/${encodeURIComponent(itemKey)}.json?auth=${token}`;
-    await fetch(url, { method:'POST', body: JSON.stringify({ ts: Date.now() }) });
+    const r = await fetch(url, { method:'POST', body: JSON.stringify({ ts: Date.now() }) });
+    if(!r.ok){
+      // ghi nhận thất bại (thường do quy tắc Firebase chưa cho phép ghi 'views'): cho phép thử lại, báo ở console
+      try{ sessionStorage.setItem('gdsk_viewed', JSON.stringify(viewedSet().filter(k=>k!==itemKey))); }catch(e){}
+      console.warn('[GDSK] Không ghi được lượt xem, HTTP', r.status);
+    }
   }catch(e){ /* không chặn trải nghiệm xem nội dung nếu ghi nhận lỗi */ }
 }
 

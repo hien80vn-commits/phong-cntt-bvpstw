@@ -132,9 +132,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <span id="lastUpdated">Đang tải dữ liệu...</span>
       <div style="display:flex;gap:.6rem;">
         <button class="refresh-btn" onclick="loadStats()">🔄 Tải lại</button>
+        <button class="refresh-btn" onclick="runDiag()">🔧 Kiểm tra ghi nhận</button>
         <button class="export-btn" onclick="exportCsv()">⬇️ Xuất CSV</button>
       </div>
     </div>
+
+    <div id="diagBox" style="display:none;background:#fff;border-radius:12px;box-shadow:var(--shadow);padding:1rem 1.2rem;margin-bottom:1rem;font-size:.86rem;"></div>
 
     <div class="kpi-grid">
       <div class="kpi b"><div class="kpi-num" id="kpiViews">–</div><div class="kpi-label">👁️ Tổng lượt xem</div></div>
@@ -200,6 +203,27 @@ function buildItemIndex(){
 
 let rawRowsForExport = [];
 
+/* ===== Kiểm tra quyền đọc/ghi Firebase cho 2 nhánh dữ liệu: views và feedback ===== */
+async function runDiag(){
+  const box = document.getElementById('diagBox'); box.style.display = 'block';
+  box.innerHTML = 'Đang kiểm tra...';
+  const token = await ensureFbAuth();
+  if(!token){ box.innerHTML = '❌ Không đăng nhập ẩn danh được vào Firebase (Authentication → Anonymous chưa bật, hoặc tên miền chưa nằm trong Authorized domains).'; return; }
+  const rows = []; let needRules = false;
+  for(const path of ['views','feedback']){
+    let w = '?', r = '?';
+    try{ const x = await fetch(`${FB_URL}/${path}/_diag.json?auth=${token}`, { method:'POST', body: JSON.stringify({ ts:Date.now(), test:true }) }); w = x.ok ? '✅ ghi được' : `❌ bị chặn (HTTP ${x.status})`; if(!x.ok) needRules = true; }catch(e){ w = '❌ lỗi mạng'; }
+    try{ const x = await fetch(`${FB_URL}/${path}.json?auth=${token}&shallow=true`, { cache:'no-store' }); r = x.ok ? '✅ đọc được' : `❌ bị chặn (HTTP ${x.status})`; if(!x.ok) needRules = true; }catch(e){ r = '❌ lỗi mạng'; }
+    rows.push(`<tr><td style="padding:.3rem .8rem .3rem 0"><b>${path}</b></td><td style="padding:.3rem .8rem">${w}</td><td style="padding:.3rem .8rem">${r}</td></tr>`);
+  }
+  box.innerHTML = `<b>Kết quả kiểm tra Firebase</b><table style="margin:.5rem 0"><tr><th align="left">Nhánh</th><th align="left">Ghi</th><th align="left">Đọc</th></tr>${rows.join('')}</table>` +
+    (needRules ? `<div style="color:#C62828;font-weight:700;margin:.4rem 0">Nhánh bị chặn sẽ không ghi nhận / hiển thị được số liệu.</div>
+      <div>Cách xử lý: vào <b>Firebase Console → Realtime Database → Rules</b>, <b>thêm</b> (không xóa các quy tắc đang dùng cho nhân sự, lịch trực…) hai khối sau cạnh khối <code>feedback</code> hiện có, rồi bấm <b>Publish</b>:</div>
+      <pre style="background:#F8F4FC;padding:.7rem;border-radius:8px;overflow:auto;font-size:.78rem">"feedback": { ".read": "auth != null", "$k": { "$id": { ".write": "auth != null &amp;&amp; !data.exists()" } } },
+"views":    { ".read": "auth != null", "$k": { "$id": { ".write": "auth != null &amp;&amp; !data.exists()" } } }</pre>` : `<div style="color:#00897B;font-weight:700">✅ Ghi và đọc đều hoạt động. Nếu vẫn thấy 0 lượt xem, mở lại thư viện bằng trình duyệt ẩn danh, xem một nội dung, rồi bấm 🔄 Tải lại.</div>`) +
+    `<div style="color:#6B7280;font-size:.78rem;margin-top:.4rem">Bản ghi thử (_diag) không được tính vào thống kê.</div>`;
+}
+
 async function loadStats(){
   document.getElementById('lastUpdated').textContent = 'Đang tải dữ liệu...';
   const token = await ensureFbAuth();
@@ -207,14 +231,20 @@ async function loadStats(){
     document.getElementById('lastUpdated').textContent = 'Không thể kết nối tới Firebase. Thử tải lại.';
     return;
   }
-  let feedbackData = null, viewsData = null;
+  let feedbackData = null, viewsData = null, loadWarn = '';
   try{
     const [fbRes, vwRes] = await Promise.all([
       fetch(`${FB_URL}/feedback.json?auth=${token}`, { cache: 'no-store' }),
       fetch(`${FB_URL}/views.json?auth=${token}`, { cache: 'no-store' }),
     ]);
-    feedbackData = await fbRes.json();
-    viewsData = await vwRes.json();
+    feedbackData = fbRes.ok ? await fbRes.json() : null;
+    viewsData = vwRes.ok ? await vwRes.json() : null;
+    const bad = [];
+    if(!fbRes.ok) bad.push(`khảo sát (HTTP ${fbRes.status})`);
+    if(!vwRes.ok) bad.push(`lượt xem (HTTP ${vwRes.status})`);
+    if(bad.length){
+      loadWarn = '⚠️ Không đọc được dữ liệu ' + bad.join(', ') + ' — bấm "🔧 Kiểm tra ghi nhận" để xem cách xử lý.';
+    }
   }catch(e){
     document.getElementById('lastUpdated').textContent = 'Lỗi khi tải dữ liệu. Thử tải lại.';
     return;
@@ -224,7 +254,7 @@ async function loadStats(){
 
   const index = buildItemIndex();
   const agg = {}; // key -> {views, yes, no}
-  const allKeys = new Set([...Object.keys(feedbackData), ...Object.keys(viewsData)]);
+  const allKeys = new Set([...Object.keys(feedbackData), ...Object.keys(viewsData)].filter(k=>!k.startsWith('_')));
   let totalYes = 0, totalNo = 0, totalViews = 0;
   rawRowsForExport = [{ header: true }];
 
@@ -256,7 +286,7 @@ async function loadStats(){
 
   const now = new Date();
   document.getElementById('lastUpdated').textContent =
-    `Cập nhật lúc ${now.toLocaleTimeString('vi-VN')} · ${now.toLocaleDateString('vi-VN')}`;
+    `Cập nhật lúc ${now.toLocaleTimeString('vi-VN')} · ${now.toLocaleDateString('vi-VN')}` + (loadWarn ? '  ' + loadWarn : '');
 }
 
 function renderBranches(index, agg){
