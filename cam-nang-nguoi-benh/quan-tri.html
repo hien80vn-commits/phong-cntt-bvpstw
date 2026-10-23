@@ -34,7 +34,7 @@ input, select, textarea { font-family:var(--font); font-size:.92rem; }
 .login-wrap { max-width:520px; margin:0 auto; padding:2rem 1.25rem; }
 .login-card { background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:1.6rem; border-top:4px solid var(--purple); }
 .login-card h1 { font-size:1.3rem; color:var(--purple-d); margin-bottom:.3rem; }
-.login-card p.sub { color:var(--muted); font-size:.85rem; margin-bottom:1rem; }
+.login-card p.lead { color:var(--muted); font-size:.85rem; margin-bottom:1rem; }
 .field { display:block; margin-bottom:.85rem; }
 .field > span { display:block; font-size:.8rem; font-weight:700; color:var(--purple-d); margin-bottom:.25rem; }
 .field input[type=text], .field input[type=password], .field select { width:100%; padding:.6rem .75rem; border:2px solid var(--border); border-radius:10px; background:#fff; }
@@ -121,14 +121,14 @@ details.branch[open] > summary { border-bottom:1px solid var(--border); border-r
 
 <!-- ĐĂNG NHẬP -->
 <div id="denied" class="login-wrap" hidden>
-  <div class="login-card"><h1>🔒 Không có quyền truy cập</h1><p class="sub" id="deniedMsg"></p>
+  <div class="login-card"><h1>🔒 Không có quyền truy cập</h1><p class="lead" id="deniedMsg"></p>
     <a class="btn primary" id="deniedLink" href="../index.html" style="display:inline-block;text-decoration:none">← Về trang chủ Phòng CNTT để đăng nhập</a></div>
 </div>
 
 <div id="login" class="login-wrap" hidden>
   <div class="login-card">
     <h1>🔐 Quản trị Thư viện GDSK</h1>
-    <p class="sub" id="whoami">Dành cho cán bộ được phân quyền cập nhật nội dung. Đăng nhập bằng khóa truy cập (token) của kho dữ liệu.</p>
+    <p class="lead" id="whoami">Dành cho cán bộ được phân quyền cập nhật nội dung. Đăng nhập bằng khóa truy cập (token) của kho dữ liệu.</p>
     <details class="how">
       <summary>Chưa có khóa truy cập? Cách tạo (làm 1 lần)</summary>
       <ol>
