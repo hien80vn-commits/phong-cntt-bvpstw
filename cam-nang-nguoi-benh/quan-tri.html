@@ -607,7 +607,7 @@ async function doPublish(){
   const mb = upload.reduce((n,[,b])=>n+b.size,0);
   const ok = await confirmBox('Xác nhận xuất bản', `<p>Sẽ cập nhật thư viện đang chạy:</p><ul class="sumlist">
       <li>Tải lên <b>${upload.length}</b> tập tin ảnh/video mới (${fmtMB(mb)})</li><li>Lưu <b>${texts.length-2}</b> bài viết</li><li>Xóa <b>${deletes.length}</b> tập tin không còn dùng</li><li>Cập nhật cây nội dung và banner</li></ul>
-      <p class="hint">Trang thư viện thật cập nhật sau khoảng 1–2 phút. Có thể xem lại lịch sử và khôi phục bản cũ trong phần Commits của kho GitHub.</p>`, '🚀 Xuất bản');
+      <p class="hint">Trang thư viện thật cập nhật sau khoảng 1–2 phút. Mọi lần xuất bản đều được lưu lịch sử trên GitHub; nếu xuất bản nhầm, báo Phòng CNTT để khôi phục bản trước.</p>`, '🚀 Xuất bản');
   if(!ok) return;
   const prog = $('#btnPublish'); const old = prog.textContent; prog.disabled = true;
   try{
