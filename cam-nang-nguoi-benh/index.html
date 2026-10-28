@@ -326,7 +326,7 @@ function renderBranches(){
           <div class="branch-icon">${esc(b.icon)}</div>
           <div class="branch-body">
             <h3>${esc(b.id)}. ${esc(b.title)}</h3>
-            <p>${b.subs.length} tiểu mục</p>
+            <p>${b.subs.length ? b.subs.length + ' tiểu mục' : 'Đang xây dựng'}</p>
           </div>
         </button>
       `).join('')}
@@ -341,6 +341,7 @@ function renderSubs(branch){
       <h1>${esc(branch.icon)} ${esc(branch.title)}</h1>
       <span class="tap-note">👆 Chạm để xem nội dung — còn 1 bước nữa</span>
     </div>
+    ${branch.subs.length ? '' : '<div class="empty-state"><div class="ic">🛠️</div><p>Nội dung chủ đề này đang được biên soạn.<br>Vui lòng quay lại sau.</p></div>'}
     <div class="sub-list">
       ${branch.subs.map(s => {
         const n = s.items.length;
