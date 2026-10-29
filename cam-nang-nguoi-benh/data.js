@@ -296,6 +296,12 @@ const TREE = [
         "items": []
       }
     ]
+  },
+  {
+    "id": "8",
+    "icon": "📁",
+    "title": "Chỉ dẫn địa điểm trong tòa nhà",
+    "subs": []
   }
 ];
 
