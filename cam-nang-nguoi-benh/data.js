@@ -301,7 +301,23 @@ const TREE = [
     "id": "8",
     "icon": "📁",
     "title": "Chỉ dẫn địa điểm trong tòa nhà",
-    "subs": []
+    "subs": [
+      {
+        "id": "8.1",
+        "title": "Khu vực nhà A",
+        "items": []
+      },
+      {
+        "id": "8.2",
+        "title": "Khu vực nhà H",
+        "items": []
+      },
+      {
+        "id": "8.3",
+        "title": "Khu vực nhà G",
+        "items": []
+      }
+    ]
   }
 ];
 
